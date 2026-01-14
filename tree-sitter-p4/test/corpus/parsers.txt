@@ -1,0 +1,55 @@
+=========================
+Parser (No Parameters)
+=========================
+parser simple() {
+	state testing {}
+}
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserTypeDeclaration
+    (parser)
+    parser_name: (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+    )   
+   )
+  )
+ )
+)
+
+
+=========================
+Parser (Parameters)
+=========================
+parser imple(bool pname) {
+	state testing {}
+}
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserTypeDeclaration
+    (parser)
+    (identifier)
+    (nonEmptyParameterList
+     (parameter
+      (typeRef
+       (baseType
+	(bool)))
+      (identifier))))
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+    )   
+   )
+  )
+ )
+)

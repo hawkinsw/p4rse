@@ -1,0 +1,41 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "p4",
+      "camelcase": "P4",
+      "title": "P4",
+      "scope": "source.p4",
+      "file-types": [
+        "p4"
+      ],
+      "injection-regex": "^p4$",
+      "class-name": "TreeSitterP4"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "GPLv3",
+    "description": "A P4 Parser",
+    "authors": [
+      {
+        "name": "Will Hawkins",
+        "url": ""
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/tree-sitter/tree-sitter-p4",
+      "funding": ""
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "java": false,
+    "node": true,
+    "python": false,
+    "rust": false,
+    "swift": true,
+    "zig": false
+  }
+}
