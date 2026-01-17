@@ -12,6 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v4
-      - uses: tree-sitter/setup-action/cli@v2
-      - uses: tree-sitter/parser-test-action@v2
+      - uses: tree-sitter/setup-action@v2
+        with:
+          install-cli: true
+      - run: tree-sitter generate
+      - uses: tree-sitter/parser-test-action@v3
+        with:
+          test-swift: true
       - uses: tree-sitter/parse-action@v4
