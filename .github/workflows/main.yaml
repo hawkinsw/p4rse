@@ -10,16 +10,10 @@ jobs:
       run:
         working-directory: ./tree-sitter-p4
     steps:
+      - working-directory: ./tree-sitter-p4
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v4
       - uses: tree-sitter/setup-action@v2
         with:
           install-cli: true
-      - shell: bash
-        run: pwd
-      - run: ls -latr
       - uses: tree-sitter/parser-test-action@v3
-        working-directory: ./tree-sitter-p4
-      - run: pwd
-      - run: tree-sitter generate
-      - run: tree-sitter test
