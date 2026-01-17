@@ -17,7 +17,4 @@ jobs:
           install-cli: true
       - run: pwd
       - run: tree-sitter generate
-      - uses: tree-sitter/parser-test-action@v3
-        with:
-          test-swift: true
-      - uses: tree-sitter/parse-action@v4
+      - run: tree-sitter test
