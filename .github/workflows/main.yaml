@@ -15,7 +15,8 @@ jobs:
       - uses: tree-sitter/setup-action@v2
         with:
           install-cli: true
-      - run: pwd
+      - shell: bash
+        run: pwd
       - run: ls -latr
       - uses: tree-sitter/parser-test-action@v3
       - run: pwd
