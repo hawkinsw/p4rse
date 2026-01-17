@@ -1,5 +1,9 @@
 {
   "type": "module",
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "test": "tree-sitter test"
+  },
   "dependencies": {
     "tree-sitter-cli": "^0.26.3"
   }

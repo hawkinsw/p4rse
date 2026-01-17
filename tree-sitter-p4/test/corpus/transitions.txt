@@ -1,5 +1,5 @@
 =========================
-Parser (No Parameters)
+Simple Transition Statement (To Identifier)
 =========================
 parser simple() {
   state start {
@@ -33,13 +33,14 @@ parser simple() {
  )
 )
 
-
 =========================
-Parser (Parameters)
+Simple Transition Statement (To Select Expression)
 =========================
-parser imple(bool pname) {
+parser simple() {
   state start {
-    transition accept;
+    transition select (se) {
+      true: next_state;
+    };
   }
 };
 
@@ -50,16 +51,6 @@ parser imple(bool pname) {
    (parserType
     (parser)
     (identifier)
-    (parameterList
-     (parameter
-      (typeRef
-       (baseType
-        (bool)
-       )
-      )
-      (identifier)
-     )
-    )
    )
    (parserStates
     (parserState
@@ -68,7 +59,24 @@ parser imple(bool pname) {
      (parserTransitionStatement
       (transition)
       (transitionSelectionExpression
-       (identifier)
+       (selectExpression
+        (select)
+        (expression
+         (identifier)
+        )
+        (selectBody
+         (selectCase
+          (keysetExpression
+           (expression
+            (true)
+           )
+          )
+          (colon)
+          (identifier)
+         )
+         (semicolon)
+        )
+       )
       )
      )
      (semicolon)

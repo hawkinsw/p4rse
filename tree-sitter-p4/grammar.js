@@ -10,36 +10,31 @@
 export default grammar({
     name: 'p4',
     rules: {
-        // TODO: add the actual grammar rules
+        // Start symbol
         p4program: $ => optional(repeat($.declaration)),
-        declaration: $ => $.parserDeclaration,
 
-        parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.nonEmptyParameterList), ')'),
+        // Common
 
-        //parserDeclaration: $ => seq($.parserTypeDeclaration, $.optConstructorParameters, '{', $.parserLocalElements, $.parserStates, '}'),
-        parserDeclaration: $ => seq($.parserTypeDeclaration, optional($.constructorParameters), '{', seq(optional($.parserLocalElements), $.parserStates), '}'),
-
+        // Common - Parameters
         typeParameters: $ => seq('<', $.typeParameterList, '>'),
         typeParameterList: $ => choice("[a-z]+", seq($.typeParameterList, ',', "[a-z]+")),
-
-        nonEmptyParameterList: $ => choice($.parameter, seq($.nonEmptyParameterList, ',', $.parameter)),
+        parameterList: $ => choice($.parameter, seq($.parameterList, ',', $.parameter)),
         parameter: $ => choice(seq(optional($.annotations), optional($.direction), $.typeRef, $.identifier), seq(optional($.annotations), optional($.direction), $.typeRef, $.identifier, '=', $.expression)),
         direction: $ => choice($.in, $.out, $.inout),
 
+        // Common - Types
         typeRef: $ => $.baseType,
         baseType: $ => choice($.bool, $.error, $.string, $.int, $.bit /* omitting "templated" types" */),
+        constructorParameters: $ => seq('(', optional($.parameterList), ')'),
 
-        constructorParameters: $ => seq('(', optional($.nonEmptyParameterList), ')'),
-
+        // Common - Parsers
+        parserType: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
         parserLocalElements: $ => choice(seq($.parserLocalElements, $.parserLocalElement)),
         parserStates: $ => choice($.parserState, seq($.parserStates, $.parserState)),
-
-        // parserState: $ => seq(optional($.annotations), $.state, $.identifier , '{', $.parserStatements, $.transitionStatement, '}'),
-        parserState: $ => seq(optional($.annotations), $.state, $.identifier, '{', optional($.todo), '}'),
-
-        // Nothing, for now.
-        //parserLocalElement: $ => choice(constantDeclaration | variableDeclaration | instantiation | valueSetDeclaration)
+        parserState: $ => seq(optional($.annotations), $.state, $.identifier, '{', optional($.parserStatements), $.parserTransitionStatement, $.semicolon, '}'),
         parserLocalElement: $ => choice($.todo),
+        selectBody: $ => repeat1(seq($.selectCase, $.semicolon)),
+        selectCase: $ => seq($.keysetExpression, $.colon, $.identifier),
 
         annotations: $ => choice($.annotation, seq($.annotations, $.annotation)),
 
@@ -47,7 +42,37 @@ export default grammar({
         annotation: $ => choice(seq('@', "[a-z]+"), seq('@', "[a-z]+", '(', /* empty for now*/ ')'), seq('@', "[a-z]+", '[', /* empty for now */ ']')),
 
 
+        // Declarations
+        declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration), $.semicolon),
 
+        // Make separate productions for the parser type and the parser type declaration because the latter can have type parameters.
+        parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
+        parserDeclaration: $ => seq($.parserType, optional($.constructorParameters), '{', seq(optional($.parserLocalElements), $.parserStates), '}'),
+
+        // Statements
+
+        // General statements
+        statements: $ => repeat1(seq($.statement, $.semicolon)),
+        statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement),// Limited, so far.
+        blockStatement: $ => seq(optional($.annotations), '{', optional($.statements), '}'),
+        conditionalStatement: $ => choice(prec(1, seq($.if, '(', $.expression, ')', $.statement)), prec(2, seq($.if, '(', $.expression, ')', $.statement, $.else, $.statement))),
+        expressionStatement: $=> $.expression,
+
+        // Parser statements
+        parserStatements: $ => repeat1(seq($.parserStatement, $.semicolon)),
+        parserStatement: $ => choice($.conditionalStatement, $.parserBlockStatement, $.expressionStatement), // Limited, so far.
+        parserBlockStatement: $ => seq(optional($.annotations), '{', $.parserStatements, '}'),
+        parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression),
+
+        // Expressions
+        expression: $ => choice($.identifier, $.integer, $.true, $.false), // Very limited.
+        selectExpression: $ => seq($.select, '(', $.expression, ')', '{', $.selectBody, '}'), // TODO: Should be expression list and not just a single expression
+        transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
+        keysetExpression: $ => $.expression,
+
+        // Tokens
+        semicolon: $ => ";",
+        colon: $ => ":",
         todo: $ => "todo",
         abstract: $ => "abstract",
         action: $ => "action",
@@ -75,7 +100,7 @@ export default grammar({
         match_kind: $ => "match_kind",
         type: $ => "type",
         out: $ => "out",
-        parser: $ => token.immediate("parser"),
+        parser: $ => "parser",
         package: $ => "package",
         pragma: $ => "pragma",
         return: $ => "return",
@@ -92,13 +117,11 @@ export default grammar({
         varbit: $ => "varbit",
         valueset: $ => "valueset",
         void: $ => "void",
-        identifier: $ => /[a-z]+/,
-        type_identifier: $ => token.immediate(/[a-z]+/),
+        identifier: $ => /[a-z_]+/,
+        type_identifier: $ => /[a-z]+/,
         string_literal: $ => /".*"/,
         integer: $ => /[0-9]+/,
 
-        // Very limited.
-        expression: $ => choice($.integer, $.true),
     },
 }
 );

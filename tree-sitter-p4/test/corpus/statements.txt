@@ -1,0 +1,187 @@
+=========================
+Simple If Statement (No Else)
+=========================
+parser simple() {
+  state start {
+    if (true) {
+    };
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (conditionalStatement
+        (if)
+        (expression
+         (true)
+        )
+        (statement
+         (blockStatement)
+        )
+       )
+      )
+      (semicolon)
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+     (semicolon)
+    )
+   )
+  )
+  (semicolon)
+ )
+)
+
+=========================
+Simple If Statement (Else)
+=========================
+parser simple() {
+  state start {
+    if (true) {
+    } else {
+    };
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (conditionalStatement
+        (if)
+        (expression
+         (true)
+        )
+        (statement
+         (blockStatement)
+        )
+        (else)
+        (statement
+         (blockStatement)
+        )
+       )
+      )
+      (semicolon)
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+     (semicolon)
+    )
+   )
+  )
+  (semicolon)
+ )
+)
+
+=========================
+Simple If Statement (With Body)
+=========================
+parser simple() {
+  state start {
+    if (true) {
+      true;
+    } else {
+      false;
+    };
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (conditionalStatement
+  (if)
+        (expression
+         (true)
+        )
+        (statement
+         (blockStatement
+          (statements
+           (statement
+            (expressionStatement
+             (expression
+              (true)
+             )
+            )
+           )
+           (semicolon)
+          )
+         )
+        )
+        (else)
+        (statement
+         (blockStatement
+          (statements
+           (statement
+            (expressionStatement
+             (expression
+              (false)
+             )
+            )
+           )
+           (semicolon)
+          )
+         )
+        )
+       )
+      )
+      (semicolon)
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+     (semicolon)
+    )
+   )
+  )
+  (semicolon)
+ )
+)
+
