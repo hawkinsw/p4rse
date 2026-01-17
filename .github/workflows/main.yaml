@@ -19,3 +19,5 @@ jobs:
         shell: sh
         run: pwd && ls
       - uses: tree-sitter/parser-test-action@v3
+        with:
+          test-parser-cmd: pwd
