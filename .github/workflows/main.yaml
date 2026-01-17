@@ -21,4 +21,5 @@ jobs:
       - uses: tree-sitter/parser-test-action@v3
         with:
           generate: false
+          working-directory: ./tree-sitter-p4
           test-parser-cmd: pwd
