@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: install-treesitter
     steps:
+      - uses: actions/checkout@v2
       # Because our tree-sitter code is in a subdirectory,
       # and working-directory does not apply to uses, we
       # are forced to specify calls to the CI ourselves.
