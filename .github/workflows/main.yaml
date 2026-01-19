@@ -15,5 +15,5 @@ jobs:
       # and working-directory does not apply to uses, we
       # are forced to specify calls to the CI ourselves.
       # See https://github.com/orgs/community/discussions/25742
-      - run: tree-sitter test
+      - run: /opt/hostedtoolcache/tree-sitter/cli/bin/tree-sitter test
         working-directory: ./tree-sitter-p4
