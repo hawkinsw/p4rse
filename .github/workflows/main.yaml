@@ -3,10 +3,12 @@ on: [push, pull_request]
 name: Continuous Integration
 
 jobs:
+  treesitter-pre:
+    uses: ./.github/workflows/treesitter.yaml
   grammar-tests:
     name: Grammar Tests
     runs-on: ubuntu-latest
-    uses: ./.github/workflows/treesitter.yaml
+    needs: treesitter-pre
     steps:
       - uses: actions/checkout@v2
       # Because our tree-sitter code is in a subdirectory,
