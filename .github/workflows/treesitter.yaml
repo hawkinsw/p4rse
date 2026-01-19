@@ -13,7 +13,11 @@ jobs:
       - uses: tree-sitter/setup-action@v2
         with:
           install-cli: true
-      - run: tree-sitter generate
+  generate-grammar:
+    name: Install Treesitter
+    runs-on: ubuntu-latest
+    needs: install-treesitter
+    steps:
+      - run: /opt/hostedtoolcache/tree-sitter/cli/bin/tree-sitter generate
         working-directory: ./tree-sitter-p4
-      - run: env
 
