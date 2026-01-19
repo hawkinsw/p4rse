@@ -1,17 +1,23 @@
-on: [push, pull_request]
+on: [workflow_call]
 
-name: Continuous Integration
+name: Install Treesitter
 
 jobs:
-  grammar-tests:
-    name: Grammar Tests
+  install-treesitter:
+    name: Install Treesitter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/treesitter.yaml
+      - uses: actions/setup-node@v4
+      - uses: tree-sitter/setup-action@v2
+        with:
+          install-cli: true
+  generate-treesitter:
+    name: Generate Grammar
+    needs: install-treesitter
       # Because our tree-sitter code is in a subdirectory,
       # and working-directory does not apply to uses, we
       # are forced to specify calls to the CI ourselves.
       # See https://github.com/orgs/community/discussions/25742
-      - run: tree-sitter test
+      - run: tree-sitter generate
         working-directory: ./tree-sitter-p4
