@@ -6,9 +6,9 @@ jobs:
   grammar-tests:
     name: Grammar Tests
     runs-on: ubuntu-latest
+    uses: ./.github/workflows/treesitter.yaml
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/treesitter.yaml
       # Because our tree-sitter code is in a subdirectory,
       # and working-directory does not apply to uses, we
       # are forced to specify calls to the CI ourselves.
