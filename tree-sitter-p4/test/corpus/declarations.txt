@@ -1,0 +1,49 @@
+=========================
+Simple Declaration
+=========================
+parser simple() {
+  state start {
+    bool l;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserLocalElements
+      (parserLocalElement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (bool)
+         )
+        )
+        (identifier)
+       )
+      )
+      (semicolon)
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+     (semicolon)
+    )
+   )
+  )
+  (semicolon)
+ )
+)
+

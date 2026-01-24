@@ -29,17 +29,23 @@ export default grammar({
 
         // Common - Parsers
         parserType: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
-        parserLocalElements: $ => choice(seq($.parserLocalElements, $.parserLocalElement)),
-        parserStates: $ => choice($.parserState, seq($.parserStates, $.parserState)),
-        parserState: $ => seq(optional($.annotations), $.state, $.identifier, '{', optional($.parserStatements), $.parserTransitionStatement, $.semicolon, '}'),
-        parserLocalElement: $ => choice($.todo),
+
+        // Mark with higher precedence so that the local states are preferred when parsing!
+        // TODO: Test!
+        parserLocalElements: $ => prec(2, repeat1(seq($.parserLocalElement, $.semicolon))),
+
+        parserStates: $ => repeat1($.parserState),
+        parserState: $ => seq(optional($.annotations), $.state, $.identifier, '{', optional($.parserLocalElements), optional($.parserStatements), $.parserTransitionStatement, $.semicolon, '}'),
+
+        parserLocalElement: $ => choice($.variableDeclaration, $.todo),
+
         selectBody: $ => repeat1(seq($.selectCase, $.semicolon)),
         selectCase: $ => seq($.keysetExpression, $.colon, $.identifier),
 
-        annotations: $ => choice($.annotation, seq($.annotations, $.annotation)),
+        annotations: $ => repeat1($.annotation),
 
         //annotation: $ => choice(seq('@', "[a-z]+"), seq('@', "[a-z]+", '(', $.annotationBody, ')'), seq('@', "[a-z]+", '[', $.structuredAnnotationBody, ']')),
-        annotation: $ => choice(seq('@', "[a-z]+"), seq('@', "[a-z]+", '(', /* empty for now*/ ')'), seq('@', "[a-z]+", '[', /* empty for now */ ']')),
+        annotation: $ => choice(seq('@', "[a-z]+")),// seq('@', "[a-z]+", '(', /* empty for now*/ ')'), seq('@', "[a-z]+", '[', /* empty for now */ ']')),
 
 
         // Declarations
@@ -47,7 +53,9 @@ export default grammar({
 
         // Make separate productions for the parser type and the parser type declaration because the latter can have type parameters.
         parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
-        parserDeclaration: $ => seq($.parserType, optional($.constructorParameters), '{', seq(optional($.parserLocalElements), $.parserStates), '}'),
+        parserDeclaration: $ => seq($.parserType, optional($.constructorParameters), '{', optional($.parserLocalElements), $.parserStates, '}'),
+
+        variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq('=', $.expression))),
 
         // Statements
 
