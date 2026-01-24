@@ -146,7 +146,7 @@ public struct ParserStates {
 nonisolated(unsafe) public let accept: ParserState = ParserState(name: "accept")
 nonisolated(unsafe) public let reject: ParserState = ParserState(name: "reject")
 
-public struct Parser: CustomStringConvertible {
+public struct Parser {
     public var states: [ParserState] = Array()
     public var count: Int {
         states.count
@@ -161,9 +161,5 @@ public struct Parser: CustomStringConvertible {
             }
         }
         return .none
-    }
-
-    public var description: String {
-        return "Parser"
     }
 }

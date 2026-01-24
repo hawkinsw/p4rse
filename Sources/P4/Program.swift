@@ -78,11 +78,7 @@ public struct Scopes: CustomStringConvertible {
     }
 }
 
-public struct Program: CustomStringConvertible {
+public struct Program {
     public var parsers: [P4.Parser] = Array()
     public init() {}
-
-    public var description: String {
-        return "Program"
-    }
 }
