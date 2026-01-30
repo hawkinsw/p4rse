@@ -26,7 +26,7 @@ let package = Package(
     ],
     targets: [
         .macro(
-            name: "P4Macros",
+            name: "Macros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),

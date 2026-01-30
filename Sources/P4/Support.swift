@@ -65,8 +65,8 @@ public enum Result<T>: Equatable, CustomStringConvertible {
 }
 
 @freestanding(expression) public macro RequireOkResult<T>(_: Result<T>) -> Bool =
-    #externalMacro(module: "P4Macros", type: "RequireResult")
+    #externalMacro(module: "Macros", type: "RequireResult")
 @freestanding(expression) public macro RequireErrorResult<T>(_: Error, _: Result<T>) -> Bool =
-    #externalMacro(module: "P4Macros", type: "RequireErrorResult")
+    #externalMacro(module: "Macros", type: "RequireErrorResult")
 @freestanding(expression) public macro UseOkResult<T>(_: Result<T>) -> T =
-    #externalMacro(module: "P4Macros", type: "UseOkResult")
+    #externalMacro(module: "Macros", type: "UseOkResult")
