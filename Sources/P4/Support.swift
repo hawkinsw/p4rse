@@ -32,8 +32,8 @@ public struct Nothing: CustomStringConvertible {
 }
 
 
-public enum Result<T>: Equatable, CustomStringConvertible {
-    case Ok(T)
+public enum Result<OKT>: Equatable {
+    case Ok(OKT)
     case Error(Error)
 
     public static func == (lhs: Result, rhs: Result) -> Bool {
@@ -53,13 +53,26 @@ public enum Result<T>: Equatable, CustomStringConvertible {
         }
         return nil
     }
+}
 
+extension Result where OKT: CustomStringConvertible {
     public var description: String {
         switch self {
             case Result.Error(let e):
                 return e.msg
             case Result.Ok(let o):
                 return "\(o)"
+        }
+    }
+}
+
+extension Result {
+    public var description: String {
+        switch self {
+            case Result.Error(let e):
+                return e.msg
+            case Result.Ok(_):
+                return "Ok"
         }
     }
 }
