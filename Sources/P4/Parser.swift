@@ -65,15 +65,13 @@ public struct ParserTransitionStatement: ParserStatement {
 }
 
 public struct VariableDeclarationStatement: ParserStatement {
-    public var id: Identifier
-    public init(withIdentifier id: Identifier) {
-        self.id = id
+    public var variable: Variable
+    public init(withVariable variable: Variable) {
+        self.variable = variable
     }
 
     public func evaluate(execution: ParserExecution) -> ParserExecution {
-        print("Evaluating!")
-        execution.scopes.scopes[0].variables.append(Variable(name: id.name, withValue: id.value, isConstant: false))
-        print("Execution: \(execution)")
+        execution.scopes.scopes[0].variables.append(self.variable)
         return execution
     }
 }

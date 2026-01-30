@@ -15,30 +15,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-public class Identifier: CustomStringConvertible {
+public class Identifier: CustomStringConvertible, Equatable {
     var name: String
-    var value: Value
 
-    public init(name: String, withValue value: Value) {
+    public init(name: String) {
         self.name = name
-        self.value = value
     }
 
     public var description: String {
-        return "\(name) = \(value)"
+        return "\(name)"
+    }
+
+    public static func ==(lhs: Identifier, rhs: Identifier) -> Bool {
+        return lhs.name == rhs.name
     }
 }
 
 public class Variable: Identifier {
     var constant: Bool
+    var value: ValueType
 
-    public init(name: String, withValue value: Value, isConstant constant: Bool) {
+    public init(name: String, withValue value: ValueType, isConstant constant: Bool) {
         self.constant = constant
-        super.init(name: name, withValue: value)
+        self.value = value
+        super.init(name: name)
     }
 
     public override var description: String {
-        return "\(super.description) \(constant ? "(constant)" : "")"
+        return "\(super.description) = \(value) \(constant ? "(constant)" : "")"
+    }
+
+    public var value_type: ValueType {
+        get {
+            value
+        }
     }
 }
 
@@ -49,9 +59,24 @@ public struct Scope: CustomStringConvertible{
     public var description: String {
         var result = String()
         for v in variables {
-            result += "\(v)"
+            result += "\(v)\n"
         }
         return result
+    }
+
+    public var count: Int {
+        get {
+            variables.count
+        }
+    }
+
+    public func lookup(identifier: Identifier) -> Variable? {
+        for v in variables {
+            if v == identifier {
+                return v
+            }
+        }
+        return .none
     }
 }
 
@@ -71,10 +96,22 @@ public struct Scopes: CustomStringConvertible {
     public var description: String {
         var result = String()
         for s in scopes {
-            result += "Scope: \(s)\n"
+            result += "Scope:\n\(s)\n"
         }
 
         return result
+    }
+
+    public var current: Scope? {
+        get {
+            scopes.last
+        }
+    }
+
+    public var count: Int {
+        get {
+            scopes.count
+        }
     }
 }
 

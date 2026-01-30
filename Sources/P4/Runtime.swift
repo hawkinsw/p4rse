@@ -41,14 +41,12 @@ public class ParserRuntime: CustomStringConvertible {
         return Result.Ok(P4.ParserRuntime(execution: P4.ParserExecution(start_state)))
     }
 
-    public func run(input: P4.Packet) -> Result<Nothing> {
+    public func run(input: P4.Packet) -> Result<ParserExecution> {
         execution.scopes.enter()
-        print("Execution: \(execution)")
         while execution.state != P4.accept && execution.state != P4.reject {
             execution = execution.state.evaluate(execution: execution)
-            print("Execution: \(execution)")
         }
-        return .Ok(Nothing())
+        return .Ok(execution)
     }
 
     public var description: String {

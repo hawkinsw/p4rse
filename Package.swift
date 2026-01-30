@@ -31,8 +31,6 @@ let package = Package(
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ]),
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "Parser",
             dependencies: [
@@ -52,11 +50,11 @@ let package = Package(
         ),
         .target(
             name: "P4",
-            dependencies: ["P4Macros"]
+            dependencies: ["Macros", "TreeSitterExtensions"]
         ),
         .testTarget(
             name: "ParserTests",
-            dependencies: ["Parser", "P4", "P4Macros"]
+            dependencies: ["Parser", "P4", "Macros", "TreeSitterExtensions"]
         ),
     ]
 )

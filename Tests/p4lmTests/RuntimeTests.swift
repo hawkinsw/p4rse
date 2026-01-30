@@ -17,7 +17,7 @@
 
 import Foundation
 import P4
-import P4Macros
+import Macros
 import SwiftTreeSitter
 import Testing
 import TreeSitter
@@ -56,27 +56,41 @@ import TreeSitterP4
             P4.ParserRuntime.create(program: program.parsers[0])))
 }
 
-@Test func test_simple_runtime_output() async throws {
+@Test func test_simple_local_element_variable_declaration() async throws {
     let simple_parser_declaration = """
         parser simple() {
            state start {
-               bool b = true;
+               bool b = false;
+               string s = "testing";
+               true;
+               false;
                transition reject;
            }
         }
         """
 
-    /*
-    TODO: Add tests for "semantic" parsing failures. Here's an example!
-    print(Parser.Program(simple_parser_declaration))
-    #expect(
-        #RequireErrorResult(
-            Error(
-                withMessage:
-                    "Failed to parse a local element: <capture 1 \"state-local-elements\": <parserLocalElements range: {42, 14} childCount: 2>>"
-            ), Parser.Program(simple_parser_declaration)))
-    */
     let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
     let runtime = try #UseOkResult(P4.ParserRuntime.create(program: program.parsers[0]))
-    #expect(runtime.run(input: P4.Packet()) == P4.Result.Ok(Nothing()))
+
+    // This seems awkward to me!
+    // TODO: Is there a better way?
+    guard case P4.Result.Ok(let execution_result) = runtime.run(input: P4.Packet()) else {
+        assert(false)
+    }
+
+    // There should be 1 scope.
+    #expect(execution_result.scopes.count == 1)
+
+    guard let scope = execution_result.scopes.current else {
+        assert(false)
+    }
+
+    // There are two variables declared.
+    #expect(scope.count == 2)
+
+    // Check the names/values of the variables in scope.
+    let b = try #require(scope.lookup(identifier: Identifier(name: "b")))
+    let s = try #require(scope.lookup(identifier: Identifier(name: "s")))
+    #expect(b.value_type == ValueType.Boolean(false))
+    #expect(s.value_type == ValueType.String("\"testing\""))
 }

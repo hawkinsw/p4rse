@@ -15,15 +15,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-public enum ValueType: CustomStringConvertible {
+public enum ValueType: CustomStringConvertible, Equatable {
     case Boolean(Bool)
+    case Int(Int)
+    case String(String)
 
     public var description: String {
         switch self {
             case ValueType.Boolean(let b):
                 return "\(b) of Boolean"
+            case ValueType.Int(let i):
+                return "\(i) of Int"
+            case ValueType.String(let s):
+                return "\(s) of String"
         }
     }
+
+    public static func==(lhs: ValueType, rhs: ValueType) -> Bool {
+        switch (lhs,rhs) {
+            case (ValueType.Boolean(let lhsb), ValueType.Boolean(let rhsb)):
+                return lhsb == rhsb
+            case (ValueType.String(let lhsb), ValueType.String(let rhsb)):
+                return lhsb == rhsb
+            case (ValueType.Int(let lhsb), ValueType.Int(let rhsb)):
+                return lhsb == rhsb
+            default: return false
+        }
+    }
+
 }
 
 public struct Value: CustomStringConvertible {

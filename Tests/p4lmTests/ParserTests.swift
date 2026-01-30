@@ -22,7 +22,7 @@ import TreeSitterP4
 import Foundation
 import P4
 
-import P4Macros
+import Macros
 
 @testable import Parser
 
