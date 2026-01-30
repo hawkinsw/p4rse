@@ -39,11 +39,17 @@ let package = Package(
                 .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
                 .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
                 .product(name: "TreeSitterP4", package: "tree-sitter-p4"),
+                .target(name: "TreeSitterExtensions"),
                 .target(name: "P4"),
             ],
         ),
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        .target(
+            name: "TreeSitterExtensions",
+            dependencies: [
+                .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
+                .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
+            ],
+        ),
         .target(
             name: "P4",
             dependencies: ["P4Macros"]
