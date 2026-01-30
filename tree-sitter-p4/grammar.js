@@ -66,7 +66,7 @@ export default grammar({
         parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
         parserDeclaration: $ => seq($.parserType, optional($.constructorParameters), '{', optional($.parserLocalElements), $.parserStates, '}'),
 
-        variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq('=', $.expression))),
+        variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq($.assignment, $.expression))),
 
         // Statements
 
@@ -84,7 +84,7 @@ export default grammar({
         parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression),
 
         // Expressions
-        expression: $ => choice($.identifier, $.integer, $.true, $.false), // Very limited.
+        expression: $ => choice($.identifier, $.integer, $.true, $.false, $.string_literal), // Very limited.
         selectExpression: $ => seq($.select, '(', $.expression, ')', '{', $.selectBody, '}'), // TODO: Should be expression list and not just a single expression
         transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
         keysetExpression: $ => $.expression,
@@ -92,6 +92,7 @@ export default grammar({
         // Tokens
         semicolon: $ => ";",
         colon: $ => ":",
+        assignment: $ => "=",
         todo: $ => "todo",
         abstract: $ => "abstract",
         action: $ => "action",

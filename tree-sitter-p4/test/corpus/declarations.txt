@@ -47,3 +47,154 @@ parser simple() {
  )
 )
 
+=========================
+Simple Declaration (int)
+=========================
+parser simple() {
+  state start {
+    int l;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserLocalElements
+      (parserLocalElement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (int)
+         )
+        )
+        (identifier)
+       )
+      )
+      (semicolon)
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+     (semicolon)
+    )
+   )
+  )
+  (semicolon)
+ )
+)
+
+=========================
+Simple Declaration (string)
+=========================
+parser simple() {
+  state start {
+    string l;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserLocalElements
+      (parserLocalElement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (string)
+         )
+        )
+        (identifier)
+       )
+      )
+      (semicolon)
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+     (semicolon)
+    )
+   )
+  )
+  (semicolon)
+ )
+)
+
+=========================
+Simple Declaration (string with initial value)
+=========================
+parser simple() {
+  state start {
+    string l = "testing";
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserLocalElements
+      (parserLocalElement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (string)
+         )
+        )
+        (identifier)
+        (assignment)
+        (expression
+         (string_literal)
+        )
+       )
+      )
+      (semicolon)
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+     (semicolon)
+    )
+   )
+  )
+  (semicolon)
+ )
+)
+
