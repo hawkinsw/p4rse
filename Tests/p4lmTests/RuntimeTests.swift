@@ -1,7 +1,7 @@
 // p4rse, Copyright 2026, Will Hawkins
 //
 // This file is part of p4rse.
-
+//
 // This file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -16,7 +16,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import Foundation
-import P4
+import Runtime
+import Common
+import Lang
 import Macros
 import SwiftTreeSitter
 import Testing
@@ -36,7 +38,7 @@ import TreeSitterP4
         """
 
     let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-    #expect(#RequireOkResult(P4.ParserRuntime.create(program: program.parsers[0])))
+    #expect(#RequireOkResult(Runtime.ParserRuntime.create(program: program.parsers[0])))
 }
 
 @Test func test_simple_runtime_no_start_state() async throws {
@@ -53,7 +55,7 @@ import TreeSitterP4
     #expect(
         #RequireErrorResult<ParserRuntime>(
             Error(withMessage: "Could not find the start state"),
-            P4.ParserRuntime.create(program: program.parsers[0])))
+            Runtime.ParserRuntime.create(program: program.parsers[0])))
 }
 
 @Test func test_simple_local_element_variable_declaration() async throws {
@@ -70,11 +72,11 @@ import TreeSitterP4
         """
 
     let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-    let runtime = try #UseOkResult(P4.ParserRuntime.create(program: program.parsers[0]))
+    let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program.parsers[0]))
 
     // This seems awkward to me!
     // TODO: Is there a better way?
-    guard case P4.Result.Ok(let execution_result) = runtime.run(input: P4.Packet()) else {
+    guard case Common.Result.Ok(let (state_result, execution_result)) = runtime.run(input: Packet()) else {
         assert(false)
     }
 
@@ -85,6 +87,9 @@ import TreeSitterP4
         assert(false)
     }
 
+    // We should be in the accept state.
+    #expect(state_result == Lang.accept)
+
     // There are two variables declared.
     #expect(scope.count == 2)
 
@@ -93,4 +98,7 @@ import TreeSitterP4
     let s = try #require(scope.lookup(identifier: Identifier(name: "s")))
     #expect(b.value_type == ValueType.Boolean(false))
     #expect(s.value_type == ValueType.String("\"testing\""))
+
+
+
 }

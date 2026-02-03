@@ -1,7 +1,7 @@
 // p4rse, Copyright 2026, Will Hawkins
 //
 // This file is part of p4rse.
-
+//
 // This file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +20,8 @@ import TreeSitter
 import SwiftTreeSitter
 import TreeSitterP4
 import Foundation
-import P4
+import Runtime
+import Common
 
 import Macros
 

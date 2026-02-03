@@ -1,7 +1,7 @@
 // p4rse, Copyright 2026, Will Hawkins
 //
 // This file is part of p4rse.
-
+//
 // This file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,42 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-public class Identifier: CustomStringConvertible, Equatable {
-    var name: String
+open class ProgramExecution: CustomStringConvertible {
+    public var scopes: Scopes = Scopes()
 
-    public init(name: String) {
-        self.name = name
-    }
+    public init() {}
 
-    public var description: String {
-        return "\(name)"
-    }
-
-    public static func ==(lhs: Identifier, rhs: Identifier) -> Bool {
-        return lhs.name == rhs.name
+    open var description: String {
+        return "Runtime:\nScopes: \(scopes)"
     }
 }
 
-public class Variable: Identifier {
-    var constant: Bool
-    var value: ValueType
-
-    public init(name: String, withValue value: ValueType, isConstant constant: Bool) {
-        self.constant = constant
-        self.value = value
-        super.init(name: name)
-    }
-
-    public override var description: String {
-        return "\(super.description) = \(value) \(constant ? "(constant)" : "")"
-    }
-
-    public var value_type: ValueType {
-        get {
-            value
-        }
-    }
-}
 
 public struct Scope: CustomStringConvertible{
     var variables: [Variable] = Array()
@@ -77,6 +51,12 @@ public struct Scope: CustomStringConvertible{
             }
         }
         return .none
+    }
+
+    public mutating func declare(variable: Variable) -> Scope {
+        var s = self
+        s.variables.append(variable)
+        return s
     }
 }
 
@@ -108,14 +88,17 @@ public struct Scopes: CustomStringConvertible {
         }
     }
 
+    public func declare(variable: Variable) -> Scopes {
+        var s = self
+        if var scope = s.scopes.popLast() {
+            s.scopes.append(scope.declare(variable: variable))
+        }
+        return s
+    }
+
     public var count: Int {
         get {
             scopes.count
         }
     }
-}
-
-public struct Program {
-    public var parsers: [P4.Parser] = Array()
-    public init() {}
 }

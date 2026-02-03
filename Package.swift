@@ -14,8 +14,16 @@ let package = Package(
             targets: ["Parser"]
         ),
         .library(
-            name: "P4",
-            targets: ["P4"]
+            name: "Common",
+            targets: ["Common"]
+        ),
+        .library(
+            name: "Lang",
+            targets: ["Lang"]
+        ),
+        .library(
+            name: "Runtime",
+            targets: ["Runtime"]
         ),
     ],
     dependencies: [
@@ -38,7 +46,8 @@ let package = Package(
                 .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
                 .product(name: "TreeSitterP4", package: "tree-sitter-p4"),
                 .target(name: "TreeSitterExtensions"),
-                .target(name: "P4"),
+                .target(name: "Common"),
+                .target(name: "Lang"),
             ],
         ),
         .target(
@@ -49,12 +58,20 @@ let package = Package(
             ],
         ),
         .target(
-            name: "P4",
-            dependencies: ["Macros", "TreeSitterExtensions"]
+            name: "Common",
+            dependencies: ["Macros"]
+        ),
+        .target(
+            name: "Lang",
+            dependencies: ["Common"]
+        ),
+        .target(
+            name: "Runtime",
+            dependencies: ["Lang", "Common"]
         ),
         .testTarget(
             name: "ParserTests",
-            dependencies: ["Parser", "P4", "Macros", "TreeSitterExtensions"]
+            dependencies: ["Parser", "Runtime", "Lang", "Macros", "TreeSitterExtensions", "Common"]
         ),
     ]
 )

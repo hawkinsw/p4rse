@@ -1,7 +1,7 @@
 // p4rse, Copyright 2026, Will Hawkins
 //
 // This file is part of p4rse.
-
+//
 // This file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -14,3 +14,18 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+import Common
+import Lang
+
+protocol EvaluatableParserState {
+  func evaluate(execution: ProgramExecution) -> (ParserState, ProgramExecution)
+}
+
+protocol EvaluatableParserTransitionStatement {
+  func transition(execution: ProgramExecution) -> (ParserState, ProgramExecution)
+}
+
+public protocol Execution {
+    func execute() -> (ParserState, ProgramExecution)
+}

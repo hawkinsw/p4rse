@@ -1,7 +1,7 @@
 // p4rse, Copyright 2026, Will Hawkins
 //
 // This file is part of p4rse.
-
+//
 // This file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,46 +15,48 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import P4
+import Common
+import Lang
+import Runtime
 import SwiftTreeSitter
-import TreeSitterP4
 import TreeSitterExtensions
+import TreeSitterP4
 
 let p4lang = Language(tree_sitter_p4())
 
 public protocol ParseableValueType {
-  static func Parse(type: String, withValue value: String) -> Result<P4.ValueType>
+  static func Parse(type: String, withValue value: String) -> Result<ValueType>
 }
 
 // This seems unnecessary because all the value types are in a single enum?
-extension P4.ValueType: ParseableValueType {
-  public static func Parse(type: String, withValue value: String) -> Result<P4.ValueType> {
+extension ValueType: ParseableValueType {
+  public static func Parse(type: String, withValue value: String) -> Result<ValueType> {
     if type == "bool" {
       // Default
       if value == "" {
-        return .Ok(P4.ValueType.Boolean(false))
+        return .Ok(ValueType.Boolean(false))
       }
 
       if value == "true" {
-        return .Ok(P4.ValueType.Boolean(true))
+        return .Ok(ValueType.Boolean(true))
       } else if value == "false" {
-        return .Ok(P4.ValueType.Boolean(false))
+        return .Ok(ValueType.Boolean(false))
       }
       return .Error(Error(withMessage: "Cannot convert \(value) into boolean value"))
 
     } else if type == "string" {
-      return .Ok(P4.ValueType.String(value))
+      return .Ok(ValueType.String(value))
 
     } else if type == "int" {
       // Default
       if value == "" {
-        return .Ok(P4.ValueType.Int(0))
+        return .Ok(ValueType.Int(0))
       }
 
       guard let parsed_value = Swift.Int(value) else {
         return .Error(Error(withMessage: "Cannot convert \(value) into integer value"))
       }
-      return .Ok(P4.ValueType.Int(parsed_value))
+      return .Ok(ValueType.Int(parsed_value))
     }
 
     return .Error(Error(withMessage: "Invalid type"))
@@ -62,11 +64,13 @@ extension P4.ValueType: ParseableValueType {
 }
 
 public protocol ParseableParserStatement {
-  static func Parse(node: Node, inTree tree: MutableTree) -> Result<P4.ParserStatement?>
+  static func Parse(node: Node, inTree tree: MutableTree) -> Result<EvaluatableParserStatement?>
 }
 
-extension P4.ExpressionStatement: ParseableParserStatement {
-  public static func Parse(node: Node, inTree tree: MutableTree) -> Result<P4.ParserStatement?> {
+extension ExpressionStatement: ParseableParserStatement {
+  public static func Parse(
+    node: Node, inTree tree: MutableTree
+  ) -> Result<EvaluatableParserStatement?> {
     guard
       let parser_state_query = try? SwiftTreeSitter.Query(
         language: p4lang,
@@ -82,16 +86,16 @@ extension P4.ExpressionStatement: ParseableParserStatement {
     let expression_capture = query_result.captures(named: "expression")
     if !expression_capture.isEmpty {
       // TODO: Actually create an ExpressionStatement
-      return Result.Ok(P4.ExpressionStatement())
+      return Result.Ok(ExpressionStatement())
     }
-
     return Result.Ok(.none)
-
   }
 }
 
-extension P4.VariableDeclarationStatement: ParseableParserStatement {
-  public static func Parse(node: Node, inTree tree: MutableTree) -> Result<P4.ParserStatement?> {
+extension VariableDeclarationStatement: ParseableParserStatement {
+  public static func Parse(
+    node: Node, inTree tree: MutableTree
+  ) -> Result<EvaluatableParserStatement?> {
     guard
       let parser_state_query = try? SwiftTreeSitter.Query(
         language: p4lang,
@@ -125,10 +129,10 @@ extension P4.VariableDeclarationStatement: ParseableParserStatement {
         ""
       }
 
-    return switch P4.ValueType.Parse(type: type_name, withValue: value) {
+    return switch ValueType.Parse(type: type_name, withValue: value) {
     case Result.Ok(let value_type):
       Result.Ok(
-        P4.VariableDeclarationStatement(
+        VariableDeclarationStatement(
           withVariable: Variable(name: variable_name, withValue: value_type, isConstant: false)))
     case Result.Error(let e):
       Result.Error(e)
@@ -139,9 +143,10 @@ extension P4.VariableDeclarationStatement: ParseableParserStatement {
 public struct Parser {
 
   public struct P4Parser {
+
     static func LocalElements(
       node: Node, inTree tree: MutableTree
-    ) -> Result<[P4.ParserStatement]> {
+    ) -> Result<[EvaluatableParserStatement]> {
 
       guard
         let parser_le_statement_query = try? SwiftTreeSitter.Query(
@@ -154,15 +159,15 @@ public struct Parser {
       }
 
       let localElementsParsers: [ParseableParserStatement.Type] = [
-        P4.VariableDeclarationStatement.self
+        VariableDeclarationStatement.self
       ]
 
-      var localElements: [P4.ParserStatement] = Array()
+      var localElements: [EvaluatableParserStatement] = Array()
 
       let qr = parser_le_statement_query.execute(node: node, in: tree)
       for raw_le_statement in qr {
         let raw_le_statement_capture = raw_le_statement.captures(named: "parser-local-element")
-        var parsed_le_statement: P4.ParserStatement? = .none
+        var parsed_le_statement: EvaluatableParserStatement? = .none
 
         for le_parser in localElementsParsers {
           if case Result.Ok(.some(let parsed)) = le_parser.Parse(
@@ -187,7 +192,7 @@ public struct Parser {
 
     static func Statements(
       node: Node, inTree tree: MutableTree
-    ) -> Result<[P4.ParserStatement]> {
+    ) -> Result<[EvaluatableParserStatement]> {
 
       guard
         let parser_statement_query = try? SwiftTreeSitter.Query(
@@ -200,16 +205,16 @@ public struct Parser {
       }
 
       let statementParsers: [ParseableParserStatement.Type] = [
-        P4.ExpressionStatement.self, P4.VariableDeclarationStatement.self,
+        ExpressionStatement.self, VariableDeclarationStatement.self,
       ]
 
-      var statements: [P4.ParserStatement] = Array()
+      var statements: [EvaluatableParserStatement] = Array()
 
       let qr = parser_statement_query.execute(node: node, in: tree)
       for raw_statement in qr {
         let raw_statement_capture = raw_statement.captures(named: "parser-statement")
 
-        var parsed_statement: P4.ParserStatement? = .none
+        var parsed_statement: EvaluatableParserStatement? = .none
 
         // Iterate through statement parsers and give each one a chance.
         for parser in statementParsers {
@@ -234,12 +239,11 @@ public struct Parser {
 
     static func TransitionStatement(
       node: Node, inTree tree: MutableTree
-    ) -> P4.ParserTransitionStatement?
-    {
-      return P4.ParserTransitionStatement()
+    ) -> ParserTransitionStatement? {
+      return ParserTransitionStatement()
     }
 
-    static func State(node: Node, inTree tree: MutableTree) -> Result<P4.ParserState> {
+    static func State(node: Node, inTree tree: MutableTree) -> Result<ParserState> {
       guard
         let parser_state_query = try? SwiftTreeSitter.Query(
           language: p4lang,
@@ -273,10 +277,10 @@ public struct Parser {
         if !state_le_capture.isEmpty {
           LocalElements(node: state_le_capture[0].node, inTree: tree)
         } else {
-          Result.Ok([P4.ParserStatement]())
+          Result.Ok([EvaluatableParserStatement]())
         }
 
-      guard case Result<[P4.ParserStatement]>.Ok(let parsed_les) = maybe_parsed_les else {
+      guard case Result<[EvaluatableParserStatement]>.Ok(let parsed_les) = maybe_parsed_les else {
         return Result.Error(maybe_parsed_les.error()!)
       }
 
@@ -284,22 +288,24 @@ public struct Parser {
         if !statements_capture.isEmpty {
           Statements(node: statements_capture[0].node, inTree: tree)
         } else {
-          Result.Ok([P4.ParserStatement]())
+          Result.Ok([EvaluatableParserStatement]())
         }
-      guard case Result<[P4.ParserStatement]>.Ok(let parsed_statements) = maybe_parsed_statements
+      guard
+        case Result<[EvaluatableParserStatement]>.Ok(let parsed_statements) =
+          maybe_parsed_statements
       else {
         return Result.Error(maybe_parsed_statements.error()!)
       }
 
       // TODO: Validate that there is only one!
       return Result.Ok(
-        P4.ParserState(
+        ParserState(
           name: parsed_state_name, withLocalElements: parsed_les,
           withStatements: parsed_statements,
           withTransition: transition_statement))
     }
   }
-  static func Parser(node: Node, inTree tree: MutableTree) -> Result<P4.Parser> {
+  static func Parser(node: Node, inTree tree: MutableTree) -> Result<Lang.Parser> {
     guard
       let parser_state_query = try? SwiftTreeSitter.Query(
         language: p4lang,
@@ -311,7 +317,7 @@ public struct Parser {
         Error(withMessage: "Could not compile the parser state tree sitter query"))
     }
 
-    var parser = P4.Parser()
+    var parser = Lang.Parser()
 
     // Build a state from each one listed.
     for parser_states in parser_state_query.execute(node: node, in: tree) {
@@ -323,7 +329,7 @@ public struct Parser {
     return Result.Ok(parser)
   }
 
-  public static func Program(_ source: String) -> Result<P4.Program> {
+  public static func Program(_ source: String) -> Result<Program> {
     let p = SwiftTreeSitter.Parser.init()
 
     do {
@@ -350,7 +356,7 @@ public struct Parser {
         Error(withMessage: "Could not compile the parser declaration tree sitter query"))
     }
 
-    var program: P4.Program = P4.Program()
+    var program = Lang.Program()
 
     let parser_qc = parser_declaration_query.execute(in: tree)
 

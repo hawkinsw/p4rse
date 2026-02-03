@@ -1,7 +1,7 @@
 // p4rse, Copyright 2026, Will Hawkins
 //
 // This file is part of p4rse.
-
+//
 // This file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -14,6 +14,44 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+public class Identifier: CustomStringConvertible, Equatable {
+    var name: String
+
+    public init(name: String) {
+        self.name = name
+    }
+
+    public var description: String {
+        return "\(name)"
+    }
+
+    public static func ==(lhs: Identifier, rhs: Identifier) -> Bool {
+        return lhs.name == rhs.name
+    }
+}
+
+public class Variable: Identifier {
+    var constant: Bool
+    var value: ValueType
+
+    public init(name: String, withValue value: ValueType, isConstant constant: Bool) {
+        self.constant = constant
+        self.value = value
+        super.init(name: name)
+    }
+
+    public override var description: String {
+        return "\(super.description) = \(value) \(constant ? "(constant)" : "")"
+    }
+
+    public var value_type: ValueType {
+        get {
+            value
+        }
+    }
+}
 
 public enum ValueType: CustomStringConvertible, Equatable {
     case Boolean(Bool)

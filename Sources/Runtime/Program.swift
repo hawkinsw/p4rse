@@ -15,25 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import SwiftTreeSitter
+import Lang
+import Common
 
-extension MutableTree {
-  public func isError(lang: Language) -> Bool {
-    guard
-      let parser_error_query = try? SwiftTreeSitter.Query(
-        language: lang,
-        data: String(
-          "(ERROR)"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return false
-    }
-
-    let error_qr = parser_error_query.execute(in: self)
-    for _ in error_qr {
-      return true
-    }
-    return false
+extension VariableDeclarationStatement: EvaluatableParserStatement {
+  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+    let new_scopes = execution.scopes.declare(variable: self.variable)
+    execution.scopes = new_scopes
+    return execution
   }
 }
 
+extension ExpressionStatement: EvaluatableParserStatement {
+  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+    return execution
+  }
+}
