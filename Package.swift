@@ -48,6 +48,7 @@ let package = Package(
                 .target(name: "TreeSitterExtensions"),
                 .target(name: "Common"),
                 .target(name: "Lang"),
+                .target(name: "Runtime"),
             ],
         ),
         .target(
