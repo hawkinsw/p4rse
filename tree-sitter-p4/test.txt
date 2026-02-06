@@ -1,0 +1,7 @@
+parser simple() {
+  state start {
+    bool l;
+    transition accept;
+  }
+}
+

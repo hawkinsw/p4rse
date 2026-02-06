@@ -43,8 +43,8 @@ parser simple() {
     )
    )
   )
-  (semicolon)
  )
+ (semicolon)
 )
 
 =========================
@@ -92,8 +92,8 @@ parser simple() {
     )
    )
   )
-  (semicolon)
  )
+ (semicolon)
 )
 
 =========================
@@ -141,8 +141,8 @@ parser simple() {
     )
    )
   )
-  (semicolon)
  )
+ (semicolon)
 )
 
 =========================
@@ -194,7 +194,7 @@ parser simple() {
     )
    )
   )
-  (semicolon)
  )
+ (semicolon)
 )
 

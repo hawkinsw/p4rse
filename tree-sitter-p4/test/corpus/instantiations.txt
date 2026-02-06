@@ -1,0 +1,17 @@
+=========================
+Simple Instantiation
+=========================
+bool() main;
+---
+(p4program
+ (instantiation
+  (typeRef
+   (baseType
+    (bool)
+   )
+  )
+  (identifier)
+ ) 
+ (semicolon)
+)
+

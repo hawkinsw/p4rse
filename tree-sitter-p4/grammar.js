@@ -22,7 +22,7 @@ export default grammar({
     name: 'p4',
     rules: {
         // Start symbol
-        p4program: $ => optional(repeat($.declaration)),
+        p4program: $ => optional(repeat(seq(choice($.declaration, $.instantiation), $.semicolon))),
 
         // Common
 
@@ -59,8 +59,11 @@ export default grammar({
         annotation: $ => choice(seq('@', "[a-z]+")),// seq('@', "[a-z]+", '(', /* empty for now*/ ')'), seq('@', "[a-z]+", '[', /* empty for now */ ']')),
 
 
+        // Instantiation
+        instantiation: $ => seq($.typeRef, '(', optional($.parameterList), ')', $.identifier),
+
         // Declarations
-        declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration), $.semicolon),
+        declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration)),
 
         // Make separate productions for the parser type and the parser type declaration because the latter can have type parameters.
         parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
