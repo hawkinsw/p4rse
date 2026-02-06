@@ -1,6 +1,6 @@
 ## P4RSE: P4 Runtime In Swift Environment
 
-_P4SE_ (yes, the acronym is a bit forced) is a P4 parser and runtime written in Swift. The project was started as a means to better learn Swift.
+_P4RSE_ (yes, the acronym is a bit forced) is a P4 parser and runtime written in Swift. The project was started as a means to better learn Swift.
 
 ### Status
 
