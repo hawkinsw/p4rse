@@ -29,47 +29,66 @@ import Macros
 
 @Test func test_simple_parser() async throws {
     let simple_parser_declaration = """
-        parser simple() {
+        parser main_parser() {
            state start {
                transition drop;
            }
-        }
+        };
         """
 
     let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+    let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
 
-    #expect(program.parsers.count == 1)
-    #expect(program.parsers[0].states.count == 1)
-    #expect(program.parsers[0].states[0].state_name == "start")
-    #expect(program.parsers[0].states[0].statements.count == 0)
+    #expect(parser.states.count == 1)
+    #expect(parser.states[0].state_name == "start")
+    #expect(parser.states[0].statements.count == 0)
 }
 
 @Test func test_simple_parser_syntax_error() async throws {
     let simple_parser_declaration = """
-        parser simple() {
+        parser main_parser() {
            state
                transition drop;
            }
-        }
+        };
         """
     #expect(#RequireErrorResult(Error(withMessage: "Could not compile the P4 program"), Parser.Program(simple_parser_declaration)))
 }
 
 @Test func test_simple_parser_with_statement() async throws {
     let simple_parser_declaration = """
-        parser simple() {
+        parser main_parser() {
            state start {
                true;
                transition drop;
            }
-        }
+        };
+        """
+
+    let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+    let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+
+    #expect(parser.states.count == 1)
+    #expect(parser.states[0].state_name == "start")
+    #expect(parser.states[0].statements.count == 1)
+}
+
+@Test func test_simple_parser_with_instantiation() async throws {
+    let simple_parser_declaration = """
+        parser main_parser() {
+           state start {
+               true;
+               transition drop;
+           }
+        };
+        bool() main;
         """
 
     let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
 
-    #expect(program.parsers.count == 1)
-    #expect(program.parsers[0].states.count == 1)
-    #expect(program.parsers[0].states[0].state_name == "start")
-    #expect(program.parsers[0].states[0].statements.count == 1)
+    let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+    #expect(parser.states.count == 1)
+    #expect(parser.states[0].state_name == "start")
+    #expect(parser.states[0].statements.count == 1)
 }
 

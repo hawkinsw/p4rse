@@ -20,7 +20,7 @@ public protocol EvaluatableExpression {
     /// - Parameters
     ///  - execution: The execution context in which to evaluate the expression
     /// - Returns: The value of expression
-    func evaluate(execution: ProgramExecution) -> ValueType
+    func evaluate(execution: ProgramExecution) -> P4Value
 }
 
 public protocol EvaluatableParserStatement {
@@ -31,3 +31,11 @@ public protocol EvaluatableParserStatement {
     func evaluate(execution: ProgramExecution) -> ProgramExecution
 }
 
+public protocol P4Type {
+    static func create() -> P4Type
+}
+
+public protocol P4Value {
+    func type() -> P4Type
+    func eq(rhs: P4Value) -> Bool
+}

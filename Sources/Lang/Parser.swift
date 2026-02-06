@@ -85,13 +85,21 @@ public struct ParserStates {
 nonisolated(unsafe) public let accept: ParserState = ParserState(name: "accept")
 nonisolated(unsafe) public let reject: ParserState = ParserState(name: "reject")
 
-public struct Parser {
+public struct Parser: P4Type {
   public var states: [ParserState] = Array()
   public var count: Int {
     states.count
   }
 
-  public init() {}
+  public var name: Identifier
+
+  public init(withName name: Identifier) {
+    self.name = name
+  }
+
+  public static func create() -> any P4Type {
+    return Parser(withName: Identifier(name: ""))
+  }
 
   public func findStartState() -> ParserState? {
     for state in states {
@@ -103,25 +111,25 @@ public struct Parser {
   }
 }
 
-public class ParserExecution: ProgramExecution {
+public class ParserInstance: ProgramExecution {
 
     private init(state: ParserState) {
       self.state = state
       super.init()
     }
 
-    public static func create(_ parser: Parser) -> Result<ParserExecution> {
+    public static func create(_ parser: Parser) -> Result<ParserInstance> {
         guard let start_state = parser.findStartState() else {
             return Result.Error(Error(withMessage: "Could not find the start state"))
         }
-        let new = ParserExecution(state: start_state)
+        let new = ParserInstance(state: start_state)
 
         return Result.Ok(new)
     }
 
     public var state: ParserState
 
-    public func transition(toNextState state: ParserState) -> ParserExecution {
+    public func transition(toNextState state: ParserState) -> ParserInstance {
         let next = self
         next.state = state
         return next

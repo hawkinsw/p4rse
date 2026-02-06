@@ -24,45 +24,6 @@ import TreeSitterP4
 
 let p4lang = Language(tree_sitter_p4())
 
-public protocol ParseableValueType {
-  static func Parse(type: String, withValue value: String) -> Result<ValueType>
-}
-
-// This seems unnecessary because all the value types are in a single enum?
-extension ValueType: ParseableValueType {
-  public static func Parse(type: String, withValue value: String) -> Result<ValueType> {
-    if type == "bool" {
-      // Default
-      if value == "" {
-        return .Ok(ValueType.Boolean(false))
-      }
-
-      if value == "true" {
-        return .Ok(ValueType.Boolean(true))
-      } else if value == "false" {
-        return .Ok(ValueType.Boolean(false))
-      }
-      return .Error(Error(withMessage: "Cannot convert \(value) into boolean value"))
-
-    } else if type == "string" {
-      return .Ok(ValueType.String(value))
-
-    } else if type == "int" {
-      // Default
-      if value == "" {
-        return .Ok(ValueType.Int(0))
-      }
-
-      guard let parsed_value = Swift.Int(value) else {
-        return .Error(Error(withMessage: "Cannot convert \(value) into integer value"))
-      }
-      return .Ok(ValueType.Int(parsed_value))
-    }
-
-    return .Error(Error(withMessage: "Invalid type"))
-  }
-}
-
 public protocol ParseableParserStatement {
   static func Parse(node: Node, inTree tree: MutableTree) -> Result<EvaluatableParserStatement?>
 }
@@ -129,7 +90,7 @@ extension VariableDeclarationStatement: ParseableParserStatement {
         ""
       }
 
-    return switch ValueType.Parse(type: type_name, withValue: value) {
+    return switch Parser.ParseValueType(type: type_name, withValue: value) {
     case Result.Ok(let value_type):
       Result.Ok(
         VariableDeclarationStatement(
@@ -141,6 +102,37 @@ extension VariableDeclarationStatement: ParseableParserStatement {
 }
 
 public struct Parser {
+  static func ParseValueType(type: String, withValue value: String) -> Result<P4Value> {
+    if type == "bool" {
+      // Default
+      if value == "" {
+        return .Ok(P4BooleanValue(withValue: false))
+      }
+
+      if value == "true" {
+        return .Ok(P4BooleanValue(withValue: true))
+      } else if value == "false" {
+        return .Ok(P4BooleanValue(withValue: false))
+      }
+      return .Error(Error(withMessage: "Cannot convert \(value) into boolean value"))
+
+    } else if type == "string" {
+      return .Ok(P4StringValue.init(withValue: value))
+
+    } else if type == "int" {
+      // Default
+      if value == "" {
+        return .Ok(P4IntValue.init(withValue: 0))
+      }
+
+      guard let parsed_value = Swift.Int(value) else {
+        return .Error(Error(withMessage: "Cannot convert \(value) into integer value"))
+      }
+      return .Ok(P4IntValue.init(withValue: parsed_value))
+    }
+
+    return .Error(Error(withMessage: "Invalid type"))
+  }
 
   public struct P4Parser {
 
@@ -305,7 +297,7 @@ public struct Parser {
           withTransition: transition_statement))
     }
   }
-  static func Parser(node: Node, inTree tree: MutableTree) -> Result<Lang.Parser> {
+  static func Parser(withName name: Identifier, node: Node, inTree tree: MutableTree) -> Result<Lang.Parser> {
     guard
       let parser_state_query = try? SwiftTreeSitter.Query(
         language: p4lang,
@@ -317,7 +309,7 @@ public struct Parser {
         Error(withMessage: "Could not compile the parser state tree sitter query"))
     }
 
-    var parser = Lang.Parser()
+    var parser = Lang.Parser(withName: name)
 
     // Build a state from each one listed.
     for parser_states in parser_state_query.execute(node: node, in: tree) {
@@ -340,7 +332,8 @@ public struct Parser {
 
     let result = p.parse(source)
     guard let tree = result,
-      !tree.isError(lang: p4lang)
+      !tree.isError(lang: p4lang),
+      !tree.containsMissing(lang: p4lang)
     else {
       return Result.Error(Error(withMessage: "Could not compile the P4 program"))
     }
@@ -349,7 +342,7 @@ public struct Parser {
       let parser_declaration_query = try? SwiftTreeSitter.Query(
         language: p4lang,
         data: String(
-          "(parserDeclaration (parserType) (parserStates) @parser-states)"
+          "(parserDeclaration (parserType parser_name: (identifier) @parser-name) (parserStates) @parser-states)"
         ).data(using: String.Encoding.utf8)!)
     else {
       return Result.Error(
@@ -361,8 +354,8 @@ public struct Parser {
     let parser_qc = parser_declaration_query.execute(in: tree)
 
     for parser_declaration in parser_qc {
-      switch Parser(node: parser_declaration.nodes[0], inTree: tree) {
-      case Result.Ok(let parser): program.parsers.append(parser)
+      switch Parser(withName: Identifier(name: parser_declaration.nodes[0].text!), node: parser_declaration.nodes[1], inTree: tree) {
+      case Result.Ok(let parser): program.types.append(parser)
       case Result.Error(let error): return Result.Error(error)
       }
     }

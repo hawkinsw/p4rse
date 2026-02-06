@@ -10,3 +10,20 @@ Very, very alpha:
 2. Limited programs can be evaluated.
 
 Please check back often!
+
+### Building
+
+#### Generating Documentation
+
+To build the documentation:
+
+```console
+$ swift package generate-documentation
+```
+
+To preview the generated documentation:
+```console
+$ swift package swift package --disable-sandbox preview-documentation  --target <some target>
+```
+
+For more information, see the [documentation for the Swift-DocC plugin](https://swiftlang.github.io/swift-docc-plugin/documentation/swiftdoccplugin/).

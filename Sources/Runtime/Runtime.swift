@@ -18,33 +18,39 @@
 import Common
 import Lang
 
+/// The runtime for a parser
 public class ParserRuntime: CustomStringConvertible {
-  var execution: ParserExecution
+  var execution: ParserInstance
 
-  init(execution: ParserExecution) {
+  init(execution: ParserInstance) {
     self.execution = execution
   }
 
-  public static func create(program: Lang.Parser) -> Result<ParserRuntime> {
-    switch ParserExecution.create(program) {
-    case .Ok(let execution): return .Ok(Runtime.ParserRuntime(execution: execution))
-    case .Error(let error): return .Error(error)
-
+  /// Create a parser runtime from a P4 program
+  public static func create(program: Lang.Program) -> Result<ParserRuntime> {
+    return switch program.starting_parser() {
+    case .Ok(let parser):
+      switch ParserInstance.create(parser) {
+      case .Ok(let execution): .Ok(Runtime.ParserRuntime(execution: execution))
+      case .Error(let error): .Error(error)
+      }
+    case .Error(let error): .Error(error)
     }
   }
 
+  /// Run the P4 parser on a given packet
   public func run(input: Packet) -> Result<(ParserState, ProgramExecution)> {
     execution.scopes.enter()
     return .Ok(execution.execute())
   }
 
   public var description: String {
-    //return "\(super.description)\nState: \(execution?.description ?? "N/A")\nError: \(error?.description ?? "None")"
     return "Runtime:\nExecution: \(execution)"
   }
 }
 
-extension ParserExecution: Execution {
+/// Instances of parsers are executable
+extension ParserInstance: Execution {
   public func execute() -> (ParserState, ProgramExecution) {
     var execution = self as ProgramExecution
     var state = self.state

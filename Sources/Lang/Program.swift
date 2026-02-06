@@ -15,7 +15,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import Common
+
 public struct Program {
-    public var parsers: [Parser] = Array()
+    public var types: [P4Type] = Array()
+
+    /// Find the program's main parser
+    /// 
+    /// Note: For now, the main parser is expected to be named main_parser.
+    public func starting_parser() -> Result<Parser> {
+        return self.find_parser(withName: Identifier(name: "main_parser"))
+    }
+
+    public func find_parser(withName name: Identifier) -> Result<Parser> {
+        for type in self.types {
+            print("type: \(type)")
+            guard let parser = type as? Parser else {
+                continue
+            }
+            if parser.name == name {
+                return .Ok(parser)
+            }
+        }
+        return .Error(Error(withMessage: "Could not find parser named \(name)"))
+    }
+
     public init() {}
 }
