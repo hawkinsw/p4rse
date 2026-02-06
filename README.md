@@ -13,7 +13,7 @@ Please check back often!
 
 ### Building
 
-#### Generate Documentation
+#### Generating Documentation
 
 To build the documentation:
 
