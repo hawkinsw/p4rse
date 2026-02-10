@@ -31,3 +31,10 @@ extension ExpressionStatement: EvaluatableParserStatement {
     return execution
   }
 }
+
+// Variables are evaluatable because they can be looked up by identifiers.
+extension Identifier: EvaluatableExpression {
+    public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
+      return execution.scopes.evaluate(identifier: self)
+    }
+}

@@ -53,6 +53,13 @@ public enum Result<OKT>: Equatable {
         }
         return nil
     }
+
+    public func map<T>(block: (OKT) -> Result<T>) -> Result<T> {
+        switch self {
+            case .Ok(let ok): return block(ok)
+            case .Error(let e): return .Error(e)
+        } 
+    }
 }
 
 extension Result where OKT: CustomStringConvertible {

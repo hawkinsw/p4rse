@@ -32,6 +32,30 @@ import TreeSitterP4
     parser main_parser() {
        state start {
            true;
+           transition accept;
+       }
+    };
+    """
+
+  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  #expect(#RequireOkResult(Runtime.ParserRuntime.create(program: program)))
+
+  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+
+  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
+  else {
+    assert(false)
+  }
+
+  // We should be in the accept state.
+  #expect(state_result == Lang.accept)
+}
+
+@Test func test_simple_runtime_to_accept() async throws {
+  let simple_parser_declaration = """
+    parser main_parser() {
+       state start {
+           true;
            transition reject;
        }
     };
@@ -39,7 +63,18 @@ import TreeSitterP4
 
   let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
   #expect(#RequireOkResult(Runtime.ParserRuntime.create(program: program)))
+
+  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+
+  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
+  else {
+    assert(false)
+  }
+
+  // We should be in the accept state.
+  #expect(state_result == Lang.reject)
 }
+
 
 @Test func test_simple_runtime_no_start_state() async throws {
   let simple_parser_declaration = """
@@ -89,7 +124,7 @@ import TreeSitterP4
   }
 
   // We should be in the accept state.
-  #expect(state_result == Lang.accept)
+  #expect(state_result == Lang.reject)
 
   // There are two variables declared.
   #expect(scope.count == 2)
@@ -99,4 +134,58 @@ import TreeSitterP4
   let s = try #require(scope.lookup(identifier: Identifier(name: "s")))
   #expect(b.value_type.eq(rhs: P4BooleanValue(withValue: false)))
   #expect(s.value_type.eq(rhs: P4StringValue(withValue: "\"testing\"")))
+}
+
+@Test func test_simple_parser_with_transition_select_expression() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          transition select (true) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
+    """
+
+  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  #expect(#RequireOkResult(program.find_parser(withName: Identifier(name: "main_parser"))))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+
+  #expect(parser.states.count() == 1)
+
+  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+
+  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
+  else {
+    assert(false)
+  }
+  #expect(state_result == Lang.accept)
+}
+
+@Test func test_simple_parser_with_transition_select_expression_to_reject() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          transition select (false) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
+    """
+
+  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  #expect(#RequireOkResult(program.find_parser(withName: Identifier(name: "main_parser"))))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+
+  #expect(parser.states.count() == 1)
+
+  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+
+  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
+  else {
+    assert(false)
+  }
+  #expect(state_result == Lang.reject)
 }

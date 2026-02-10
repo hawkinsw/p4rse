@@ -229,10 +229,95 @@ public struct Parser {
       return Result.Ok(statements)
     }
 
+    static func TransitionKeysetExpression(
+      node: Node, inTree tree: MutableTree
+    ) -> Result<[KeysetExpression]> {
+      guard
+        let transition_selection_expression_query = try? SwiftTreeSitter.Query(
+          language: p4lang,
+          data: String(
+            "((keysetExpression (expression) @ks) (colon) (identifier) @next-state)"
+          ).data(using: String.Encoding.utf8)!)
+      else {
+        return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
+      }
+
+      let qr = transition_selection_expression_query.execute(node: node, in: tree)
+
+      var kses: [KeysetExpression] = Array()
+
+      for expression in qr {
+        let next_state_name = expression.captures[1].node.text!
+        if case .Error(let e) = Expression.Parse(node: expression.captures[0].node, inTree: tree)
+          .map(block: { expression in
+            kses.append(
+              KeysetExpression(
+                withKey: expression, withNextStateName: next_state_name))
+            return .Ok(expression)
+          })
+        {
+          return .Error(e)
+        }
+      }
+
+      return .Ok(kses)
+    }
+
+    static func TransitionSelectExpression(
+      node: Node, inTree tree: MutableTree
+    ) -> Result<ParserTransitionStatement> {
+      guard
+        let transition_selection_expression_query = try? SwiftTreeSitter.Query(
+          language: p4lang,
+          data: String(
+            "(parserTransitionStatement (transition) (transitionSelectionExpression (selectExpression (select) (expression) @selector (selectBody) @body)))"
+          ).data(using: String.Encoding.utf8)!)
+      else {
+        return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
+      }
+
+      let qr = transition_selection_expression_query.execute(node: node, in: tree)
+
+      guard let query_result = qr.next() else {
+        return .Error(Error(withMessage: "Could not find transition select expression"))
+      }
+
+      let selector = query_result.captures(named: "selector")
+      let body = query_result.captures(named: "body")
+
+      return Expression.Parse(node: selector[0].node, inTree: tree).map { expression in
+        return switch TransitionKeysetExpression(node: body[0].node, inTree: tree) {
+        case .Ok(let kse):
+          Result<ParserTransitionStatement>.Ok(
+            ParserTransitionStatement(
+              withTransitionExpression: ParserTransitionSelectExpression(
+                withSelector: expression, withKeysetExpressions: kse)))
+        case .Error(let e): Result<ParserTransitionStatement>.Error(e)
+        }
+      }
+    }
+
     static func TransitionStatement(
       node: Node, inTree tree: MutableTree
-    ) -> ParserTransitionStatement? {
-      return ParserTransitionStatement()
+    ) -> Result<ParserTransitionStatement> {
+      guard
+        let next_state_query = try? SwiftTreeSitter.Query(
+          language: p4lang,
+          data: String(
+            "(parserTransitionStatement (transition) (transitionSelectionExpression (identifier) @next-state))"
+          ).data(using: String.Encoding.utf8)!)
+      else {
+        return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
+      }
+
+      let qr = next_state_query.execute(node: node, in: tree)
+
+      if let next_state_result = qr.next() {
+        let transition_capture = next_state_result.captures(named: "next-state")
+        return .Ok(ParserTransitionStatement(withNextState: transition_capture[0].node.text!))
+      }
+
+      return TransitionSelectExpression(node: node, inTree: tree)
     }
 
     static func State(node: Node, inTree tree: MutableTree) -> Result<ParserState> {
@@ -259,7 +344,7 @@ public struct Parser {
       guard !state_name_capture.isEmpty,
         !transition_capture.isEmpty,
         let parsed_state_name = state_name_capture[0].node.text,
-        let transition_statement = TransitionStatement(
+        case .Ok(let transition_statement) = TransitionStatement(
           node: transition_capture[0].node, inTree: tree)
       else {
         return Result.Error(Error(withMessage: "Could not parse a parser declaration"))
@@ -297,7 +382,9 @@ public struct Parser {
           withTransition: transition_statement))
     }
   }
-  static func Parser(withName name: Identifier, node: Node, inTree tree: MutableTree) -> Result<Lang.Parser> {
+  static func Parser(
+    withName name: Identifier, node: Node, inTree tree: MutableTree
+  ) -> Result<Lang.Parser> {
     guard
       let parser_state_query = try? SwiftTreeSitter.Query(
         language: p4lang,
@@ -312,11 +399,22 @@ public struct Parser {
     var parser = Lang.Parser(withName: name)
 
     // Build a state from each one listed.
-    for parser_states in parser_state_query.execute(node: node, in: tree) {
-      switch P4Parser.State(node: parser_states.nodes[0], inTree: tree) {
-      case Result.Ok(let state): parser.states.append(state)
-      case Result.Error(let error): return Result.Error(error)
+    let qr = parser_state_query.execute(node: node, in: tree)
+    let qr_value = qr.next()!
+    let captures = qr_value.captures(named: "parser-states")
+
+    var error: Error? = .none
+
+    // TODO: Assert that there is only one.
+    captures[0].node.enumerateChildren { parser_state in
+      switch P4Parser.State(node: parser_state, inTree: tree) {
+      case Result.Ok(let state): parser.states = parser.states.append(state: state)
+      case Result.Error(let e): error = e
       }
+    }
+
+    if let error = error {
+      return .Error(error)
     }
     return Result.Ok(parser)
   }
@@ -354,7 +452,10 @@ public struct Parser {
     let parser_qc = parser_declaration_query.execute(in: tree)
 
     for parser_declaration in parser_qc {
-      switch Parser(withName: Identifier(name: parser_declaration.nodes[0].text!), node: parser_declaration.nodes[1], inTree: tree) {
+      switch Parser(
+        withName: Identifier(name: parser_declaration.nodes[0].text!),
+        node: parser_declaration.nodes[1], inTree: tree)
+      {
       case Result.Ok(let parser): program.types.append(parser)
       case Result.Error(let error): return Result.Error(error)
       }

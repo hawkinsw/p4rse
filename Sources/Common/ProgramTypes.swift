@@ -65,6 +65,12 @@ open class P4ValueBase<T: P4Type>: P4Value {
   }
 }
 
+extension P4ValueBase: EvaluatableExpression {
+  public func evaluate(execution: ProgramExecution) -> Result<P4Value> {
+    return .Ok(self)
+  }
+}
+
 /// The type for a P4 struct
 public struct P4Struct: P4Type {
   public let name: String
@@ -121,6 +127,7 @@ public class P4BooleanValue: P4ValueBase<P4Boolean> {
     return self.value == bool_rhs.value
   }
 }
+
 
 /// A P4 int type
 public struct P4Int: P4Type {

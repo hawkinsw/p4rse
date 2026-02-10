@@ -17,6 +17,10 @@
 
 import Common
 
+public struct ExpressionStatement {
+  public init() {}
+}
+
 public struct Program {
     public var types: [P4Type] = Array()
 
@@ -29,7 +33,6 @@ public struct Program {
 
     public func find_parser(withName name: Identifier) -> Result<Parser> {
         for type in self.types {
-            print("type: \(type)")
             guard let parser = type as? Parser else {
                 continue
             }

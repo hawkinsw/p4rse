@@ -18,7 +18,7 @@
 import Common
 import Lang
 
-protocol EvaluatableParserState {
+protocol EvaluatableParserTransition {
   func evaluate(execution: ProgramExecution) -> (ParserState, ProgramExecution)
 }
 

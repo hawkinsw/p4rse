@@ -20,7 +20,7 @@ public protocol EvaluatableExpression {
     /// - Parameters
     ///  - execution: The execution context in which to evaluate the expression
     /// - Returns: The value of expression
-    func evaluate(execution: ProgramExecution) -> P4Value
+    func evaluate(execution: ProgramExecution) -> Result<P4Value>
 }
 
 public protocol EvaluatableParserStatement {

@@ -20,14 +20,15 @@ import Lang
 
 /// The runtime for a parser
 public class ParserRuntime: CustomStringConvertible {
-  var execution: ParserInstance
+  var parser: ParserInstance
 
   init(execution: ParserInstance) {
-    self.execution = execution
+    self.parser = execution
   }
 
   /// Create a parser runtime from a P4 program
   public static func create(program: Lang.Program) -> Result<ParserRuntime> {
+
     return switch program.starting_parser() {
     case .Ok(let parser):
       switch ParserInstance.create(parser) {
@@ -40,12 +41,12 @@ public class ParserRuntime: CustomStringConvertible {
 
   /// Run the P4 parser on a given packet
   public func run(input: Packet) -> Result<(ParserState, ProgramExecution)> {
-    execution.scopes.enter()
-    return .Ok(execution.execute())
+    parser.scopes.enter()
+    return .Ok(parser.execute())
   }
 
   public var description: String {
-    return "Runtime:\nExecution: \(execution)"
+    return "Runtime:\nExecution: \(parser)"
   }
 }
 
@@ -57,7 +58,7 @@ extension ParserInstance: Execution {
 
     // Evaluate until the state is either accept or reject.
     while state != accept && state != reject {
-      (state, execution) = self.state.evaluate(execution: execution)
+      (state, execution) = state.evaluate(execution: execution)
     }
     return (state, execution)
   }

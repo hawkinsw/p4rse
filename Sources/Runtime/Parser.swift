@@ -18,16 +18,7 @@
 import Common
 import Lang
 
-
-
-extension ParserTransitionStatement: EvaluatableParserTransitionStatement {
-  // TODO: Currently transitions to accept.
-  func transition(execution: ProgramExecution) -> (ParserState, ProgramExecution) {
-    return (accept, execution)
-  }
-}
-
-extension ParserState: EvaluatableParserState {
+extension ParserState: EvaluatableParserTransition {
   public func evaluate(execution: ProgramExecution) -> (ParserState, ProgramExecution) {
     var currentExecution = execution
 
@@ -41,10 +32,34 @@ extension ParserState: EvaluatableParserState {
       currentExecution = statement.evaluate(execution: currentExecution)
     }
 
-    return if let transition = transition {
-      transition.transition(execution: currentExecution)
-    } else {
-      (reject, currentExecution)
+    if direct_transition() {
+      return (next_state!, currentExecution)
     }
+
+    if let transition_expression = self.transition,
+      let transition_select_expression = transition_expression.transition_expression
+    {
+      return transition_select_expression.evaluate(execution: currentExecution)
+    }
+    return (reject, currentExecution)
+  }
+}
+
+extension ParserTransitionSelectExpression: EvaluatableParserTransition {
+  func evaluate(execution: Common.ProgramExecution) -> (Lang.ParserState, Common.ProgramExecution) {
+    // First, evaluate the selector.
+
+    switch self.selector.evaluate(execution: execution) {
+    case .Ok(let selector_value):
+        for kse in self.keyset_expressions {
+          if case .Ok(let kse_key) = kse.key.evaluate(execution: execution),
+            kse_key.eq(rhs: selector_value)
+          {
+            return (kse.next_state!, execution)
+          }
+        }
+    case .Error(let e): return (reject, execution.setError(error: e))
+    }
+    return (reject, execution)
   }
 }

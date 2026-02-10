@@ -17,11 +17,26 @@
 
 open class ProgramExecution: CustomStringConvertible {
     public var scopes: Scopes = Scopes()
+    var error: Error? 
 
     public init() {}
 
     open var description: String {
         return "Runtime:\nScopes: \(scopes)"
+    }
+
+    public func hasError() -> Bool {
+        return self.error != nil
+    }
+
+    public func getError() -> Error? {
+        return self.error
+    }
+
+    public func setError(error: Error) -> ProgramExecution {
+        let npe = self
+        npe.error = error
+        return npe
     }
 }
 
@@ -94,6 +109,15 @@ public struct Scopes: CustomStringConvertible {
             s.scopes.append(scope.declare(variable: variable))
         }
         return s
+    }
+
+    public func evaluate(identifier: Identifier) -> Result<P4Value> {
+        for scope in scopes {
+            if let vari = scope.lookup(identifier: identifier) {
+                return .Ok(vari.value)
+            }
+        }
+        return .Error(Error(withMessage: "Cannot find \(identifier) in scope."))
     }
 
     public var count: Int {
