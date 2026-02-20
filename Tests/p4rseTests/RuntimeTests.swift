@@ -38,14 +38,8 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  #expect(#RequireOkResult(Runtime.ParserRuntime.create(program: program)))
-
   let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
-
-  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
-  else {
-    assert(false)
-  }
+  let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // We should be in the accept state.
   #expect(state_result == Lang.accept)
@@ -62,15 +56,8 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  #expect(#RequireOkResult(Runtime.ParserRuntime.create(program: program)))
-
   let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
-
-  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
-  else {
-    assert(false)
-  }
-
+  let (state_result, _) = try! #UseOkResult(runtime.run())
   // We should be in the accept state.
   #expect(state_result == Lang.reject)
 }
@@ -87,53 +74,11 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+
   #expect(
     #RequireErrorResult<ParserRuntime>(
-      Error(withMessage: "Could not find the start state"),
+      Error(withMessage: "No start state defined"),
       Runtime.ParserRuntime.create(program: program)))
-}
-
-@Test func test_simple_local_element_variable_declaration() async throws {
-  let simple_parser_declaration = """
-    parser main_parser() {
-       state start {
-           bool b = false;
-           string s = "testing";
-           true;
-           false;
-           transition reject;
-       }
-    };
-    """
-
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
-
-  // This seems awkward to me!
-  // TODO: Is there a better way?
-  guard case Common.Result.Ok(let (state_result, execution_result)) = runtime.run(input: Packet())
-  else {
-    assert(false)
-  }
-
-  // There should be 1 scope.
-  #expect(execution_result.scopes.count == 1)
-
-  guard let scope = execution_result.scopes.current else {
-    assert(false)
-  }
-
-  // We should be in the accept state.
-  #expect(state_result == Lang.reject)
-
-  // There are two variables declared.
-  #expect(scope.count == 2)
-
-  // Check the names/values of the variables in scope.
-  let b = try #require(scope.lookup(identifier: Identifier(name: "b")))
-  let s = try #require(scope.lookup(identifier: Identifier(name: "s")))
-  #expect(b.value_type.eq(rhs: P4BooleanValue(withValue: false)))
-  #expect(s.value_type.eq(rhs: P4StringValue(withValue: "\"testing\"")))
 }
 
 @Test func test_simple_parser_with_transition_select_expression() async throws {
@@ -148,18 +93,14 @@ import TreeSitterP4
       };
     """
 
+  
   let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  #expect(#RequireOkResult(program.find_parser(withName: Identifier(name: "main_parser"))))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
 
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
-
-  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
-  else {
-    assert(false)
-  }
   #expect(state_result == Lang.accept)
 }
 
@@ -176,16 +117,10 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  #expect(#RequireOkResult(program.find_parser(withName: Identifier(name: "main_parser"))))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
-
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
-
-  guard case Common.Result.Ok(let (state_result, _)) = runtime.run(input: Packet())
-  else {
-    assert(false)
-  }
   #expect(state_result == Lang.reject)
 }

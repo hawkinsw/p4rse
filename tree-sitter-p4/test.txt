@@ -1,7 +1,16 @@
-parser simple() {
-  state start {
-    bool l;
-    transition accept;
-  }
-}
-
+      parser main_parser() {
+        state next_state {
+          transition reject;
+        }
+        state not_next_state {
+          transition reject;
+        }
+        state start {
+          transition starts;
+        }
+        state starts {
+          transition select (se) {
+            true: next_state;
+          };
+        }
+      };

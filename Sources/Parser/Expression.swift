@@ -15,19 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// expression: $ => choice($.identifier, $.integer, $.true, $.false, $.string_literal), // Very limited.
-
 import Common
 import SwiftTreeSitter
 import TreeSitterP4
 
 protocol ParseableEvaluatableExpression {
-  static func parse(node: Node, inTree tree: MutableTree) -> Result<EvaluatableExpression?>
+  static func parse(node: Node, inTree tree: MutableTree, withScopes scopes: Scopes) -> Result<EvaluatableExpression?>
 }
 
 extension Identifier: ParseableEvaluatableExpression {
   static func parse(
-    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree
+    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree, withScopes scopes: Scopes
   ) -> Result<EvaluatableExpression?> {
 
     guard
@@ -52,7 +50,7 @@ extension Identifier: ParseableEvaluatableExpression {
 
 extension P4BooleanValue: ParseableEvaluatableExpression {
   static func parse(
-    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree
+    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree, withScopes scopes: Scopes
   ) -> Result<EvaluatableExpression?> {
 
     guard
@@ -91,14 +89,14 @@ extension P4BooleanValue: ParseableEvaluatableExpression {
 }
 
 struct Expression {
-  public static func Parse(node: Node, inTree: MutableTree) -> Result<EvaluatableExpression> {
+  public static func Parse(node: Node, inTree: MutableTree, withScopes scopes: Scopes) -> Result<EvaluatableExpression> {
     let localElementsParsers: [ParseableEvaluatableExpression.Type] = [
       P4BooleanValue.self, Identifier.self,
     ]
 
     for le_parser in localElementsParsers {
       if case Result.Ok(.some(let parsed)) = le_parser.parse(
-        node: node, inTree: inTree)
+        node: node, inTree: inTree, withScopes: scopes)
       {
         return .Ok(parsed)
       }

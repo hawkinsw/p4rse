@@ -17,7 +17,8 @@
 
 open class ProgramExecution: CustomStringConvertible {
     public var scopes: Scopes = Scopes()
-    var error: Error? 
+    var error: Error?
+    var debug: DebugLevel = DebugLevel.Error
 
     public init() {}
 
@@ -38,10 +39,44 @@ open class ProgramExecution: CustomStringConvertible {
         npe.error = error
         return npe
     }
+
+    public func getDebugLevel() -> DebugLevel {
+        return self.debug
+    }
+
+    public func setDebugLevel(_ dl: DebugLevel) -> ProgramExecution {
+        let pe = self
+        pe.debug = dl
+        return pe
+    }
+
+    open func isDone() -> Bool {
+        return false
+    }
+
+    open func setDone() -> ProgramExecution {
+        // For a bare ProgramExecution, setDone is a noop.
+        return self
+    }
+
+    public func enter_scope() -> ProgramExecution {
+       let new_pe = self
+       new_pe.scopes = self.scopes.enter()
+
+       return new_pe
+    }
+
+    public func exit_scope() -> ProgramExecution {
+       let new_pe = self
+       new_pe.scopes = self.scopes.exit()
+
+       return new_pe
+    }
+
 }
 
 
-public struct Scope: CustomStringConvertible{
+public struct Scope: CustomStringConvertible, Equatable {
     var variables: [Variable] = Array()
     public init() {}
 
@@ -56,6 +91,26 @@ public struct Scope: CustomStringConvertible{
     public var count: Int {
         get {
             variables.count
+        }
+    }
+
+    public func set(identifier: Identifier, value: P4Value) -> Scope? {
+        var updated = false
+        var updated_scope: [Variable] = Array()
+        for v in variables {
+            if v == identifier && v.value_type.type().eq(rhs: value.type()) {
+                updated = true
+                updated_scope.append(Variable(name: v.name, withValue: value, isConstant: false))
+            } else {
+                updated_scope.append(v)
+            }
+        }
+        var new_scope = Scope()
+        new_scope.variables = updated_scope
+        return if updated {
+            new_scope
+        } else {
+            .none
         }
     }
 
@@ -75,17 +130,26 @@ public struct Scope: CustomStringConvertible{
     }
 }
 
-public struct Scopes: CustomStringConvertible {
+public struct Scopes: CustomStringConvertible, Equatable {
     var scopes: [Scope] = Array()
 
     public init() {}
 
-    public mutating func enter() {
-        scopes.append(Scope())
+    init(withScopes scopes: [Scope]) {
+        self.scopes = scopes
     }
 
-    public mutating func exit() {
-        let _ = scopes.popLast()
+    public func enter() -> Scopes {
+        var new_scopes = scopes
+        new_scopes.append(Scope())
+
+        return Scopes(withScopes: new_scopes)
+    }
+
+    public func exit() -> Scopes {
+        var old_scopes = scopes
+        _ = old_scopes.popLast()
+        return Scopes(withScopes: old_scopes)
     }
 
     public var description: String {
@@ -124,5 +188,17 @@ public struct Scopes: CustomStringConvertible {
         get {
             scopes.count
         }
+    }
+
+    public func set(identifier: Identifier, value: P4Value) -> Scopes {
+        var new_scopes: [Scope] = Array()
+        for scope in self.scopes {
+            if let updated_scope = scope.set(identifier: identifier, value: value) {
+                new_scopes.append(updated_scope)
+            } else {
+                new_scopes.append(scope)
+            }
+        }
+        return Scopes(withScopes: new_scopes)
     }
 }

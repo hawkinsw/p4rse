@@ -15,6 +15,52 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+public enum DebugLevel {
+    case Trace
+    case Verbose
+    case Debug
+    case Error
+
+    func value() -> UInt8 {
+        return switch self {
+            case DebugLevel.Trace: 3
+            case DebugLevel.Verbose: 2
+            case DebugLevel.Debug: 1
+            case DebugLevel.Error: 0
+        }
+        }
+    public func isTrace() -> Bool {
+        if self.value() >= DebugLevel.Trace.value() {
+            return true
+        }
+        return false
+    }
+    public func isVerbose() -> Bool {
+        if self.value() >= DebugLevel.Verbose.value() {
+            return true
+        }
+        return false
+    }
+    public func isDebug() -> Bool {
+        if self.value() >= DebugLevel.Debug.value() {
+            return true
+        }
+        return false
+    }
+    public func isError() -> Bool {
+        return true
+    }
+
+    public var description: String {
+        return switch self {
+            case DebugLevel.Trace: "Trace"
+            case DebugLevel.Verbose: "Verbose"
+            case DebugLevel.Debug: "Debug"
+            case DebugLevel.Error: "Error"
+        }
+    }
+}
+
 public struct Error: Equatable {
     public private(set) var msg: String
 

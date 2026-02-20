@@ -31,11 +31,12 @@ public protocol EvaluatableParserStatement {
     func evaluate(execution: ProgramExecution) -> ProgramExecution
 }
 
-public protocol P4Type {
+public protocol P4Type: CustomStringConvertible {
     static func create() -> P4Type
+    func eq(rhs: P4Type) -> Bool
 }
 
-public protocol P4Value {
+public protocol P4Value: CustomStringConvertible {
     func type() -> P4Type
     func eq(rhs: P4Value) -> Bool
 }

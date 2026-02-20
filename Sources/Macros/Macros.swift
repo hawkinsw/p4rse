@@ -31,11 +31,11 @@ public struct UseOkResult: ExpressionMacro {
 
         return """
             {
-                if case Result.Ok(let __runtime) =  \(argument) {
-                    return __runtime
-                } else {
-                    print("Oh no")
-                    throw Require.Error.UnexpectedResult
+                switch \(argument) {
+                    case Result.Ok(let __good): return __good
+                    case Result.Error(let __error):
+                        print("Unexpected result: \\(__error)")
+                        throw Require.Error.UnexpectedResult
                 }
             }()
             """
@@ -61,10 +61,11 @@ public struct RequireResult: ExpressionMacro {
 
         return """
             {
-                if case Result.Ok(_) =  \(argument) {
-                    true
-                } else {
-                    false
+                switch \(argument) {
+                    case Result.Ok(let _): return true
+                    case Result.Error(let __error):
+                        print("Unexpected result: \\(__error)")
+                        return false
                 }
             }()
             """

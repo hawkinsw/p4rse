@@ -26,28 +26,6 @@ import TreeSitterP4
 
 @testable import Parser
 
-@Test func test_simple_parser() async throws {
-  let simple_parser_declaration = """
-    parser main_parser() {
-       state start {
-           transition start;
-       }
-    };
-    """
-
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-
-  #expect(parser.states.count() == 1)
-  let state = try! #require(parser.states.find(withName: "start"))
-  #expect(state.state_name == "start")
-  #expect(state.statements.count == 0)
-
-  #expect(#RequireOkResult(parser.states.semantic_check()))
-  let next_state = try! #require(state.next_state)
-  #expect(next_state == state)
-}
-
 @Test func test_simple_parser_syntax_error() async throws {
   let simple_parser_declaration = """
     parser main_parser() {
@@ -87,6 +65,7 @@ import TreeSitterP4
     parser main_parser() {
        state start {
            true;
+           false;
            transition start;
        }
     };

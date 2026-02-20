@@ -19,7 +19,7 @@ import Common
 import Lang
 
 protocol EvaluatableParserTransition {
-  func evaluate(execution: ProgramExecution) -> (ParserState, ProgramExecution)
+  func program(execution: ProgramExecution) -> (ParserState, ProgramExecution)
 }
 
 protocol EvaluatableParserTransitionStatement {
@@ -27,5 +27,21 @@ protocol EvaluatableParserTransitionStatement {
 }
 
 public protocol Execution {
+    func execute() -> (ParserState, ProgramExecution)
+}
+
+public protocol Compilable {
+  associatedtype ToCompile
+  associatedtype Compiled
+  static func compile(_: ToCompile) -> Result<Compiled>
+}
+
+public protocol ParserStateInstance {
+    func execute(program: ProgramExecution) -> (ParserStateInstance, ProgramExecution)
+    func done() -> Bool
+    func current() -> ParserState
+}
+
+public protocol ParserExecution {
     func execute() -> (ParserState, ProgramExecution)
 }

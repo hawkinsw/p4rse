@@ -25,6 +25,16 @@ public struct LocalElement {
 
 }
 
+public struct ParserAssignmentStatement {
+  public let lvalue: Identifier
+  public let value: P4Value
+
+  public init(withLValue lvalue: Identifier, withValue value: P4Value) {
+    self.lvalue = lvalue
+    self.value = value
+  }
+}
+
 public struct KeysetExpression {
   public let key: EvaluatableExpression
   public let next_state_name: String
@@ -63,7 +73,6 @@ public struct ParserTransitionSelectExpression {
     return ParserTransitionSelectExpression(
       withSelector: self.selector, withKeysetExpressions: new_kse)
   }
-
 }
 
 public struct ParserTransitionStatement {
@@ -93,13 +102,20 @@ public struct VariableDeclarationStatement {
   }
 }
 
-public class ParserState: Equatable, CustomStringConvertible {
+public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
   public private(set) var state_name: String
   public private(set) var local_elements: [EvaluatableParserStatement]
   public private(set) var statements: [EvaluatableParserStatement]
   public private(set) var transition: ParserTransitionStatement?
   public private(set) var next_state: ParserState?
+
+  public static func < (lhs: ParserState, rhs: ParserState) -> Bool {
+    // If lhs transitions to rhs, then return true. Otherwise, return false.       
+
+    // TODO!!
+    return false
+  }
 
   public var description: String {
     return "Name: \(state_name)"
@@ -112,34 +128,18 @@ public class ParserState: Equatable, CustomStringConvertible {
   /// Construct a ParserState
   public init(
     name: String, withLocalElements localElements: [EvaluatableParserStatement]?,
-    withStatements statements: [EvaluatableParserStatement]?,
+    withStatements stmts: [EvaluatableParserStatement]?,
     withTransition transitionStatement: ParserTransitionStatement
   ) {
     state_name = name
     transition = transitionStatement
     local_elements = localElements ?? Array()
-    self.statements = statements ?? Array()
+    statements = stmts ?? Array()
   }
 
   public func semantic_check(states: ParserStates) -> Bool {
     guard let transition = transition else {
       return self == accept || self == reject 
-    }
-
-    if let transition_select_expression = transition.transition_expression {
-      var updated_tse = ParserTransitionSelectExpression(
-        withSelector: transition_select_expression.selector, withKeysetExpressions: [])
-
-      for kse in transition_select_expression.keyset_expressions {
-        guard let next_state = states.find(withName: kse.next_state_name) else {
-          return false
-        }
-        let new_kse = KeysetExpression(
-          withKey: kse.key, withNextStateName: kse.next_state_name, withNextState: next_state)
-        updated_tse = updated_tse.append_checked_kse(kse: new_kse)
-      }
-      self.transition = ParserTransitionStatement(withTransitionExpression: updated_tse)
-      return true
     }
 
     if let next_state_name = transition.next_state_name,
@@ -173,6 +173,9 @@ public class ParserState: Equatable, CustomStringConvertible {
     }
   }
 }
+
+nonisolated(unsafe) public let accept: ParserState = ParserState(name: "accept")
+nonisolated(unsafe) public let reject: ParserState = ParserState(name: "reject")
 
 public struct ParserStates {
   public var states: [ParserState] = Array()
@@ -221,8 +224,6 @@ public struct ParserStates {
   }
 }
 
-nonisolated(unsafe) public let accept: ParserState = ParserState(name: "accept")
-nonisolated(unsafe) public let reject: ParserState = ParserState(name: "reject")
 
 public struct Parser: P4Type {
   public var states: ParserStates
@@ -250,41 +251,16 @@ public struct Parser: P4Type {
   public func semantic_check() -> Result<()> {
     return self.states.semantic_check()
   }
-}
 
-public class ParserInstance: ProgramExecution {
-
-  public var state: ParserState
-
-  private init(state: ParserState) {
-    self.state = state
-    super.init()
+  public var description: String {
+    return "Parser"
   }
 
-  public static func create(_ parser: Parser) -> Result<ParserInstance> {
-
-    var augmented_parser = Parser(withName: parser.name)
-    augmented_parser.states = parser.states.append(state: accept).append(state: reject)
-
-    if case .Error(let e) = augmented_parser.semantic_check() {
-      return .Error(e)
+  public func eq(rhs: P4Type) -> Bool {
+    return if let parser_rhs = rhs as? Parser {
+      self.name == parser_rhs.name
+    } else {
+      false
     }
-
-    guard let start_state = augmented_parser.findStartState() else {
-      return Result.Error(Error(withMessage: "Could not find the start state"))
-    }
-    let new = ParserInstance(state: start_state)
-
-    return Result.Ok(new)
-  }
-
-  public func transition(toNextState state: ParserState) -> ParserInstance {
-    let next = self
-    next.state = state
-    return next
-  }
-
-  public override var description: String {
-    return "Execution: \(super.description)\nCurrent State: \(state)"
   }
 }

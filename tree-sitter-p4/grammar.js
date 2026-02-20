@@ -75,14 +75,15 @@ export default grammar({
 
         // General statements
         statements: $ => repeat1(seq($.statement, $.semicolon)),
-        statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement),// Limited, so far.
+        statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement, $.assignmentStatement),// Limited, so far.
         blockStatement: $ => seq(optional($.annotations), '{', optional($.statements), '}'),
         conditionalStatement: $ => choice(prec(1, seq($.if, '(', $.expression, ')', $.statement)), prec(2, seq($.if, '(', $.expression, ')', $.statement, $.else, $.statement))),
         expressionStatement: $=> $.expression,
+        assignmentStatement: $=> seq($.expression, $.assignment, $.expression),
 
         // Parser statements
         parserStatements: $ => repeat1(seq($.parserStatement, $.semicolon)),
-        parserStatement: $ => choice($.conditionalStatement, $.parserBlockStatement, $.expressionStatement), // Limited, so far.
+        parserStatement: $ => choice($.conditionalStatement, $.parserBlockStatement, $.expressionStatement, $.assignmentStatement), // Limited, so far.
         parserBlockStatement: $ => seq(optional($.annotations), '{', $.parserStatements, '}'),
         parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression),
 

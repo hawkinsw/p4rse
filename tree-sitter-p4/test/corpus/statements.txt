@@ -106,15 +106,12 @@ parser simple() {
 )
 
 =========================
-Simple If Statement (With Body)
+Simple Assignment Statement (To Identifier)
 =========================
 parser simple() {
   state start {
-    if (true) {
-      true;
-    } else {
-      false;
-    };
+    string l = "testing";
+    l = "five";
     transition accept;
   }
 };
@@ -131,41 +128,32 @@ parser simple() {
     (parserState
      (state)
      (identifier)
+     (parserLocalElements
+      (parserLocalElement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (string)
+         )
+        )
+        (identifier)
+        (assignment)
+        (expression
+         (string_literal)
+        )
+       )
+      )
+      (semicolon)
+     )
      (parserStatements
       (parserStatement
-       (conditionalStatement
-  (if)
+       (assignmentStatement
         (expression
-         (true)
+         (identifier)
         )
-        (statement
-         (blockStatement
-          (statements
-           (statement
-            (expressionStatement
-             (expression
-              (true)
-             )
-            )
-           )
-           (semicolon)
-          )
-         )
-        )
-        (else)
-        (statement
-         (blockStatement
-          (statements
-           (statement
-            (expressionStatement
-             (expression
-              (false)
-             )
-            )
-           )
-           (semicolon)
-          )
-         )
+        (assignment)
+        (expression
+         (string_literal)
         )
        )
       )
@@ -184,4 +172,4 @@ parser simple() {
  )
  (semicolon)
 )
-
+ 
