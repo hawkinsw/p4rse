@@ -37,7 +37,10 @@ public struct ConditionalStatement {
     self.elss = .none
   }
 
-  public init(condition: EvaluatableExpression, withThen thenn: EvaluatableStatement, andElse elss: EvaluatableStatement) {
+  public init(
+    condition: EvaluatableExpression, withThen thenn: EvaluatableStatement,
+    andElse elss: EvaluatableStatement
+  ) {
     self.condition = condition
     self.thenn = thenn
     self.elss = elss

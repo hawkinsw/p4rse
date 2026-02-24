@@ -22,7 +22,7 @@ extension BlockStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {
     var execution = execution
     for s in self.statements {
-      execution = s.evaluate(execution: execution) 
+      execution = s.evaluate(execution: execution)
     }
     return execution
   }
@@ -50,18 +50,17 @@ extension ConditionalStatement: EvaluatableStatement {
     if initial_value.eq(rhs: P4BooleanValue.init(withValue: true)) {
       let execution = execution.enter_scope()
       var result = self.thenn.evaluate(execution: execution)
-      result = result.exit_scope() 
+      result = result.exit_scope()
       return result
     } else if let elss = self.elss {
       let execution = execution.enter_scope()
       var result = elss.evaluate(execution: execution)
-      result = result.exit_scope() 
+      result = result.exit_scope()
       return result
     }
     return execution
   }
 }
-
 
 extension ExpressionStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {
