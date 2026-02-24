@@ -26,10 +26,10 @@ public struct LocalElement {
 }
 
 public struct ParserAssignmentStatement {
-  public let lvalue: Identifier
-  public let value: P4Value
+  public let lvalue: TypedIdentifier
+  public let value: EvaluatableExpression
 
-  public init(withLValue lvalue: Identifier, withValue value: P4Value) {
+  public init(withLValue lvalue: TypedIdentifier, withValue value: EvaluatableExpression) {
     self.lvalue = lvalue
     self.value = value
   }
@@ -96,17 +96,19 @@ public struct ParserTransitionStatement {
 }
 
 public struct VariableDeclarationStatement {
-  public var variable: Variable
-  public init(withVariable variable: Variable) {
-    self.variable = variable
+  public var initializer: EvaluatableExpression
+  public var identifier: Identifier
+  public init(identifier: Identifier, withInitializer initializer: EvaluatableExpression) {
+    self.identifier = identifier
+    self.initializer = initializer
   }
 }
 
 public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
   public private(set) var state_name: String
-  public private(set) var local_elements: [EvaluatableParserStatement]
-  public private(set) var statements: [EvaluatableParserStatement]
+  public private(set) var local_elements: [EvaluatableStatement]
+  public private(set) var statements: [EvaluatableStatement]
   public private(set) var transition: ParserTransitionStatement?
   public private(set) var next_state: ParserState?
 
@@ -127,8 +129,8 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
   /// Construct a ParserState
   public init(
-    name: String, withLocalElements localElements: [EvaluatableParserStatement]?,
-    withStatements stmts: [EvaluatableParserStatement]?,
+    name: String, withLocalElements localElements: [EvaluatableStatement]?,
+    withStatements stmts: [EvaluatableStatement]?,
     withTransition transitionStatement: ParserTransitionStatement
   ) {
     state_name = name

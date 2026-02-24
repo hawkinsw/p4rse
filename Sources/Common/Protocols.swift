@@ -21,9 +21,10 @@ public protocol EvaluatableExpression {
     ///  - execution: The execution context in which to evaluate the expression
     /// - Returns: The value of expression
     func evaluate(execution: ProgramExecution) -> Result<P4Value>
+    func type() -> any P4Type
 }
 
-public protocol EvaluatableParserStatement {
+public protocol EvaluatableStatement {
     /// Evaluate a statement for a given execution
     /// - Parameters
     ///  - execution: The execution context in which to evaluate the parser statement
@@ -32,11 +33,11 @@ public protocol EvaluatableParserStatement {
 }
 
 public protocol P4Type: CustomStringConvertible {
-    static func create() -> P4Type
-    func eq(rhs: P4Type) -> Bool
+    static func create() -> any P4Type
+    func eq(rhs: any P4Type) -> Bool
 }
 
 public protocol P4Value: CustomStringConvertible {
-    func type() -> P4Type
+    func type() -> any P4Type
     func eq(rhs: P4Value) -> Bool
 }

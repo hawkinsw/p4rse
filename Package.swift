@@ -10,20 +10,20 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Parser",
-            targets: ["Parser"]
+            name: "P4Parser",
+            targets: ["P4Parser"]
         ),
         .library(
             name: "Common",
             targets: ["Common"]
         ),
         .library(
-            name: "Lang",
-            targets: ["Lang"]
+            name: "P4Lang",
+            targets: ["P4Lang"]
         ),
         .library(
-            name: "Runtime",
-            targets: ["Runtime"]
+            name: "P4Runtime",
+            targets: ["P4Runtime"]
         ),
     ],
     dependencies: [
@@ -40,15 +40,15 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ]),
         .target(
-            name: "Parser",
+            name: "P4Parser",
             dependencies: [
                 .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
                 .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
                 .product(name: "TreeSitterP4", package: "tree-sitter-p4"),
                 .target(name: "TreeSitterExtensions"),
                 .target(name: "Common"),
-                .target(name: "Lang"),
-                .target(name: "Runtime"),
+                .target(name: "P4Lang"),
+                .target(name: "P4Runtime"),
             ],
         ),
         .target(
@@ -63,16 +63,16 @@ let package = Package(
             dependencies: ["Macros"]
         ),
         .target(
-            name: "Lang",
+            name: "P4Lang",
             dependencies: ["Common"]
         ),
         .target(
-            name: "Runtime",
-            dependencies: ["Lang", "Common"]
+            name: "P4Runtime",
+            dependencies: ["P4Lang", "Common"]
         ),
         .testTarget(
             name: "ParserTests",
-            dependencies: ["Parser", "Runtime", "Lang", "Macros", "TreeSitterExtensions", "Common"]
+            dependencies: ["P4Parser", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common"]
         ),
     ]
 )

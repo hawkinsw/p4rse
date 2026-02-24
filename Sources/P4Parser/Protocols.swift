@@ -15,26 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import Lang
 import Common
+import P4Lang
+import P4Runtime
+import SwiftTreeSitter
+import TreeSitterExtensions
+import TreeSitterP4
 
-extension VariableDeclarationStatement: EvaluatableParserStatement {
-  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
-    let new_scopes = execution.scopes.declare(variable: self.variable)
-    execution.scopes = new_scopes
-    return execution
-  }
+public protocol ParseableStatement {
+  static func Parse(
+    node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
+  ) -> Result<(EvaluatableStatement?, LexicalScopes)>
 }
 
-extension ExpressionStatement: EvaluatableParserStatement {
-  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
-    return execution
-  }
+public protocol ParseableValue {
+  static func ParseValue(withValue value: String) -> Result<P4Value>
 }
 
-// Variables are evaluatable because they can be looked up by identifiers.
-extension Identifier: EvaluatableExpression {
-    public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-      return execution.scopes.evaluate(identifier: self)
-    }
+public protocol ParseableType {
+  static func ParseType(type: String) -> Result<P4Type?>
 }

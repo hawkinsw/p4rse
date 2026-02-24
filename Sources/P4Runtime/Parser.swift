@@ -16,11 +16,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import Common
-import Lang
+import P4Lang
 
-extension ParserAssignmentStatement: EvaluatableParserStatement {
+extension ParserAssignmentStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {
-    let updated_scopes = execution.scopes.set(identifier: self.lvalue, value: self.value)
+    guard case Result.Ok(let value) = self.value.evaluate(execution: execution) else {
+      return execution.setError(error: Error(withMessage: "AHHHHH"))
+    }
+    let updated_scopes = execution.scopes.set(identifier: self.lvalue, withValue: value)
 
     execution.scopes = updated_scopes
 
@@ -53,7 +56,7 @@ public struct ParserStateDirectTransition: ParserStateInstance {
     return false
   }
 
-  public func current() -> Lang.ParserState {
+  public func current() -> P4Lang.ParserState {
     return currrent_state
   }
 
@@ -72,7 +75,7 @@ public struct ParserStateNoTransition: ParserStateInstance {
     return true
   }
 
-  public func current() -> Lang.ParserState {
+  public func current() -> P4Lang.ParserState {
     return currrent_state
   }
 }
@@ -116,7 +119,7 @@ public struct ParserStateSelectTransition: ParserStateInstance {
     return false
   }
 
-  public func current() -> Lang.ParserState {
+  public func current() -> P4Lang.ParserState {
     return currrent_state
   }
 

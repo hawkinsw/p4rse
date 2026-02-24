@@ -17,15 +17,15 @@
 
 import Common
 import Foundation
-import Lang
+import P4Lang
 import Macros
-import Runtime
+import P4Runtime
 import SwiftTreeSitter
 import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import Parser
+@testable import P4Parser
 
 @Test func test_simple_local_element_variable_declaration() async throws {
   let simple_parser_declaration = """
@@ -42,8 +42,8 @@ import TreeSitterP4
     """
 
 
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
 
   #expect(execution_result.scopes.count == 1)
@@ -53,7 +53,7 @@ import TreeSitterP4
   }
 
   // We should be in the accept state.
-  #expect(state_result == Lang.reject)
+  #expect(state_result == P4Lang.reject)
 
   // There are two variables declared.
   #expect(scope.count == 2)
@@ -61,8 +61,8 @@ import TreeSitterP4
   // Check the names/values of the variables in scope.
   let b = try #require(scope.lookup(identifier: Identifier(name: "b")))
   let s = try #require(scope.lookup(identifier: Identifier(name: "s")))
-  #expect(b.value_type.eq(rhs: P4BooleanValue(withValue: false)))
-  #expect(s.value_type.eq(rhs: P4StringValue(withValue: "\"testing\"")))
+  #expect(b.eq(rhs: P4BooleanValue(withValue: false)))
+  #expect(s.eq(rhs: P4StringValue(withValue: "\"testing\"")))
 }
 
 @Test func test_simple_scope() async throws {
@@ -84,19 +84,19 @@ import TreeSitterP4
     """
 
 
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == Lang.accept)
+  #expect(state_result == P4Lang.accept)
 
   #expect(execution_result.scopes.count == 1)
   let scope = try! #require(execution_result.scopes.current)
   #expect(scope.count == 2)
   let va = try #require(scope.lookup(identifier: Identifier(name: "va")))
   let where_to = try #require(scope.lookup(identifier: Identifier(name: "where_to")))
-  #expect(where_to.value_type.eq(rhs: P4BooleanValue(withValue: false)))
-  #expect(va.value_type.eq(rhs: P4IntValue(withValue: 5)))
+  #expect(where_to.eq(rhs: P4BooleanValue(withValue: false)))
+  #expect(va.eq(rhs: P4IntValue(withValue: 5)))
 }
 
 @Test func test_simple_scope2() async throws {
@@ -119,23 +119,22 @@ import TreeSitterP4
     """
 
   
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 2)
 
-  #expect(state_result == Lang.reject)
+  #expect(state_result == P4Lang.reject)
 
   #expect(execution_result.scopes.count == 1)
   let scope = try! #require(execution_result.scopes.current)
 
   #expect(scope.count == 1)
   let where_to = try #require(scope.lookup(identifier: Identifier(name: "where_to")))
-  #expect(where_to.value_type.eq(rhs: P4BooleanValue(withValue: false)))
+  #expect(where_to.eq(rhs: P4BooleanValue(withValue: false)))
 }
-
 @Test func test_simple_assignment() async throws {
   let simple_parser_declaration = """
       parser main_parser() {
@@ -153,21 +152,21 @@ import TreeSitterP4
     """
 
   
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
 
-  #expect(state_result == Lang.accept)
+  #expect(state_result == P4Lang.accept)
 
   #expect(execution_result.scopes.count == 1)
   let scope = try! #require(execution_result.scopes.current)
 
   #expect(scope.count == 2)
   let where_to = try #require(scope.lookup(identifier: Identifier(name: "where_to")))
-  #expect(where_to.value_type.eq(rhs: P4BooleanValue(withValue: false)))
+  #expect(where_to.eq(rhs: P4BooleanValue(withValue: false)))
   let where_from = try #require(scope.lookup(identifier: Identifier(name: "where_from")))
-  #expect(where_from.value_type.eq(rhs: P4StringValue(withValue: "\"there\"")))
+  #expect(where_from.eq(rhs: P4StringValue(withValue: "\"there\"")))
 }

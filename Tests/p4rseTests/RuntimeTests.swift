@@ -17,15 +17,15 @@
 
 import Common
 import Foundation
-import Lang
+import P4Lang
 import Macros
-import Runtime
+import P4Runtime
 import SwiftTreeSitter
 import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import Parser
+@testable import P4Parser
 
 @Test func test_simple_runtime() async throws {
   let simple_parser_declaration = """
@@ -37,12 +37,12 @@ import TreeSitterP4
     };
     """
 
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // We should be in the accept state.
-  #expect(state_result == Lang.accept)
+  #expect(state_result == P4Lang.accept)
 }
 
 @Test func test_simple_runtime_to_accept() async throws {
@@ -55,11 +55,11 @@ import TreeSitterP4
     };
     """
 
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   // We should be in the accept state.
-  #expect(state_result == Lang.reject)
+  #expect(state_result == P4Lang.reject)
 }
 
 
@@ -73,12 +73,12 @@ import TreeSitterP4
     };
     """
 
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
 
   #expect(
     #RequireErrorResult<ParserRuntime>(
       Error(withMessage: "No start state defined"),
-      Runtime.ParserRuntime.create(program: program)))
+      P4Runtime.ParserRuntime.create(program: program)))
 }
 
 @Test func test_simple_parser_with_transition_select_expression() async throws {
@@ -94,14 +94,14 @@ import TreeSitterP4
     """
 
   
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
 
-  #expect(state_result == Lang.accept)
+  #expect(state_result == P4Lang.accept)
 }
 
 @Test func test_simple_parser_with_transition_select_expression_to_reject() async throws {
@@ -116,11 +116,11 @@ import TreeSitterP4
       };
     """
 
-  let program = try #UseOkResult(Parser.Program(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
-  #expect(state_result == Lang.reject)
+  #expect(state_result == P4Lang.reject)
 }

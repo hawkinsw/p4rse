@@ -16,7 +16,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import Common
-import Lang
+import P4Lang
 
 /// The runtime for a parser
 public class ParserRuntime: CustomStringConvertible {
@@ -27,12 +27,12 @@ public class ParserRuntime: CustomStringConvertible {
   }
 
   /// Create a parser runtime from a P4 program
-  public static func create(program: Lang.Program) -> Result<ParserRuntime> {
+  public static func create(program: P4Lang.Program) -> Result<ParserRuntime> {
 
     return switch program.starting_parser() {
     case .Ok(let parser):
       switch ParserInstance.compile(parser) {
-      case .Ok(let execution): .Ok(Runtime.ParserRuntime(execution: execution))
+      case .Ok(let execution): .Ok(P4Runtime.ParserRuntime(execution: execution))
       case .Error(let error): .Error(error)
       }
     case .Error(let error): .Error(error)

@@ -16,7 +16,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// A P4 identifier
-public class Identifier: CustomStringConvertible, Equatable {
+public class Identifier: CustomStringConvertible, Equatable, Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.name)
+  }
+
   var name: String
 
   public init(name: String) {
@@ -32,22 +36,38 @@ public class Identifier: CustomStringConvertible, Equatable {
   }
 }
 
-/// A P4 variable
-public class Variable: Identifier {
-  var constant: Bool
-  var value: P4Value
+/// A P4 identifier
+public class TypedIdentifier: Identifier {
+  public var parsed_type: P4Type
 
-  public init(name: String, withValue value: P4Value, isConstant constant: Bool) {
+  public init(name: String, withType type: P4Type) {
+    self.parsed_type = type
+    super.init(name: name)
+  }
+
+  public override var description: String {
+    return "\(name)"
+  }
+}
+
+/// A P4 variable
+public class Variable: TypedIdentifier {
+  var constant: Bool
+  var value: P4Value?
+
+  public init(
+    name: String, withType type: P4Type, withValue value: P4Value?, isConstant constant: Bool
+  ) {
     self.constant = constant
     self.value = value
-    super.init(name: name)
+    super.init(name: name, withType: type)
   }
 
   public override var description: String {
     return "\(super.description) = \(value) \(constant ? "(constant)" : "")"
   }
 
-  public var value_type: P4Value {
+  public var value_type: P4Value? {
     value
   }
 }
@@ -78,6 +98,7 @@ extension P4ValueBase: EvaluatableExpression {
 
 /// The type for a P4 struct
 public struct P4Struct: P4Type {
+
   public let name: String
   // The type of the struct created is always anonymous.
   public static func create() -> any P4Type {
@@ -105,10 +126,10 @@ public struct P4Struct: P4Type {
 
 /// The field of a P4 struct
 public struct P4StructField {
-  public let name: Identifier
+  public let name: TypedIdentifier
   public let type: P4Type
 
-  public init(withName name: Identifier, withType type: P4Type) {
+  public init(withName name: TypedIdentifier, withType type: P4Type) {
     self.name = name
     self.type = type
   }
@@ -124,6 +145,7 @@ public class P4StructValue: P4ValueBase<P4Struct> {
 
 /// A P4 boolean type
 public struct P4Boolean: P4Type {
+
   public static func create() -> any P4Type {
     return P4Boolean()
   }
@@ -132,8 +154,8 @@ public struct P4Boolean: P4Type {
   }
   public func eq(rhs: P4Type) -> Bool {
     return switch rhs {
-      case is P4Boolean: true
-      default: false
+    case is P4Boolean: true
+    default: false
     }
   }
 }
@@ -167,8 +189,8 @@ public struct P4Int: P4Type {
   }
   public func eq(rhs: P4Type) -> Bool {
     return switch rhs {
-      case is P4Int: true
-      default: false
+    case is P4Int: true
+    default: false
     }
   }
 }
@@ -192,16 +214,17 @@ public class P4IntValue: P4ValueBase<P4Int> {
 
 /// A P4 string type
 public struct P4String: P4Type {
+
   public static func create() -> any P4Type {
     return P4String()
   }
   public var description: String {
     return "String"
   }
-  public func eq(rhs: P4Type) -> Bool {
+  public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
-      case is P4String: true
-      default: false
+    case is P4String: true
+    default: false
     }
   }
 }

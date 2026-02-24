@@ -16,7 +16,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import Common
-import Lang
+import P4Lang
 
 protocol EvaluatableParserTransition {
   func program(execution: ProgramExecution) -> (ParserState, ProgramExecution)

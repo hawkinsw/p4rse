@@ -62,7 +62,7 @@ public struct RequireResult: ExpressionMacro {
         return """
             {
                 switch \(argument) {
-                    case Result.Ok(let _): return true
+                    case Result.Ok(_): return true
                     case Result.Error(let __error):
                         print("Unexpected result: \\(__error)")
                         return false
@@ -79,18 +79,21 @@ public struct RequireErrorResult: ExpressionMacro {
     ) throws -> ExprSyntax {
 
         let arguments = node.argumentList.indices
-        let expected_error = node.argumentList[arguments.startIndex]
-        let error_producer = node.argumentList[arguments.index(after: arguments.startIndex)]
+        let expected_error = node.argumentList[arguments.startIndex].expression
+        let error_producer = node.argumentList[arguments.index(after: arguments.startIndex)].expression
 
-        return """
+        return ExprSyntax("""
             {
-                if case Result.Error(\(expected_error)) = \(error_producer) {
-                    true
+                let __expected_error = \(expected_error)
+                let __actual_error = \(error_producer)
+                if case Result.Error(__expected_error) = __actual_error {
+                    return true
                 } else {
-                    false
+                    print("Expected Error: \\(__expected_error) but got Error: \\(__actual_error)")
+                    return false
                 }
             }()
-            """
+            """)
     }
 }
 
