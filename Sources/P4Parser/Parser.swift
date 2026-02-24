@@ -315,7 +315,6 @@ public struct Parser {
         return Result.Error(parse_err)
       }
 
-      print("current_scopes: \(current_scopes)")
       // TODO: Now that scopes are involved, doing this out of order will not work!
       guard !state_name_capture.isEmpty,
         !transition_capture.isEmpty,
