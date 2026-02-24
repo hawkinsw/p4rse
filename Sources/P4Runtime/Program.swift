@@ -18,6 +18,16 @@
 import Common
 import P4Lang
 
+extension BlockStatement: EvaluatableStatement {
+  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+    var execution = execution
+    for s in self.statements {
+      execution = s.evaluate(execution: execution) 
+    }
+    return execution
+  }
+}
+
 extension VariableDeclarationStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {
     guard case .Ok(let initial_value) = self.initializer.evaluate(execution: execution) else {
@@ -28,6 +38,30 @@ extension VariableDeclarationStatement: EvaluatableStatement {
     return execution
   }
 }
+
+extension ConditionalStatement: EvaluatableStatement {
+  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+    guard case .Ok(let initial_value) = self.condition.evaluate(execution: execution) else {
+      return execution.setError(error: Error(withMessage: "Could not evaluate \(self.condition)"))
+    }
+    if !initial_value.type().eq(rhs: P4Boolean.create()) {
+      return execution.setError(error: Error(withMessage: "Condition expression is not a Boolean"))
+    }
+    if initial_value.eq(rhs: P4BooleanValue.init(withValue: true)) {
+      let execution = execution.enter_scope()
+      var result = self.thenn.evaluate(execution: execution)
+      result = result.exit_scope() 
+      return result
+    } else if let elss = self.elss {
+      let execution = execution.enter_scope()
+      var result = elss.evaluate(execution: execution)
+      result = result.exit_scope() 
+      return result
+    }
+    return execution
+  }
+}
+
 
 extension ExpressionStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {

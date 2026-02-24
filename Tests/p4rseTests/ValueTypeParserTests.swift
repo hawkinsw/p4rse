@@ -39,6 +39,7 @@ import TreeSitterP4
   let simple_parser_declaration = """
       parser main_parser() {
         state start {
+          string g = "Testing";
           string where_to = "Testing";
           where_to = true;
           transition reject;

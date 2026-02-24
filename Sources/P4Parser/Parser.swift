@@ -28,12 +28,11 @@ extension ParserAssignmentStatement: ParseableStatement {
   public static func Parse(
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement?, LexicalScopes)> {
-
     guard
       let parser_assignment_statement_query = try? SwiftTreeSitter.Query(
         language: p4lang,
         data: String(
-          "(assignmentStatement (expression) @lvalue (assignment) (expression) @value)"
+          "(assignmentStatement (expression) @lvalue (assignment) (expression) @value) @assignment"
         ).data(using: String.Encoding.utf8)!)
     else {
       return Result.Ok((.none, scopes))
@@ -44,6 +43,7 @@ extension ParserAssignmentStatement: ParseableStatement {
       return Result.Ok((.none, scopes))
     }
 
+    let assignment_capture = parser_assignment_statement.captures(named: "assignment")
     let lvalue_capture = parser_assignment_statement.captures(named: "lvalue")
     let rvalue_capture = parser_assignment_statement.captures(named: "value")
 
@@ -56,8 +56,15 @@ extension ParserAssignmentStatement: ParseableStatement {
         Error(withMessage: "Could not parse a parser assignment statement"))
     }
 
-    let rvalue_raw = rvalue_capture[0].node
-    let maybe_parsed_rvalue = Expression.Parse(node: rvalue_raw, inTree: tree, withScopes: scopes)
+    let rvalue_node = rvalue_capture[0].node
+    let lvalue_node = lvalue_capture[0].node
+    let assignment_node = assignment_capture[0].node
+
+    if assignment_node.parent != node.parent {
+      return Result.Ok((.none, scopes))
+    }
+
+    let maybe_parsed_rvalue = Expression.Parse(node: rvalue_node, inTree: tree, withScopes: scopes)
     guard case Result.Ok(let rvalue) = maybe_parsed_rvalue else {
       return Result.Error(maybe_parsed_rvalue.error()!)
     }
@@ -72,7 +79,7 @@ extension ParserAssignmentStatement: ParseableStatement {
       return Result.Ok(
         (
           ParserAssignmentStatement(
-            withLValue: TypedIdentifier(name: lvalue_expression_raw, withType: lvalue_type),
+            withLValue: TypedIdentifier(name: lvalue_node.text!, withType: lvalue_type),
             withValue: rvalue
           ), scopes
         ))
@@ -121,7 +128,7 @@ public struct Parser {
     ) -> Result<(EvaluatableStatement, LexicalScopes)> {
       let statementParsers: [ParseableStatement.Type] = [
         ParserAssignmentStatement.self, ExpressionStatement.self,
-        VariableDeclarationStatement.self,
+        VariableDeclarationStatement.self, ConditionalStatement.self, BlockStatement.self,
       ]
 
       // Iterate through statement parsers and give each one a chance.

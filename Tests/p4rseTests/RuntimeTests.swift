@@ -17,8 +17,8 @@
 
 import Common
 import Foundation
-import P4Lang
 import Macros
+import P4Lang
 import P4Runtime
 import SwiftTreeSitter
 import Testing
@@ -62,7 +62,6 @@ import TreeSitterP4
   #expect(state_result == P4Lang.reject)
 }
 
-
 @Test func test_simple_runtime_no_start_state() async throws {
   let simple_parser_declaration = """
     parser main_parser() {
@@ -93,7 +92,6 @@ import TreeSitterP4
       };
     """
 
-  
   let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
@@ -123,4 +121,71 @@ import TreeSitterP4
 
   #expect(parser.states.count() == 1)
   #expect(state_result == P4Lang.reject)
+}
+
+@Test func test_simple_parser_with_conditional_statement() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool x = true;
+          string check = "Invalid";
+          if (x) {
+            x = false;
+            check = "valid";
+          };
+          transition select (x) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
+    """
+
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, exec_result) = try! #UseOkResult(runtime.run())
+
+  #expect(parser.states.count() == 1)
+  #expect(state_result == P4Lang.reject)
+
+  let x = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "x")))
+  #expect(x.eq(rhs: P4BooleanValue(withValue: false)))
+  let check = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "check")))
+  #expect(check.eq(rhs: P4StringValue(withValue: "\"valid\"")))
+}
+
+@Test func test_simple_parser_with_conditional_statement_and_else() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool x = false;
+          string check = "Invalid";
+          if (x) {
+            x = false;
+            check = "a";
+          } else {
+            x = true;
+            check = "b";
+          };
+          transition select (x) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
+    """
+
+  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, exec_result) = try! #UseOkResult(runtime.run())
+
+  #expect(parser.states.count() == 1)
+  #expect(state_result == P4Lang.accept)
+
+  let x = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "x")))
+  #expect(x.eq(rhs: P4BooleanValue(withValue: true)))
+  let check = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "check")))
+  #expect(check.eq(rhs: P4StringValue(withValue: "\"b\"")))
 }

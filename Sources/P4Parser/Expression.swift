@@ -178,31 +178,3 @@ struct Expression {
     return Result.Error(Error(withMessage: "Could not parse into expression."))
   }
 }
-
-extension ExpressionStatement: ParseableStatement {
-  public static func Parse(
-    node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
-  ) -> Result<(EvaluatableStatement?, LexicalScopes)> {
-    guard
-      let expression_statement_query = try? SwiftTreeSitter.Query(
-        language: p4lang,
-        data: String(
-          "(expressionStatement (expression) @expression)"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return Result.Ok((.none, scopes))
-    }
-
-    let qr = expression_statement_query.execute(node: node, in: tree)
-    guard let query_result = qr.next() else {
-      return Result.Ok((.none, scopes))
-    }
-
-    let expression_capture = query_result.captures(named: "expression")
-    if !expression_capture.isEmpty {
-      // TODO: Actually create an ExpressionStatement
-      return Result.Ok((ExpressionStatement(), scopes))
-    }
-    return Result.Ok((.none, scopes))
-  }
-}

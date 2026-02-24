@@ -95,15 +95,6 @@ public struct ParserTransitionStatement {
   }
 }
 
-public struct VariableDeclarationStatement {
-  public var initializer: EvaluatableExpression
-  public var identifier: Identifier
-  public init(identifier: Identifier, withInitializer initializer: EvaluatableExpression) {
-    self.identifier = identifier
-    self.initializer = initializer
-  }
-}
-
 public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
   public private(set) var state_name: String
