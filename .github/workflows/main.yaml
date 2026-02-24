@@ -36,3 +36,17 @@ jobs:
         working-directory: ./tree-sitter-p4
       - run: swift build
       - run: swift test
+  library-format-tests:
+    name: Library Format Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v4
+      - uses: tree-sitter/setup-action@v2
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "6.2"
+      - run: tree-sitter generate
+        working-directory: ./tree-sitter-p4
+      - run: ./ci/format.sh
+

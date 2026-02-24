@@ -33,5 +33,5 @@ For more information, see the [documentation for the Swift-DocC plugin](https://
 To check the format:
 
 ```console
-$ swift package plugin --allow-writing-to-package-directory swiftformat
+$ swift-format --recursive -i Sources/
 ```
