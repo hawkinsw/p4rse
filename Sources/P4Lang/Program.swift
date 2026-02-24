@@ -22,26 +22,26 @@ public struct ExpressionStatement {
 }
 
 public struct Program {
-    public var types: [P4Type] = Array()
+  public var types: [P4Type] = Array()
 
-    /// Find the program's main parser
-    /// 
-    /// Note: For now, the main parser is expected to be named main_parser.
-    public func starting_parser() -> Result<Parser> {
-        return self.find_parser(withName: Identifier(name: "main_parser"))
+  /// Find the program's main parser
+  ///
+  /// Note: For now, the main parser is expected to be named main_parser.
+  public func starting_parser() -> Result<Parser> {
+    return self.find_parser(withName: Identifier(name: "main_parser"))
+  }
+
+  public func find_parser(withName name: Identifier) -> Result<Parser> {
+    for type in self.types {
+      guard let parser = type as? Parser else {
+        continue
+      }
+      if parser.name == name {
+        return .Ok(parser)
+      }
     }
+    return .Error(Error(withMessage: "Could not find parser named \(name)"))
+  }
 
-    public func find_parser(withName name: Identifier) -> Result<Parser> {
-        for type in self.types {
-            guard let parser = type as? Parser else {
-                continue
-            }
-            if parser.name == name {
-                return .Ok(parser)
-            }
-        }
-        return .Error(Error(withMessage: "Could not find parser named \(name)"))
-    }
-
-    public init() {}
+  public init() {}
 }

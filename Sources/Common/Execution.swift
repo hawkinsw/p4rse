@@ -16,62 +16,62 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 open class ProgramExecution: CustomStringConvertible {
-    public var scopes: ValueScopes = ValueScopes()
-    var error: Error?
-    var debug: DebugLevel = DebugLevel.Error
+  public var scopes: ValueScopes = ValueScopes()
+  var error: Error?
+  var debug: DebugLevel = DebugLevel.Error
 
-    public init() {}
+  public init() {}
 
-    open var description: String {
-        return "Runtime:\nScopes: \(scopes)"
-    }
+  open var description: String {
+    return "Runtime:\nScopes: \(scopes)"
+  }
 
-    public func hasError() -> Bool {
-        return self.error != nil
-    }
+  public func hasError() -> Bool {
+    return self.error != nil
+  }
 
-    public func getError() -> Error? {
-        return self.error
-    }
+  public func getError() -> Error? {
+    return self.error
+  }
 
-    public func setError(error: Error) -> ProgramExecution {
-        let npe = self
-        npe.error = error
-        return npe
-    }
+  public func setError(error: Error) -> ProgramExecution {
+    let npe = self
+    npe.error = error
+    return npe
+  }
 
-    public func getDebugLevel() -> DebugLevel {
-        return self.debug
-    }
+  public func getDebugLevel() -> DebugLevel {
+    return self.debug
+  }
 
-    public func setDebugLevel(_ dl: DebugLevel) -> ProgramExecution {
-        let pe = self
-        pe.debug = dl
-        return pe
-    }
+  public func setDebugLevel(_ dl: DebugLevel) -> ProgramExecution {
+    let pe = self
+    pe.debug = dl
+    return pe
+  }
 
-    open func isDone() -> Bool {
-        return false
-    }
+  open func isDone() -> Bool {
+    return false
+  }
 
-    open func setDone() -> ProgramExecution {
-        // For a bare ProgramExecution, setDone is a noop.
-        return self
-    }
+  open func setDone() -> ProgramExecution {
+    // For a bare ProgramExecution, setDone is a noop.
+    return self
+  }
 
-    public func enter_scope() -> ProgramExecution {
-       let new_pe = self
-       new_pe.scopes = self.scopes.enter()
+  public func enter_scope() -> ProgramExecution {
+    let new_pe = self
+    new_pe.scopes = self.scopes.enter()
 
-       return new_pe
-    }
+    return new_pe
+  }
 
-    public func exit_scope() -> ProgramExecution {
-       let new_pe = self
-       new_pe.scopes = self.scopes.exit()
+  public func exit_scope() -> ProgramExecution {
+    let new_pe = self
+    new_pe.scopes = self.scopes.exit()
 
-       return new_pe
-    }
+    return new_pe
+  }
 
 }
 

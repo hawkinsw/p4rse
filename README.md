@@ -27,3 +27,11 @@ $ swift package swift package --disable-sandbox preview-documentation  --target 
 ```
 
 For more information, see the [documentation for the Swift-DocC plugin](https://swiftlang.github.io/swift-docc-plugin/documentation/swiftdoccplugin/).
+
+#### Checking Format
+
+To check the format:
+
+```console
+$ swift package plugin --allow-writing-to-package-directory swiftformat
+```

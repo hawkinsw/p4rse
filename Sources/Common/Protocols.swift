@@ -16,28 +16,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 public protocol EvaluatableExpression {
-    /// Evaluate an expression for a given execution
-    /// - Parameters
-    ///  - execution: The execution context in which to evaluate the expression
-    /// - Returns: The value of expression
-    func evaluate(execution: ProgramExecution) -> Result<P4Value>
-    func type() -> any P4Type
+  /// Evaluate an expression for a given execution
+  /// - Parameters
+  ///  - execution: The execution context in which to evaluate the expression
+  /// - Returns: The value of expression
+  func evaluate(execution: ProgramExecution) -> Result<P4Value>
+  func type() -> any P4Type
 }
 
 public protocol EvaluatableStatement {
-    /// Evaluate a statement for a given execution
-    /// - Parameters
-    ///  - execution: The execution context in which to evaluate the parser statement
-    /// - Returns: An updated execution after evaluating the parser statement
-    func evaluate(execution: ProgramExecution) -> ProgramExecution
+  /// Evaluate a statement for a given execution
+  /// - Parameters
+  ///  - execution: The execution context in which to evaluate the parser statement
+  /// - Returns: An updated execution after evaluating the parser statement
+  func evaluate(execution: ProgramExecution) -> ProgramExecution
 }
 
 public protocol P4Type: CustomStringConvertible {
-    static func create() -> any P4Type
-    func eq(rhs: any P4Type) -> Bool
+  static func create() -> any P4Type
+  func eq(rhs: any P4Type) -> Bool
 }
 
 public protocol P4Value: CustomStringConvertible {
-    func type() -> any P4Type
-    func eq(rhs: P4Value) -> Bool
+  func type() -> any P4Type
+  func eq(rhs: P4Value) -> Bool
 }

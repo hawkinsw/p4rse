@@ -16,112 +16,106 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 public struct Scope<T>: CustomStringConvertible {
-    var symbols: Dictionary<Identifier, T> = Dictionary()
-    public init() {}
+  var symbols: [Identifier: T] = Dictionary()
+  public init() {}
 
-    public var description: String {
-        var result = String()
-        for (k,v) in symbols {
-            result += "\(k): \(v)\n"
-        }
-        return result
+  public var description: String {
+    var result = String()
+    for (k, v) in symbols {
+      result += "\(k): \(v)\n"
     }
+    return result
+  }
 
-    public var count: Int {
-        get {
-            symbols.count
-        }
-    }
+  public var count: Int {
+    symbols.count
+  }
 
-    public func lookup(identifier: Identifier) -> T? {
-        if let symbol = symbols[identifier] {
-            return symbol
-        }
-        return .none
+  public func lookup(identifier: Identifier) -> T? {
+    if let symbol = symbols[identifier] {
+      return symbol
     }
+    return .none
+  }
 
-    public func declare(identifier: Identifier, withValue value: T) -> Scope {
-        var s = self
-        s.symbols[identifier] = value
-        return s
-    }
+  public func declare(identifier: Identifier, withValue value: T) -> Scope {
+    var s = self
+    s.symbols[identifier] = value
+    return s
+  }
 }
 
 public struct Scopes<T>: CustomStringConvertible {
-    var scopes: [Scope<T>] = Array()
+  var scopes: [Scope<T>] = Array()
 
-    public init() {}
+  public init() {}
 
-    init(withScopes scopes: [Scope<T>]) {
-        self.scopes = scopes
+  init(withScopes scopes: [Scope<T>]) {
+    self.scopes = scopes
+  }
+
+  public func enter() -> Scopes {
+    var new_scopes = scopes
+    new_scopes.append(Scope())
+
+    return Scopes(withScopes: new_scopes)
+  }
+
+  public func exit() -> Scopes {
+    var old_scopes = scopes
+    _ = old_scopes.popLast()
+    return Scopes(withScopes: old_scopes)
+  }
+
+  public var description: String {
+    var result = String()
+    for s in scopes {
+      result += "LexicalScope:\n\(s)\n"
     }
 
-    public func enter() -> Scopes {
-        var new_scopes = scopes
-        new_scopes.append(Scope())
+    return result
+  }
 
-        return Scopes(withScopes: new_scopes)
+  public var current: Scope<T>? {
+    scopes.last
+  }
+
+  public func set(identifier: Identifier, withValue value: T) -> Scopes {
+    var scopes = self.scopes
+    var scopes_to_read: [Scope<T>] = Array()
+
+    // Find the scope that has `identifier`
+    while let scope = scopes.popLast() {
+      if scope.lookup(identifier: identifier) != nil {
+        // Update that scope and add it to scopes
+        scopes.append(scope.declare(identifier: identifier, withValue: value))
+        break
+      } else {
+        // If there was no match, we'll put it back
+        scopes_to_read.append(scope)
+      }
     }
+    return Scopes<T>(withScopes: (scopes + scopes_to_read))
+  }
 
-    public func exit() -> Scopes {
-        var old_scopes = scopes
-        _ = old_scopes.popLast()
-        return Scopes(withScopes: old_scopes)
+  public func declare(identifier: Identifier, withValue value: T) -> Scopes {
+    var s = self
+    if let scope = s.scopes.popLast() {
+      s.scopes.append(scope.declare(identifier: identifier, withValue: value))
     }
+    return s
+  }
 
-    public var description: String {
-        var result = String()
-        for s in scopes {
-            result += "LexicalScope:\n\(s)\n"
-        }
-
-        return result
+  public func lookup(identifier: Identifier) -> Result<T> {
+    for scope in scopes {
+      if let vari = scope.lookup(identifier: identifier) {
+        return .Ok(vari)
+      }
     }
+    return .Error(Error(withMessage: "Cannot find \(identifier) in lexical scope."))
+  }
 
-    public var current: Scope<T>? {
-        get {
-            scopes.last
-        }
-    }
-
-    public func set(identifier: Identifier, withValue value: T) -> Scopes {
-        var scopes = self.scopes
-        var scopes_to_read: [Scope<T>] = Array()
-
-        // Find the scope that has `identifier`
-        while let scope = scopes.popLast() {
-            if scope.lookup(identifier: identifier) != nil {
-                // Update that scope and add it to scopes
-                scopes.append(scope.declare(identifier: identifier, withValue: value))
-                break
-            } else {
-                // If there was no match, we'll put it back
-                scopes_to_read.append(scope)
-            }
-        }
-        return Scopes<T>(withScopes: (scopes + scopes_to_read))
-    }
-
-    public func declare(identifier: Identifier, withValue value: T) -> Scopes {
-        var s = self
-        if let scope = s.scopes.popLast() {
-            s.scopes.append(scope.declare(identifier: identifier, withValue: value))
-        }
-        return s
-    }
-
-    public func lookup(identifier: Identifier) -> Result<T> {
-        for scope in scopes {
-            if let vari = scope.lookup(identifier: identifier) {
-                return .Ok(vari)
-            }
-        }
-        return .Error(Error(withMessage: "Cannot find \(identifier) in lexical scope."))
-    }
-
-    public var count: Int {
-        get {
-            scopes.count
-        }
-    }
+  public var count: Int {
+    scopes.count
+  }
 }

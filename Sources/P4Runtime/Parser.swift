@@ -98,7 +98,6 @@ public struct ParserStateSelectTransition: ParserStateInstance {
       program = statement.evaluate(execution: program)
     }
 
-
     switch self.selector.evaluate(execution: program) {
     case .Ok(let selector_value):
       for (key, target) in zip(self.keys, self.states) {
@@ -138,27 +137,33 @@ extension ParserState: Compilable {
       return .Ok(ParserStateNoTransition(currrent_state: state))
     }
 
-    if state.direct_transition(), 
-    let transition_statement = state.transition {
+    if state.direct_transition(),
+      let transition_statement = state.transition
+    {
       return .Ok(
         ParserStateDirectTransition(
           currrent_state: state, next_state: current[transition_statement.next_state_name!]!))
     }
 
     if let transition_select_statement = state.transition,
-    let transition_select_expression = transition_select_statement.transition_expression {
+      let transition_select_expression = transition_select_statement.transition_expression
+    {
 
-      var keys: Array<any EvaluatableExpression> = Array()
-      var states: Array<any ParserStateInstance> = Array()
+      var keys: [any EvaluatableExpression] = Array()
+      var states: [any ParserStateInstance] = Array()
 
       for kse in transition_select_expression.keyset_expressions {
         guard let next_state = current[kse.next_state_name] else {
-          return .Error(Error(withMessage: "Cannot find \(kse.next_state_name) as transition target"))
+          return .Error(
+            Error(withMessage: "Cannot find \(kse.next_state_name) as transition target"))
         }
         keys.append(kse.key)
         states.append(next_state)
       }
-      return .Ok(ParserStateSelectTransition(keys: keys, states: states, selector: transition_select_expression.selector, currrent_state: state))
+      return .Ok(
+        ParserStateSelectTransition(
+          keys: keys, states: states, selector: transition_select_expression.selector,
+          currrent_state: state))
     }
 
     return .Error(Error(withMessage: "Invalid parser state: No meaningful transition"))
@@ -177,8 +182,8 @@ extension ParserStates: Compilable {
     // TODO: We assume that states are in transition-order!
     for state in parser.states {
       switch ParserState.compile((state, compiled_states)) {
-        case .Ok(let compiled): compiled_states[state.state_name] = compiled
-        case .Error(let e): return .Error(e)
+      case .Ok(let compiled): compiled_states[state.state_name] = compiled
+      case .Error(let e): return .Error(e)
       }
     }
 

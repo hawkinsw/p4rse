@@ -27,7 +27,7 @@ protocol EvaluatableParserTransitionStatement {
 }
 
 public protocol Execution {
-    func execute() -> (ParserState, ProgramExecution)
+  func execute() -> (ParserState, ProgramExecution)
 }
 
 public protocol Compilable {
@@ -37,11 +37,11 @@ public protocol Compilable {
 }
 
 public protocol ParserStateInstance {
-    func execute(program: ProgramExecution) -> (ParserStateInstance, ProgramExecution)
-    func done() -> Bool
-    func current() -> ParserState
+  func execute(program: ProgramExecution) -> (ParserStateInstance, ProgramExecution)
+  func done() -> Bool
+  func current() -> ParserState
 }
 
 public protocol ParserExecution {
-    func execute() -> (ParserState, ProgramExecution)
+  func execute() -> (ParserState, ProgramExecution)
 }

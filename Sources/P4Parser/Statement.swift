@@ -70,8 +70,10 @@ extension VariableDeclarationStatement: ParseableStatement {
     if rvalue.type().eq(rhs: declaration_p4_type) {
       return Result.Ok(
         (
-          VariableDeclarationStatement(identifier: Identifier(name: variable_name), withInitializer: rvalue),
-          scopes.declare(identifier: Identifier(name: variable_name), withValue: declaration_p4_type)
+          VariableDeclarationStatement(
+            identifier: Identifier(name: variable_name), withInitializer: rvalue),
+          scopes.declare(
+            identifier: Identifier(name: variable_name), withValue: declaration_p4_type)
         ))
 
     } else {

@@ -28,7 +28,8 @@ protocol ParseableEvaluatableExpression {
 
 extension TypedIdentifier: ParseableEvaluatableExpression {
   static func parse(
-    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree, withScopes scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
+    withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
 
     guard
@@ -61,7 +62,8 @@ extension TypedIdentifier: ParseableEvaluatableExpression {
 
 extension P4BooleanValue: ParseableEvaluatableExpression {
   static func parse(
-    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree, withScopes scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
+    withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
 
     guard
@@ -101,7 +103,8 @@ extension P4BooleanValue: ParseableEvaluatableExpression {
 
 extension P4IntValue: ParseableEvaluatableExpression {
   static func parse(
-    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree, withScopes scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
+    withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
 
     guard
@@ -132,7 +135,8 @@ extension P4IntValue: ParseableEvaluatableExpression {
 
 extension P4StringValue: ParseableEvaluatableExpression {
   static func parse(
-    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree, withScopes scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
+    withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
 
     guard
@@ -202,4 +206,3 @@ extension ExpressionStatement: ParseableStatement {
     return Result.Ok((.none, scopes))
   }
 }
-

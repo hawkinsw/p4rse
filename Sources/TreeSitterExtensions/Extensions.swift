@@ -37,7 +37,7 @@ extension MutableTree {
   }
   public func containsMissing(lang: Language) -> Bool {
     guard
-    let parser_error_query = try? SwiftTreeSitter.Query(
+      let parser_error_query = try? SwiftTreeSitter.Query(
         language: lang,
         data: String(
           "(MISSING)"

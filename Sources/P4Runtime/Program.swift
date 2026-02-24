@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import P4Lang
 import Common
+import P4Lang
 
 extension VariableDeclarationStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {
@@ -37,11 +37,11 @@ extension ExpressionStatement: EvaluatableStatement {
 
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableExpression {
-    public func type() -> any Common.P4Type {
-      return self.parsed_type
-    }
+  public func type() -> any Common.P4Type {
+    return self.parsed_type
+  }
 
-    public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-      return execution.scopes.lookup(identifier: self)
-    }
+  public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
+    return execution.scopes.lookup(identifier: self)
+  }
 }

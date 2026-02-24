@@ -113,7 +113,7 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
   public private(set) var next_state: ParserState?
 
   public static func < (lhs: ParserState, rhs: ParserState) -> Bool {
-    // If lhs transitions to rhs, then return true. Otherwise, return false.       
+    // If lhs transitions to rhs, then return true. Otherwise, return false.
 
     // TODO!!
     return false
@@ -141,7 +141,7 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
   public func semantic_check(states: ParserStates) -> Bool {
     guard let transition = transition else {
-      return self == accept || self == reject 
+      return self == accept || self == reject
     }
 
     if let next_state_name = transition.next_state_name,
@@ -225,7 +225,6 @@ public struct ParserStates {
     return ParserStates(withStates: new_states)
   }
 }
-
 
 public struct Parser: P4Type {
   public var states: ParserStates
