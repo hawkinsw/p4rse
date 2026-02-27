@@ -42,6 +42,29 @@ public struct UseOkResult: ExpressionMacro {
   }
 }
 
+public struct UseErrorResult: ExpressionMacro {
+  public static func expansion(
+    of node: some FreestandingMacroExpansionSyntax,
+    in context: some MacroExpansionContext
+  ) throws -> ExprSyntax {
+
+    guard let argument = node.argumentList.first?.expression else {
+      throw Require.Error.SyntaxError
+    }
+
+    return """
+      {
+          switch \(argument) {
+              case Result.Error(let __error): return __error
+              case Result.Ok(let __good):
+                  print("Unexpected result: \\(__good)")
+                  throw Require.Error.UnexpectedResult
+          }
+      }()
+      """
+  }
+}
+
 public struct Require {
   public enum Error: Swift.Error {
     case UnexpectedResult
@@ -101,6 +124,6 @@ public struct RequireErrorResult: ExpressionMacro {
 @main
 struct P4Macros: CompilerPlugin {
   var providingMacros: [Macro.Type] = [
-    RequireResult.self, RequireErrorResult.self, UseOkResult.self,
+    RequireResult.self, RequireErrorResult.self, UseOkResult.self, UseErrorResult.self
   ]
 }

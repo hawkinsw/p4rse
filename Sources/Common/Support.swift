@@ -139,3 +139,5 @@ extension Result: CustomStringConvertible {
   #externalMacro(module: "Macros", type: "RequireErrorResult")
 @freestanding(expression) public macro UseOkResult<T>(_: Result<T>) -> T =
   #externalMacro(module: "Macros", type: "UseOkResult")
+@freestanding(expression) public macro UseErrorResult<T>(_: Result<T>) -> Error =
+  #externalMacro(module: "Macros", type: "UseErrorResult")
