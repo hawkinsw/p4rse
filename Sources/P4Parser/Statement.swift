@@ -207,9 +207,9 @@ extension VariableDeclarationStatement: ParseableStatement {
       return Result.Ok(
         (
           VariableDeclarationStatement(
-            identifier: Identifier(name: variable_name), withInitializer: rvalue),
+            identifier: Common.Identifier(name: variable_name), withInitializer: rvalue),
           scopes.declare(
-            identifier: Identifier(name: variable_name), withValue: declaration_p4_type)
+            identifier: Common.Identifier(name: variable_name), withValue: declaration_p4_type)
         ))
 
     } else {

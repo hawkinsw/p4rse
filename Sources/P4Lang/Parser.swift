@@ -37,20 +37,20 @@ public struct ParserAssignmentStatement {
 
 public struct KeysetExpression {
   public let key: EvaluatableExpression
-  public let next_state_name: String
+  public let next_state_identifier: Identifier
   public let next_state: ParserState?
 
-  public init(withKey key: EvaluatableExpression, withNextStateName next_state_name: String) {
+  public init(withKey key: EvaluatableExpression, withNextState next_state_id: Identifier) {
     self.key = key
-    self.next_state_name = next_state_name
+    self.next_state_identifier = next_state_id
     self.next_state = .none
   }
   public init(
-    withKey key: EvaluatableExpression, withNextStateName next_state_name: String,
+    withKey key: EvaluatableExpression, withNextState next_state_id: Identifier,
     withNextState next_state: ParserState
   ) {
     self.key = key
-    self.next_state_name = next_state_name
+    self.next_state_identifier = next_state_id
     self.next_state = next_state
   }
 
@@ -76,28 +76,28 @@ public struct ParserTransitionSelectExpression {
 }
 
 public struct ParserTransitionStatement {
-  public let next_state_name: String?
+  public let next_state: Identifier?
   public let transition_expression: ParserTransitionSelectExpression?
 
   public init() {
-    self.next_state_name = .none
+    self.next_state = .none
     self.transition_expression = .none
   }
 
   public init(withTransitionExpression transition_expression: ParserTransitionSelectExpression) {
-    self.next_state_name = .none
+    self.next_state = .none
     self.transition_expression = transition_expression
   }
 
-  public init(withNextState next_state_name: String) {
-    self.next_state_name = next_state_name
+  public init(withNextState next_state: Identifier) {
+    self.next_state = next_state
     self.transition_expression = .none
   }
 }
 
 public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
-  public private(set) var state_name: String
+  public private(set) var state: Identifier
   public private(set) var local_elements: [EvaluatableStatement]
   public private(set) var statements: [EvaluatableStatement]
   public private(set) var transition: ParserTransitionStatement?
@@ -111,20 +111,20 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
   }
 
   public var description: String {
-    return "Name: \(state_name)"
+    return "Name: \(state)"
   }
 
   public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
-    return lhs.state_name == rhs.state_name
+    return lhs.state == rhs.state
   }
 
   /// Construct a ParserState
   public init(
-    name: String, withLocalElements localElements: [EvaluatableStatement]?,
+    name: Identifier, withLocalElements localElements: [EvaluatableStatement]?,
     withStatements stmts: [EvaluatableStatement]?,
     withTransition transitionStatement: ParserTransitionStatement
   ) {
-    state_name = name
+    state = name
     transition = transitionStatement
     local_elements = localElements ?? Array()
     statements = stmts ?? Array()
@@ -135,8 +135,8 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
       return self == accept || self == reject
     }
 
-    if let next_state_name = transition.next_state_name,
-      let next_state = states.find(withName: next_state_name)
+    if let next_state = transition.next_state,
+      let next_state = states.find(withIdentifier: next_state)
     {
       self.next_state = next_state
       return true
@@ -148,8 +148,8 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
   /// (private) constructor (no transition)
   ///
   /// accept and reject are the only final states and they are constructed internally.
-  init(name: String) {
-    state_name = name
+  init(name: Identifier) {
+    state = name
     transition = .none
     local_elements = Array()
     statements = Array()
@@ -158,7 +158,7 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
   public func direct_transition() -> Bool {
     return
       if let transition = self.transition,
-      transition.next_state_name != nil
+      transition.next_state != nil
     {
       true
     } else {
@@ -167,8 +167,8 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
   }
 }
 
-nonisolated(unsafe) public let accept: ParserState = ParserState(name: "accept")
-nonisolated(unsafe) public let reject: ParserState = ParserState(name: "reject")
+nonisolated(unsafe) public let accept: ParserState = ParserState(name: Identifier(name: "accept"))
+nonisolated(unsafe) public let reject: ParserState = ParserState(name: Identifier(name: "reject"))
 
 public struct ParserStates {
   public var states: [ParserState] = Array()
@@ -177,9 +177,9 @@ public struct ParserStates {
     return states.count
   }
 
-  public func find(withName name: String) -> ParserState? {
+  public func find(withIdentifier id: Identifier) -> ParserState? {
     for state in states {
-      if state.state_name == name {
+      if state.state == id {
         return .some(state)
       }
     }
@@ -233,7 +233,7 @@ public struct Parser: P4Type {
 
   public func findStartState() -> ParserState? {
     for state in states.states {
-      if state.state_name == "start" {
+      if state.state == Identifier(name:"start") {
         return state
       }
     }

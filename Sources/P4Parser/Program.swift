@@ -60,7 +60,7 @@ public struct Program {
 
     for parser_declaration in parser_qc {
       switch Parser.Parse(
-        withName: Identifier(name: parser_declaration.nodes[0].text!),
+        withName: Common.Identifier(name: parser_declaration.nodes[0].text!),
         node: parser_declaration.nodes[1], inTree: tree, withLexicalScopes: program_scope)
       {
       case Result.Ok((let parser, let new_program_scope)):

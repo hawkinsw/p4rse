@@ -51,7 +51,7 @@ extension TypedIdentifier: ParseableEvaluatableExpression {
     let value_capture = result.captures(named: "identifier")
     guard
       case Result.Ok(let type) = scopes.lookup(
-        identifier: Identifier(name: value_capture[0].node.text!))
+        identifier: Common.Identifier(name: value_capture[0].node.text!))
     else {
       return .Error(Error(withMessage: "Cannot find \(result.captures[0].node.text!) in scope"))
     }
@@ -176,5 +176,29 @@ struct Expression {
     }
 
     return Result.Error(Error(withMessage: "Could not parse into expression."))
+  }
+}
+
+struct LValue {
+  public static func Parse(
+    node: Node, inTree: MutableTree, withScopes scopes: LexicalScopes
+  ) -> Result<Common.Identifier> {
+    return if let node_text_value = node.text {
+      .Ok(Common.Identifier(name: node_text_value))
+    } else {
+      .Error(Error(withMessage: "Could not parse an identifier for an LValue"))
+    }
+  }
+}
+
+struct Identifier {
+  public static func Parse(
+    node: Node, inTree: MutableTree, withScopes scopes: LexicalScopes
+  ) -> Result<Common.Identifier> {
+    return if let node_text_value = node.text {
+      .Ok(Common.Identifier(name: node_text_value))
+    } else {
+      .Error(Error(withMessage: "Could not parse an identifier from \(node)"))
+    }
   }
 }

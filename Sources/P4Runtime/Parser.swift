@@ -129,7 +129,7 @@ public struct ParserStateSelectTransition: ParserStateInstance {
 }
 
 extension ParserState: Compilable {
-  public typealias ToCompile = (ParserState, [String: ParserStateInstance])
+  public typealias ToCompile = (ParserState, [Identifier: ParserStateInstance])
   public typealias Compiled = ParserStateInstance
   public static func compile(_ parser: ToCompile) -> Result<Compiled> {
     let (state, current) = parser
@@ -142,7 +142,7 @@ extension ParserState: Compilable {
     {
       return .Ok(
         ParserStateDirectTransition(
-          currrent_state: state, next_state: current[transition_statement.next_state_name!]!))
+          currrent_state: state, next_state: current[transition_statement.next_state!]!))
     }
 
     if let transition_select_statement = state.transition,
@@ -153,9 +153,9 @@ extension ParserState: Compilable {
       var states: [any ParserStateInstance] = Array()
 
       for kse in transition_select_expression.keyset_expressions {
-        guard let next_state = current[kse.next_state_name] else {
+        guard let next_state = current[kse.next_state_identifier] else {
           return .Error(
-            Error(withMessage: "Cannot find \(kse.next_state_name) as transition target"))
+            Error(withMessage: "Cannot find \(kse.next_state_identifier) as transition target"))
         }
         keys.append(kse.key)
         states.append(next_state)
@@ -174,21 +174,21 @@ extension ParserStates: Compilable {
   public typealias ToCompile = ParserStates
   public typealias Compiled = ParserStateInstance
   public static func compile(_ parser: ToCompile) -> Result<Compiled> {
-    var compiled_states = [String: ParserStateInstance]()
+    var compiled_states = [Identifier: ParserStateInstance]()
 
-    compiled_states["accept"] = ParserStateNoTransition(currrent_state: accept)
-    compiled_states["reject"] = ParserStateNoTransition(currrent_state: reject)
+    compiled_states[Identifier(name: "accept")] = ParserStateNoTransition(currrent_state: accept)
+    compiled_states[Identifier(name: "reject")] = ParserStateNoTransition(currrent_state: reject)
 
     // TODO: We assume that states are in transition-order!
     for state in parser.states {
       switch ParserState.compile((state, compiled_states)) {
-      case .Ok(let compiled): compiled_states[state.state_name] = compiled
+      case .Ok(let compiled): compiled_states[state.state] = compiled
       case .Error(let e): return .Error(e)
       }
     }
 
     // Now, find the start state:
-    if let start_state = compiled_states["start"] {
+    if let start_state = compiled_states[Identifier(name: "start")] {
       return .Ok(start_state)
     } else {
       return .Error(Error(withMessage: "No start state defined"))

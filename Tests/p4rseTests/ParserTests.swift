@@ -55,8 +55,8 @@ import TreeSitterP4
 
   #expect(parser.states.count() == 1)
 
-  let state = try! #require(parser.states.find(withName: "start"))
-  #expect(state.state_name == "start")
+  let state = try! #require(parser.states.find(withIdentifier: Identifier(name: "start")))
+  #expect(state.state == Identifier(name: "start"))
   #expect(state.statements.count == 1)
 }
 
