@@ -212,24 +212,25 @@ public struct Parser {
       }
       let body_node = body[0].node
       var kses: [KeysetExpression] = Array()
-      for childidx in 0..<body_node.childCount {
+      var kses_errors: [Error] = Array()
 
-        if !childidx.isMultiple(of: 2) {
-          let maybe_semicolon = body_node.child(at: childidx)!
-          if maybe_semicolon.nodeType != "semicolon" {
-            return .Error(Error(withMessage: "Expected a semicolon but saw \(maybe_semicolon)"))
-          }
-          continue
-        }
-
+      body_node.enumerateNamedChildren { current_node in
         let maybe_parsed_kse = TransitionSelectExpressionCaseStatement.Parse(
-          node: body_node.child(at: childidx)!, inTree: tree, withLexicalScopes: scopes)
+          node: current_node, inTree: tree, withLexicalScopes: scopes)
         if case .Ok((let parsed_kse, _)) = maybe_parsed_kse {
           kses.append(parsed_kse)
         } else {
-          return .Error(
-            Error(withMessage: "Error when parsing select case: \(maybe_parsed_kse.error()!)"))
+          kses_errors.append(Error(withMessage: "\(maybe_parsed_kse.error()!)"))
         }
+      }
+
+      if !kses_errors.isEmpty {
+        return .Error(
+          Error(
+            withMessage: "Error(s) parsing select cases: "
+              + (kses_errors.map { error in
+                return "\(error.msg)"
+              }.joined(separator: ";\n"))))
       }
 
       return .Ok(
@@ -288,7 +289,7 @@ public struct Parser {
         let parser_state_query = try? SwiftTreeSitter.Query(
           language: p4lang,
           data: String(
-            "(parserState (state) (identifier) @state-name (parserLocalElements ((parserLocalElement) @state-local-element (semicolon))*)* (parserStatements ((parserStatement) @state-statement (semicolon))*)* (parserTransitionStatement) @transition)"
+            "(parserState (state) (identifier) @state-name (parserLocalElements ((parserLocalElement) @state-local-element)*)? (parserStatements ((parserStatement) @state-statement)*)? (parserTransitionStatement) @transition)"
           ).data(using: String.Encoding.utf8)!)
       else {
         return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
@@ -312,7 +313,7 @@ public struct Parser {
       }
 
       for state_le in state_le_capture {
-        state_le.node.enumerateChildren { node in
+        state_le.node.enumerateNamedChildren { node in
           switch LocalElements.Parse(
             node: node, inTree: tree, withScope: current_scopes)
           {
@@ -333,7 +334,7 @@ public struct Parser {
 
       if !statements_capture.isEmpty {
         for statement in statements_capture {
-          statement.node.enumerateChildren { node in
+          statement.node.enumerateNamedChildren { node in
             switch Statements.Parse(
               node: node, inTree: tree, withScope: current_scopes)
             {

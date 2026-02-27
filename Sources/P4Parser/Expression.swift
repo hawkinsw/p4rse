@@ -168,14 +168,16 @@ struct Expression {
     ]
 
     for le_parser in localElementsParsers {
-      if case Result.Ok(.some(let parsed)) = le_parser.parse(
+      switch le_parser.parse(
         node: node, inTree: inTree, withScopes: scopes)
       {
-        return .Ok(parsed)
+      case .Ok(.some(let parsed)): return .Ok(parsed)
+      case .Error(let e): return .Error(e)
+      default: continue
       }
     }
 
-    return Result.Error(Error(withMessage: "Could not parse into expression."))
+    return Result.Error(Error(withMessage: "\(node.range): Could not parse into expression"))
   }
 }
 

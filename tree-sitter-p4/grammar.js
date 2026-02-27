@@ -22,7 +22,7 @@ export default grammar({
     name: 'p4',
     rules: {
         // Start symbol
-        p4program: $ => optional(repeat(seq(choice($.declaration, $.instantiation), $.semicolon))),
+        p4program: $ => optional(repeat(seq(choice($.declaration, $.instantiation), $._semicolon))),
 
         // Common
 
@@ -43,14 +43,14 @@ export default grammar({
 
         // Mark with higher precedence so that the local states are preferred when parsing!
         // TODO: Test!
-        parserLocalElements: $ => prec(2, repeat1(seq($.parserLocalElement, $.semicolon))),
+        parserLocalElements: $ => prec(2, repeat1($.parserLocalElement)),
 
         parserStates: $ => repeat1($.parserState),
-        parserState: $ => seq(optional($.annotations), $.state, $.identifier, '{', optional($.parserLocalElements), optional($.parserStatements), $.parserTransitionStatement, $.semicolon, '}'),
+        parserState: $ => seq(optional($.annotations), $.state, $.identifier, '{', optional($.parserLocalElements), optional($.parserStatements), $.parserTransitionStatement, '}'),
 
         parserLocalElement: $ => choice($.variableDeclaration, $.todo),
 
-        selectBody: $ => repeat1(seq($.selectCase, $.semicolon)),
+        selectBody: $ => repeat1(seq($.selectCase, $._semicolon)),
         selectCase: $ => seq($.keysetExpression, $.colon, $.identifier),
 
         annotations: $ => repeat1($.annotation),
@@ -69,23 +69,23 @@ export default grammar({
         parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
         parserDeclaration: $ => seq($.parserType, optional($.constructorParameters), '{', optional($.parserLocalElements), $.parserStates, '}'),
 
-        variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq($.assignment, $.expression))),
+        variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq($.assignment, $.expression)), $._semicolon),
 
         // Statements
 
         // General statements
-        statements: $ => repeat1(seq($.statement, $.semicolon)),
+        statements: $ => repeat1($.statement),
         statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement, $.assignmentStatement),// Limited, so far.
         blockStatement: $ => seq(optional($.annotations), '{', optional($.statements), '}'),
         conditionalStatement: $ => choice(prec(1, seq($.if, '(', $.expression, ')', $.statement)), prec(2, seq($.if, '(', $.expression, ')', $.statement, $.else, $.statement))),
-        expressionStatement: $=> $.expression,
-        assignmentStatement: $=> seq($.expression, $.assignment, $.expression),
+        expressionStatement: $=> seq($.expression, $._semicolon),
+        assignmentStatement: $=> seq($.expression, $.assignment, $.expression, $._semicolon),
 
         // Parser statements
-        parserStatements: $ => repeat1(seq($.parserStatement, $.semicolon)),
+        parserStatements: $ => repeat1($.parserStatement),
         parserStatement: $ => choice($.conditionalStatement, $.parserBlockStatement, $.expressionStatement, $.assignmentStatement), // Limited, so far.
         parserBlockStatement: $ => seq(optional($.annotations), '{', $.parserStatements, '}'),
-        parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression),
+        parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression, $._semicolon),
 
         // Expressions
         expression: $ => choice($.identifier, $.integer, $.true, $.false, $.string_literal), // Very limited.
@@ -94,7 +94,7 @@ export default grammar({
         keysetExpression: $ => $.expression,
 
         // Tokens
-        semicolon: $ => ";",
+        _semicolon: $ => ";",
         colon: $ => ":",
         assignment: $ => "=",
         todo: $ => "todo",

@@ -4,7 +4,7 @@ Simple If Statement (No Else)
 parser simple() {
   state start {
     if (true) {
-    };
+    }
     transition accept;
   }
 };
@@ -33,7 +33,6 @@ parser simple() {
         )
        )
       )
-      (semicolon)
      )
      (parserTransitionStatement
       (transition)
@@ -41,12 +40,10 @@ parser simple() {
        (identifier)
       )
      )
-     (semicolon)
     )
    )
   )
  )
- (semicolon)
 )
 
 =========================
@@ -56,7 +53,7 @@ parser simple() {
   state start {
     if (true) {
     } else {
-    };
+    }
     transition accept;
   }
 };
@@ -89,7 +86,6 @@ parser simple() {
         )
        )
       )
-      (semicolon)
      )
      (parserTransitionStatement
       (transition)
@@ -97,12 +93,10 @@ parser simple() {
        (identifier)
       )
      )
-     (semicolon)
     )
    )
   )
  )
- (semicolon)
 )
 
 =========================
@@ -143,7 +137,6 @@ parser simple() {
         )
        )
       )
-      (semicolon)
      )
      (parserStatements
       (parserStatement
@@ -157,7 +150,6 @@ parser simple() {
         )
        )
       )
-      (semicolon)
      )
      (parserTransitionStatement
       (transition)
@@ -165,12 +157,10 @@ parser simple() {
        (identifier)
       )
      )
-     (semicolon)
     )
    )
   )
  )
- (semicolon)
 )
  
 =========================
@@ -181,7 +171,7 @@ parser simple() {
     bool x = true;
     if (x) {
       x = false;
-    };
+    }
     transition accept;
   }
 };
@@ -213,7 +203,6 @@ parser simple() {
         )
        )
       )
-      (semicolon)
      )
      (parserStatements
       (parserStatement
@@ -236,13 +225,11 @@ parser simple() {
              )
             )
            )
-           (semicolon)
           )
          )
         )
        )
       )
-      (semicolon)
      )
      (parserTransitionStatement
       (transition)
@@ -250,12 +237,10 @@ parser simple() {
        (identifier)
       )
      )
-     (semicolon)
     )
    )
   )
  )
- (semicolon)
 )
  
 =========================
@@ -269,7 +254,7 @@ parser simple() {
       y = 1;
     } else {
       y = 2;
-    };
+    }
     transition accept;
   }
 };
@@ -301,7 +286,6 @@ parser simple() {
         )
        )
       )
-      (semicolon)
       (parserLocalElement
        (variableDeclaration
         (typeRef
@@ -316,7 +300,6 @@ parser simple() {
         )
        )
       )
-      (semicolon)
      )
      (parserStatements
       (parserStatement
@@ -339,7 +322,6 @@ parser simple() {
              )
             )
            )
-           (semicolon)
           )
          )
         )
@@ -358,13 +340,11 @@ parser simple() {
              )
             )
            )
-           (semicolon)
           )
          )
         )
        )
       )
-      (semicolon)
      )
      (parserTransitionStatement
       (transition)
@@ -372,11 +352,9 @@ parser simple() {
        (identifier)
       )
      )
-     (semicolon)
     )
    )
   )
  )
- (semicolon)
 )
  

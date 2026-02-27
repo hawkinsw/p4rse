@@ -25,12 +25,10 @@ parser simple() {
        (identifier)
       )
      )
-     (semicolon)
     )
    )
   )
  )
- (semicolon)
 )
 
 
@@ -71,10 +69,8 @@ parser imple(bool pname) {
        (identifier)
       )
      )
-     (semicolon)
     )
    )
   )
  )
- (semicolon)
 )

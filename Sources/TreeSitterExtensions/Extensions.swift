@@ -53,3 +53,15 @@ extension MutableTree {
     return false
   }
 }
+
+extension Node {
+  public func enumerateNamedChildren(block: (Node) -> Void) {
+    for childIdx in 0..<self.childCount {
+      let child = self.child(at: childIdx)!
+      if !child.isNamed {
+        continue
+      }
+      block(child)
+    }
+  }
+}

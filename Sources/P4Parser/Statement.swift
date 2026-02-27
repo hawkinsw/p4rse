@@ -32,7 +32,7 @@ extension BlockStatement: ParseableStatement {
       let block_statement_query = try? SwiftTreeSitter.Query(
         language: p4lang,
         data: String(
-          "(statement . (blockStatement . (statements . ((statement) @astatement (semicolon))*) @statements) @block-statement) @statement"
+          "(statement . (blockStatement . (statements . ((statement) @astatement)*) @statements) @block-statement) @statement"
         ).data(using: String.Encoding.utf8)!)
     else {
       return Result.Ok((.none, scopes))
@@ -55,6 +55,7 @@ extension BlockStatement: ParseableStatement {
     let statement_node = statement_capture[0].node
     let blockstatement_capture_node = blockstatement_capture[0].node
     let statements_capture_node = statements_capture[0].node
+
     /*
         if statement_node.parent != node.parent
         {

@@ -75,3 +75,21 @@ import TreeSitterP4
   let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
   #expect(#RequireOkResult(program.find_parser(withName: Identifier(name: "main_parser"))))
 }
+
+@Test func test_invalid_transition_expression_keyset_expressions() async throws {
+  let simple_parser_declaration = """
+    parser main_parser() {
+       state start {
+           transition select (false) {
+              asdf: reject;
+              asde: reject;
+           };
+       }
+    };
+    """
+
+  let compilation_error = try #UseErrorResult(Program.Parse(simple_parser_declaration))
+
+  #expect(compilation_error.msg.contains("asde"))
+  #expect(compilation_error.msg.contains("asdf"))
+}

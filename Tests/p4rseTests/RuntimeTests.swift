@@ -132,7 +132,7 @@ import TreeSitterP4
           if (x) {
             x = false;
             check = "valid";
-          };
+          }
           transition select (x) {
             false: reject;
             true: accept;
@@ -167,7 +167,7 @@ import TreeSitterP4
           } else {
             x = true;
             check = "b";
-          };
+          }
           transition select (x) {
             false: reject;
             true: accept;

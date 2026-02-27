@@ -1,16 +1,7 @@
       parser main_parser() {
-        state next_state {
-          transition reject;
-        }
-        state not_next_state {
-          transition reject;
-        }
         state start {
-          transition starts;
-        }
-        state starts {
-          transition select (se) {
-            true: next_state;
-          };
+          bool where_to = true;
+          string where_from = where_to;
+          transition reject;
         }
       };
