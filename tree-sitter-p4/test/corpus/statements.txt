@@ -122,8 +122,8 @@ parser simple() {
     (parserState
      (state)
      (identifier)
-     (parserLocalElements
-      (parserLocalElement
+     (parserStatements
+      (parserStatement
        (variableDeclaration
         (typeRef
          (baseType
@@ -137,8 +137,6 @@ parser simple() {
         )
        )
       )
-     )
-     (parserStatements
       (parserStatement
        (assignmentStatement
         (expression
@@ -188,8 +186,8 @@ parser simple() {
     (parserState
      (state)
      (identifier)
-     (parserLocalElements
-      (parserLocalElement
+     (parserStatements
+      (parserStatement
        (variableDeclaration
         (typeRef
          (baseType
@@ -203,8 +201,6 @@ parser simple() {
         )
        )
       )
-     )
-     (parserStatements
       (parserStatement
        (conditionalStatement
         (if)
@@ -271,8 +267,8 @@ parser simple() {
     (parserState
      (state)
      (identifier)
-     (parserLocalElements
-      (parserLocalElement
+     (parserStatements
+      (parserStatement
        (variableDeclaration
         (typeRef
          (baseType
@@ -286,7 +282,7 @@ parser simple() {
         )
        )
       )
-      (parserLocalElement
+      (parserStatement
        (variableDeclaration
         (typeRef
          (baseType
@@ -300,8 +296,6 @@ parser simple() {
         )
        )
       )
-     )
-     (parserStatements
       (parserStatement
        (conditionalStatement
         (if)
