@@ -57,7 +57,9 @@ extension BlockStatement: CompilableStatement {
     }
     currentChild = node.child(at: currentChildIdx)
     if currentChild!.nodeType == "statements" {
-      switch Parser.Statements.Compile(node: currentChild!, inTree: tree, withLexicalScopes: scopes.enter()) {
+      switch Parser.Statements.Compile(
+        node: currentChild!, inTree: tree, withLexicalScopes: scopes.enter())
+      {
       case .Ok(let (parsed_statements, parsed_scopes)):
         new_scopes = parsed_scopes
         statements = parsed_statements
@@ -112,7 +114,8 @@ extension ConditionalStatement: CompilableStatement {
       thens.nodeType == "statement"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find then statement block for conditional statement"))
+        ErrorOnNode(
+          node: node, withError: "Did not find then statement block for conditional statement"))
     }
 
     guard
@@ -175,7 +178,8 @@ extension VariableDeclarationStatement: CompilableStatement {
       typeref.nodeType == "typeRef"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find type name for variable declaration statement"))
+        ErrorOnNode(
+          node: node, withError: "Did not find type name for variable declaration statement"))
     }
 
     let maybe_variablename = node.child(at: 1)
@@ -183,7 +187,8 @@ extension VariableDeclarationStatement: CompilableStatement {
       variablename.nodeType == "identifier"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find identifier name for variable declaration statement"))
+        ErrorOnNode(
+          node: node, withError: "Did not find identifier name for variable declaration statement"))
     }
 
     let maybe_rvalue = node.childCount > 3 ? node.child(at: 3) : .none
@@ -191,7 +196,9 @@ extension VariableDeclarationStatement: CompilableStatement {
       rvalue.nodeType == "expression"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find initial value expression for variable declaration statement"))
+        ErrorOnNode(
+          node: node,
+          withError: "Did not find initial value expression for variable declaration statement"))
     }
 
     guard

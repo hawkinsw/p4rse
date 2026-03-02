@@ -52,7 +52,8 @@ extension ParserAssignmentStatement: CompilableStatement {
         ErrorOnNode(node: node, withError: "Missing rvalue in assignment statement"))
     }
 
-    let maybe_parsed_rvalue = Expression.Compile(node: rvalue_node, inTree: tree, withScopes: scopes)
+    let maybe_parsed_rvalue = Expression.Compile(
+      node: rvalue_node, inTree: tree, withScopes: scopes)
     guard case Result.Ok(let rvalue) = maybe_parsed_rvalue else {
       return Result.Error(maybe_parsed_rvalue.error()!)
     }
@@ -289,7 +290,9 @@ public struct Parser {
         }
       }
 
-      return switch TransitionSelectExpression.Compile(node: node, inTree: tree, withScope: scopes) {
+      return
+        switch TransitionSelectExpression.Compile(node: node, inTree: tree, withScope: scopes)
+      {
       case .Ok((let tse, _)):
         .Ok((ParserTransitionStatement(withTransitionExpression: tse), scopes))
       case .Error(let e): .Error(e)

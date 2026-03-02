@@ -124,6 +124,6 @@ public struct RequireErrorResult: ExpressionMacro {
 @main
 struct P4Macros: CompilerPlugin {
   var providingMacros: [Macro.Type] = [
-    RequireResult.self, RequireErrorResult.self, UseOkResult.self, UseErrorResult.self
+    RequireResult.self, RequireErrorResult.self, UseOkResult.self, UseErrorResult.self,
   ]
 }

@@ -72,7 +72,7 @@ public struct Scopes<T>: CustomStringConvertible {
     var counter = 0
     for s in scopes {
       result += "Scope #\(counter):\n\(s)\n"
-      counter += 1;
+      counter += 1
     }
 
     return result

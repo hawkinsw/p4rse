@@ -229,7 +229,7 @@ public struct Parser: P4Type {
 
   public func findStartState() -> ParserState? {
     for state in states.states {
-      if state.state == Identifier(name:"start") {
+      if state.state == Identifier(name: "start") {
         return state
       }
     }
