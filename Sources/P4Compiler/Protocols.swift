@@ -22,16 +22,16 @@ import SwiftTreeSitter
 import TreeSitterExtensions
 import TreeSitterP4
 
-public protocol ParseableStatement {
-  static func Parse(
+public protocol CompilableStatement {
+  static func Compile(
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
-  ) -> Result<(EvaluatableStatement?, LexicalScopes)>
+  ) -> Result<(EvaluatableStatement, LexicalScopes)>
 }
 
-public protocol ParseableValue {
-  static func ParseValue(withValue value: String) -> Result<P4Value>
+public protocol CompilableValue {
+  static func CompileValue(withValue value: String) -> Result<P4Value>
 }
 
-public protocol ParseableType {
-  static func ParseType(type: String) -> Result<P4Type?>
+public protocol CompilableType {
+  static func CompileType(type: String) -> Result<P4Type?>
 }

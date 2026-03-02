@@ -23,7 +23,7 @@ import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import P4Parser
+@testable import P4Compiler
 
 struct NotStringConvertible {}
 

@@ -41,10 +41,6 @@ public struct ParserStateDirectTransition: ParserStateInstance {
     var program = program.exit_scope()
     program = program.enter_scope()
 
-    for local_element in currrent_state.local_elements {
-      program = local_element.evaluate(execution: program)
-    }
-
     for statement in currrent_state.statements {
       program = statement.evaluate(execution: program)
     }
@@ -88,12 +84,7 @@ public struct ParserStateSelectTransition: ParserStateInstance {
     var program = program.exit_scope()
     program = program.enter_scope()
 
-    // First, evaluate the local elements.
-    for local_element in currrent_state.local_elements {
-      program = local_element.evaluate(execution: program)
-    }
-
-    // Then, evaluate the statements.
+    // First, evaluate the statements.
     for statement in currrent_state.statements {
       program = statement.evaluate(execution: program)
     }

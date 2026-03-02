@@ -69,8 +69,10 @@ public struct Scopes<T>: CustomStringConvertible {
 
   public var description: String {
     var result = String()
+    var counter = 0
     for s in scopes {
-      result += "LexicalScope:\n\(s)\n"
+      result += "Scope #\(counter):\n\(s)\n"
+      counter += 1;
     }
 
     return result
@@ -107,7 +109,7 @@ public struct Scopes<T>: CustomStringConvertible {
   }
 
   public func lookup(identifier: Identifier) -> Result<T> {
-    for scope in scopes {
+    for scope in scopes.reversed() {
       if let vari = scope.lookup(identifier: identifier) {
         return .Ok(vari)
       }

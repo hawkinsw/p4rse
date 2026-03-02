@@ -1,7 +1,9 @@
-      parser main_parser() {
-        state start {
-          bool where_to = true;
-          string where_from = where_to;
-          transition reject;
-        }
-      };
+parser simple() {
+  state start {
+    bool x = true;
+    int y = 0;
+    y = 1;
+    transition accept;
+  }
+};
+

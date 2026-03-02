@@ -23,7 +23,7 @@ import TreeSitterExtensions
 import TreeSitterP4
 
 public struct Program {
-  public static func Parse(_ source: String) -> Result<P4Lang.Program> {
+  public static func Compile(_ source: String) -> Result<P4Lang.Program> {
     let p = SwiftTreeSitter.Parser.init()
 
     do {
@@ -59,7 +59,7 @@ public struct Program {
     let parser_qc = parser_declaration_query.execute(in: tree)
 
     for parser_declaration in parser_qc {
-      switch Parser.Parse(
+      switch Parser.Compile(
         withName: Common.Identifier(name: parser_declaration.nodes[0].text!),
         node: parser_declaration.nodes[1], inTree: tree, withLexicalScopes: program_scope)
       {

@@ -10,8 +10,8 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "P4Parser",
-            targets: ["P4Parser"]
+            name: "P4Compiler",
+            targets: ["P4Compiler"]
         ),
         .library(
             name: "Common",
@@ -40,7 +40,7 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ]),
         .target(
-            name: "P4Parser",
+            name: "P4Compiler",
             dependencies: [
                 .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
                 .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
@@ -71,8 +71,8 @@ let package = Package(
             dependencies: ["P4Lang", "Common"]
         ),
         .testTarget(
-            name: "ParserTests",
-            dependencies: ["P4Parser", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common"]
+            name: "Tests",
+            dependencies: ["P4Compiler", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common"]
         ),
     ]
 )

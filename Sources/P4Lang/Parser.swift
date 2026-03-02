@@ -98,7 +98,6 @@ public struct ParserTransitionStatement {
 public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
   public private(set) var state: Identifier
-  public private(set) var local_elements: [EvaluatableStatement]
   public private(set) var statements: [EvaluatableStatement]
   public private(set) var transition: ParserTransitionStatement?
   public private(set) var next_state: ParserState?
@@ -120,13 +119,11 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
 
   /// Construct a ParserState
   public init(
-    name: Identifier, withLocalElements localElements: [EvaluatableStatement]?,
-    withStatements stmts: [EvaluatableStatement]?,
+    name: Identifier, withStatements stmts: [EvaluatableStatement]?,
     withTransition transitionStatement: ParserTransitionStatement
   ) {
     state = name
     transition = transitionStatement
-    local_elements = localElements ?? Array()
     statements = stmts ?? Array()
   }
 
@@ -151,7 +148,6 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
   init(name: Identifier) {
     state = name
     transition = .none
-    local_elements = Array()
     statements = Array()
   }
 

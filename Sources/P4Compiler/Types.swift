@@ -22,28 +22,28 @@ import SwiftTreeSitter
 import TreeSitterExtensions
 import TreeSitterP4
 
-extension P4Boolean: ParseableType {
-  public static func ParseType(type: String) -> Common.Result<(any Common.P4Type)?> {
+extension P4Boolean: CompilableType {
+  public static func CompileType(type: String) -> Common.Result<(any Common.P4Type)?> {
     return type == "bool" ? .Ok(P4Boolean.create()) : .Ok(.none)
   }
 }
 
-extension P4Int: ParseableType {
-  public static func ParseType(type: String) -> Common.Result<(any Common.P4Type)?> {
+extension P4Int: CompilableType {
+  public static func CompileType(type: String) -> Common.Result<(any Common.P4Type)?> {
     return type == "int" ? .Ok(P4Int.create()) : .Ok(.none)
   }
 }
 
-extension P4String: ParseableType {
-  public static func ParseType(type: String) -> Common.Result<(any Common.P4Type)?> {
+extension P4String: CompilableType {
+  public static func CompileType(type: String) -> Common.Result<(any Common.P4Type)?> {
     return type == "string" ? .Ok(P4String.create()) : .Ok(.none)
   }
 }
 public struct Types {
-  static func ParseBasicType(type: String) -> Result<P4Type> {
-    let type_parsers: [ParseableType.Type] = [P4Boolean.self, P4Int.self, P4String.self]
+  static func CompileBasicType(type: String) -> Result<P4Type> {
+    let type_parsers: [CompilableType.Type] = [P4Boolean.self, P4Int.self, P4String.self]
     for type_parser in type_parsers {
-      switch type_parser.ParseType(type: type) {
+      switch type_parser.CompileType(type: type) {
       case .Ok(.some(let type)): return .Ok(type)
       case .Ok(.none): continue
       case .Error(let e): return .Error(e)

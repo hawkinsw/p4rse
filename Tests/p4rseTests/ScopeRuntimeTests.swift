@@ -25,7 +25,7 @@ import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import P4Parser
+@testable import P4Compiler
 
 @Test func test_simple_local_element_variable_declaration() async throws {
   let simple_parser_declaration = """
@@ -42,7 +42,7 @@ import TreeSitterP4
     """
 
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
 
@@ -84,7 +84,7 @@ import TreeSitterP4
     """
 
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
 
@@ -119,7 +119,7 @@ import TreeSitterP4
     """
 
   
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
@@ -135,6 +135,7 @@ import TreeSitterP4
   let where_to = try #require(scope.lookup(identifier: Identifier(name: "where_to")))
   #expect(where_to.eq(rhs: P4BooleanValue(withValue: false)))
 }
+
 @Test func test_simple_assignment() async throws {
   let simple_parser_declaration = """
       parser main_parser() {
@@ -152,7 +153,7 @@ import TreeSitterP4
     """
 
   
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, execution_result) = try! #UseOkResult(runtime.run())
@@ -165,6 +166,48 @@ import TreeSitterP4
   let scope = try! #require(execution_result.scopes.current)
 
   #expect(scope.count == 2)
+  let where_to = try #require(scope.lookup(identifier: Identifier(name: "where_to")))
+  #expect(where_to.eq(rhs: P4BooleanValue(withValue: false)))
+  let where_from = try #require(scope.lookup(identifier: Identifier(name: "where_from")))
+  #expect(where_from.eq(rhs: P4StringValue(withValue: "\"there\"")))
+}
+
+@Test func test_nested_declaration_assignment() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = true;
+          string where_from = "here";
+          string where_where = "here";
+          if (where_to) {
+            bool where_from = true;
+            if (where_from) {
+              where_to = false;
+            }
+          }
+          where_from = "there";
+          transition select (where_to) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
+    """
+
+  
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, execution_result) = try! #UseOkResult(runtime.run())
+
+  #expect(parser.states.count() == 1)
+
+  #expect(state_result == P4Lang.reject)
+
+  #expect(execution_result.scopes.count == 1)
+  let scope = try! #require(execution_result.scopes.current)
+
+  #expect(scope.count == 3)
   let where_to = try #require(scope.lookup(identifier: Identifier(name: "where_to")))
   #expect(where_to.eq(rhs: P4BooleanValue(withValue: false)))
   let where_from = try #require(scope.lookup(identifier: Identifier(name: "where_from")))

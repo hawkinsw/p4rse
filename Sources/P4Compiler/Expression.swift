@@ -20,14 +20,14 @@ import P4Lang
 import SwiftTreeSitter
 import TreeSitterP4
 
-protocol ParseableEvaluatableExpression {
-  static func parse(
+protocol CompilableExpression {
+  static func compile(
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?>
 }
 
-extension TypedIdentifier: ParseableEvaluatableExpression {
-  static func parse(
+extension TypedIdentifier: CompilableExpression {
+  static func compile(
     node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
@@ -60,8 +60,8 @@ extension TypedIdentifier: ParseableEvaluatableExpression {
   }
 }
 
-extension P4BooleanValue: ParseableEvaluatableExpression {
-  static func parse(
+extension P4BooleanValue: CompilableExpression {
+  static func compile(
     node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
@@ -101,8 +101,8 @@ extension P4BooleanValue: ParseableEvaluatableExpression {
   }
 }
 
-extension P4IntValue: ParseableEvaluatableExpression {
-  static func parse(
+extension P4IntValue: CompilableExpression {
+  static func compile(
     node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
@@ -133,8 +133,8 @@ extension P4IntValue: ParseableEvaluatableExpression {
   }
 }
 
-extension P4StringValue: ParseableEvaluatableExpression {
-  static func parse(
+extension P4StringValue: CompilableExpression {
+  static func compile(
     node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
@@ -160,15 +160,15 @@ extension P4StringValue: ParseableEvaluatableExpression {
 }
 
 struct Expression {
-  public static func Parse(
+  public static func Compile(
     node: Node, inTree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression> {
-    let localElementsParsers: [ParseableEvaluatableExpression.Type] = [
+    let localElementsParsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
     ]
 
     for le_parser in localElementsParsers {
-      switch le_parser.parse(
+      switch le_parser.compile(
         node: node, inTree: inTree, withScopes: scopes)
       {
       case .Ok(.some(let parsed)): return .Ok(parsed)
@@ -182,7 +182,7 @@ struct Expression {
 }
 
 struct LValue {
-  public static func Parse(
+  public static func Compile(
     node: Node, inTree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<Common.Identifier> {
     return if let node_text_value = node.text {
@@ -194,7 +194,7 @@ struct LValue {
 }
 
 struct Identifier {
-  public static func Parse(
+  public static func Compile(
     node: Node, inTree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<Common.Identifier> {
     return if let node_text_value = node.text {

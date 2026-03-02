@@ -24,14 +24,14 @@ import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import P4Parser
+@testable import P4Compiler
 
 @Test func test_invalid_types() async throws {
   for invalid_type_name in ["boo", "str", "in"] {
     #expect(
       #RequireErrorResult(
         Error(withMessage: "Type name not recognized"),
-        Types.ParseBasicType(type: invalid_type_name)))
+        Types.CompileBasicType(type: invalid_type_name)))
   }
 }
 
@@ -51,9 +51,9 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-        "Failed to parse a statement element: Cannot assign value of type Boolean to where_to (with type String)"
+        "{112, 16}: Failed to parse a statement element: {112, 16}: Cannot assign value of type Boolean to where_to (with type String)"
       ),
-      Program.Parse(simple_parser_declaration)))
+      Program.Compile(simple_parser_declaration)))
 }
 
 @Test func test_invalid_type_in_assignment2() async throws {
@@ -72,9 +72,9 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-          "Failed to parse a statement element: Cannot assign value of type String to where_to (with type Boolean)"
+          "{114, 22}: Failed to parse a statement element: {114, 22}: Cannot assign value of type String to where_to (with type Boolean)"
       ),
-      Program.Parse(simple_parser_declaration)))
+      Program.Compile(simple_parser_declaration)))
 }
 
 @Test func test_invalid_type_in_declaration() async throws {
@@ -92,9 +92,9 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-          "Failed to parse local element: Cannot initialize where_to (with type Boolean) from rvalue with type String"
+          "{86, 27}: Failed to parse a statement element: Cannot initialize where_to (with type Boolean) from rvalue with type String"
       ),
-      Program.Parse(simple_parser_declaration)))
+      Program.Compile(simple_parser_declaration)))
 }
 
 @Test func test_invalid_type_in_declaration2() async throws {
@@ -112,7 +112,7 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-          "Failed to parse local element: Cannot initialize where_from (with type String) from rvalue with type Boolean"
+          "{77, 29}: Failed to parse a statement element: Cannot initialize where_from (with type String) from rvalue with type Boolean"
       ),
-      Program.Parse(simple_parser_declaration)))
+      Program.Compile(simple_parser_declaration)))
 }

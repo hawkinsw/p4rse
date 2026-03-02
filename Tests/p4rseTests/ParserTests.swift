@@ -24,7 +24,7 @@ import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import P4Parser
+@testable import P4Compiler
 
 @Test func test_simple_parser_syntax_error() async throws {
   let simple_parser_declaration = """
@@ -37,7 +37,7 @@ import TreeSitterP4
   #expect(
     #RequireErrorResult(
       Error(withMessage: "Could not compile the P4 program"),
-      Program.Parse(simple_parser_declaration)))
+      Program.Compile(simple_parser_declaration)))
 }
 
 @Test func test_simple_parser_with_statement() async throws {
@@ -50,7 +50,7 @@ import TreeSitterP4
     };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
 
   #expect(parser.states.count() == 1)
@@ -72,7 +72,7 @@ import TreeSitterP4
     bool() main;
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   #expect(#RequireOkResult(program.find_parser(withName: Identifier(name: "main_parser"))))
 }
 
@@ -88,7 +88,7 @@ import TreeSitterP4
     };
     """
 
-  let compilation_error = try #UseErrorResult(Program.Parse(simple_parser_declaration))
+  let compilation_error = try #UseErrorResult(Program.Compile(simple_parser_declaration))
 
   #expect(compilation_error.msg.contains("asde"))
   #expect(compilation_error.msg.contains("asdf"))

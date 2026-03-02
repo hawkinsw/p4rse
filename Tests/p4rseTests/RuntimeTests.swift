@@ -25,7 +25,7 @@ import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import P4Parser
+@testable import P4Compiler
 
 @Test func test_simple_runtime() async throws {
   let simple_parser_declaration = """
@@ -37,7 +37,7 @@ import TreeSitterP4
     };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
@@ -55,7 +55,7 @@ import TreeSitterP4
     };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   // We should be in the accept state.
@@ -72,7 +72,7 @@ import TreeSitterP4
     };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
 
   #expect(
     #RequireErrorResult<ParserRuntime>(
@@ -92,7 +92,7 @@ import TreeSitterP4
       };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
@@ -114,7 +114,7 @@ import TreeSitterP4
       };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
@@ -141,7 +141,7 @@ import TreeSitterP4
       };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, exec_result) = try! #UseOkResult(runtime.run())
@@ -176,7 +176,7 @@ import TreeSitterP4
       };
     """
 
-  let program = try #UseOkResult(Program.Parse(simple_parser_declaration))
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, exec_result) = try! #UseOkResult(runtime.run())

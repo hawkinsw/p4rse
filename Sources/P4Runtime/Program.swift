@@ -41,13 +41,13 @@ extension VariableDeclarationStatement: EvaluatableStatement {
 
 extension ConditionalStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {
-    guard case .Ok(let initial_value) = self.condition.evaluate(execution: execution) else {
+    guard case .Ok(let evaluated_condition) = self.condition.evaluate(execution: execution) else {
       return execution.setError(error: Error(withMessage: "Could not evaluate \(self.condition)"))
     }
-    if !initial_value.type().eq(rhs: P4Boolean.create()) {
+    if !evaluated_condition.type().eq(rhs: P4Boolean.create()) {
       return execution.setError(error: Error(withMessage: "Condition expression is not a Boolean"))
     }
-    if initial_value.eq(rhs: P4BooleanValue.init(withValue: true)) {
+    if evaluated_condition.eq(rhs: P4BooleanValue.init(withValue: true)) {
       let execution = execution.enter_scope()
       var result = self.thenn.evaluate(execution: execution)
       result = result.exit_scope()
