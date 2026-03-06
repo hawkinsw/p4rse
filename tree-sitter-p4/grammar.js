@@ -88,7 +88,8 @@ export default grammar({
         parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression, $._semicolon),
 
         // Expressions
-        expression: $ => choice($.identifier, $.integer, $.true, $.false, $.string_literal), // Very limited.
+        expression: $ => choice($.identifier, $.integer, $.booleanLiteralExpression, $.string_literal), // Very limited.
+        booleanLiteralExpression: $ => choice($.true, $.false),
         selectExpression: $ => seq($.select, '(', $.expression, ')', '{', $.selectBody, '}'), // TODO: Should be expression list and not just a single expression
         transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
         keysetExpression: $ => $.expression,
