@@ -30,7 +30,7 @@ let package = Package(
         .package(path: "./tree-sitter-p4"),
         .package(url: "https://github.com/tree-sitter/swift-tree-sitter", revision: "main"),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
-        .package(url: "https://github.com/swiftlang/swift-syntax", from: "509.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax", from: "602.0.0"),
     ],
     targets: [
         .macro(
@@ -38,7 +38,8 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
-            ]),
+            ],
+            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")]),
         .target(
             name: "P4Compiler",
             dependencies: [
@@ -50,6 +51,7 @@ let package = Package(
                 .target(name: "P4Lang"),
                 .target(name: "P4Runtime"),
             ],
+            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
         ),
         .target(
             name: "TreeSitterExtensions",
@@ -60,7 +62,8 @@ let package = Package(
         ),
         .target(
             name: "Common",
-            dependencies: ["Macros"]
+            dependencies: ["Macros"],
+            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
         ),
         .target(
             name: "P4Lang",
