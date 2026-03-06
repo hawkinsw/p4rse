@@ -25,13 +25,13 @@ import TreeSitterP4
 let p4lang = Language(tree_sitter_p4())
 
 public func ConfigureP4Parser() -> Result<SwiftTreeSitter.Parser> {
-    let p = SwiftTreeSitter.Parser.init()
+  let p = SwiftTreeSitter.Parser.init()
 
-    do {
-      try p.setLanguage(p4lang)
-    } catch {
-      return Result.Error(Error(withMessage: "Could not configure the P4 parser"))
-    }
+  do {
+    try p.setLanguage(p4lang)
+  } catch {
+    return Result.Error(Error(withMessage: "Could not configure the P4 parser"))
+  }
 
   return .Ok(p)
 }

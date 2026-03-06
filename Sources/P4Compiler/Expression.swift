@@ -33,7 +33,8 @@ extension TypedIdentifier: CompilableExpression {
   ) -> Result<EvaluatableExpression?> {
 
     let node = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "identifier")
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+      node: node, type: "identifier")
 
     guard
       case Result.Ok(let type) = scopes.lookup(
@@ -52,7 +53,8 @@ extension P4BooleanValue: CompilableExpression {
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "booleanLiteralExpression")
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+      node: node, type: "booleanLiteralExpression")
 
     if node.text == "false" {
       return .Ok(P4BooleanValue(withValue: false))
@@ -60,7 +62,8 @@ extension P4BooleanValue: CompilableExpression {
       return .Ok(P4BooleanValue(withValue: true))
     }
 
-    return .Error(ErrorOnNode(node: node, withError: "Failed to parse boolean literal: \(node.text!)"))
+    return .Error(
+      ErrorOnNode(node: node, withError: "Failed to parse boolean literal: \(node.text!)"))
   }
 }
 
@@ -85,7 +88,8 @@ extension P4StringValue: CompilableExpression {
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "string_literal")
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+      node: node, type: "string_literal")
     return .Ok(P4StringValue(withValue: node.text!))
   }
 }
@@ -95,7 +99,9 @@ struct Expression {
     node: Node, inTree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression> {
 
-    #RequireNodesType<Node, EvaluatableExpression>(nodes: node, type: ["expression", "keysetExpression"], msg: ["expression", "keyset expression"])
+    #RequireNodesType<Node, EvaluatableExpression>(
+      nodes: node, type: ["expression", "keysetExpression"],
+      msg: ["expression", "keyset expression"])
 
     // If the node is a keyset expression, then dig out the expression:
     let node =

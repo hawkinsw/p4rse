@@ -24,15 +24,13 @@ public func remove_embedded_quotes(_ from: String) -> String {
 }
 
 struct MacroError: Error, CustomStringConvertible {
-    var message: String
-    var description: String {
-      get {
-        return message 
-      }
-    }
-    public init(withMessage _message: String) {
-      message = _message
-    }
+  var message: String
+  var description: String {
+    return message
+  }
+  public init(withMessage _message: String) {
+    message = _message
+  }
 }
 
 public struct UseOkResult: ExpressionMacro {
@@ -138,7 +136,9 @@ public struct RequireErrorResult: ExpressionMacro {
 }
 
 public struct RequireNodeType: CodeItemMacro {
-    public static func expansion(of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext) throws -> [CodeBlockItemSyntax] {
+  public static func expansion(
+    of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext
+  ) throws -> [CodeBlockItemSyntax] {
     let arguments = node.arguments.indices
     var arg_index = arguments.startIndex
     let node_to_check = node.arguments[arg_index].expression
@@ -147,19 +147,24 @@ public struct RequireNodeType: CodeItemMacro {
     arg_index = arguments.index(after: arg_index)
     let expected_type_nice_name = node.arguments[arg_index].expression
 
-    let error_message = "Did not find " + remove_embedded_quotes(expected_type_nice_name.description)
+    let error_message =
+      "Did not find " + remove_embedded_quotes(expected_type_nice_name.description)
 
-    return [CodeBlockItemSyntax(
-      """
-      if \(node_to_check).nodeType != \(expected_type) {
-        return Result.Error(
-          ErrorOnNode(node: \(node_to_check), withError: "\(raw: error_message)"))
-      }
-      """)]
+    return [
+      CodeBlockItemSyntax(
+        """
+        if \(node_to_check).nodeType != \(expected_type) {
+          return Result.Error(
+            ErrorOnNode(node: \(node_to_check), withError: "\(raw: error_message)"))
+        }
+        """)
+    ]
   }
 }
 public struct RequireNodesType: CodeItemMacro {
-    public static func expansion(of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext) throws -> [CodeBlockItemSyntax] {
+  public static func expansion(
+    of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext
+  ) throws -> [CodeBlockItemSyntax] {
     let arguments = node.arguments.indices
     var arg_index = arguments.startIndex
 
@@ -177,44 +182,52 @@ public struct RequireNodesType: CodeItemMacro {
       throw MacroError(withMessage: "Node nice names must be in an array")
     }
 
-    let error_message = "Did not find one of the expected types: " + expected_type_nice_names.elements.map(){ l in 
-      remove_embedded_quotes("\(l.expression)")
-    }.joined(separator: ",")
+    let error_message =
+      "Did not find one of the expected types: "
+      + expected_type_nice_names.elements.map { l in
+        remove_embedded_quotes("\(l.expression)")
+      }.joined(separator: ",")
 
-
-    let ifs = expected_types.elements.map(){ l in 
+    let ifs = expected_types.elements.map { l in
       "\(node_to_check).nodeType != \(l.expression)"
     }.joined(separator: " && ")
 
-    return [CodeBlockItemSyntax(
-      """
-      if \(raw: ifs) {
-        return Result.Error(
-          ErrorOnNode(node: \(node_to_check), withError: "\(raw: error_message)"))
-      }
-      """)]
+    return [
+      CodeBlockItemSyntax(
+        """
+        if \(raw: ifs) {
+          return Result.Error(
+            ErrorOnNode(node: \(node_to_check), withError: "\(raw: error_message)"))
+        }
+        """)
+    ]
   }
 }
 public struct SkipUnlessNodeType: CodeItemMacro {
-    public static func expansion(of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext) throws -> [CodeBlockItemSyntax] {
+  public static func expansion(
+    of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext
+  ) throws -> [CodeBlockItemSyntax] {
     let arguments = node.arguments.indices
     var arg_index = arguments.startIndex
     let node_to_check = node.arguments[arg_index].expression
     arg_index = arguments.index(after: arg_index)
     let expected_type = node.arguments[arg_index].expression
 
-    return [CodeBlockItemSyntax(
-      """
-      if \(node_to_check).nodeType != \(expected_type) {
-        return Result.Ok(.none)
-      }
-      """)]
+    return [
+      CodeBlockItemSyntax(
+        """
+        if \(node_to_check).nodeType != \(expected_type) {
+          return Result.Ok(.none)
+        }
+        """)
+    ]
   }
 }
 
 @main
 struct P4Macros: CompilerPlugin {
   var providingMacros: [Macro.Type] = [
-    RequireResult.self, RequireErrorResult.self, UseOkResult.self, UseErrorResult.self, RequireNodeType.self, SkipUnlessNodeType.self, RequireNodesType.self
+    RequireResult.self, RequireErrorResult.self, UseOkResult.self, UseErrorResult.self,
+    RequireNodeType.self, SkipUnlessNodeType.self, RequireNodesType.self,
   ]
 }
