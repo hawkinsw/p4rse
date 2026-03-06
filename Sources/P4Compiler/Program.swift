@@ -24,12 +24,10 @@ import TreeSitterP4
 
 public struct Program {
   public static func Compile(_ source: String) -> Result<P4Lang.Program> {
-    let p = SwiftTreeSitter.Parser.init()
 
-    do {
-      try p.setLanguage(p4lang)
-    } catch {
-      return Result.Error(Error(withMessage: "Could not configure the P4 parser"))
+    let maybe_parser = ConfigureP4Parser()
+    guard case .Ok(let p) = maybe_parser else {
+      return .Error(maybe_parser.error()!)
     }
 
     let result = p.parse(source)

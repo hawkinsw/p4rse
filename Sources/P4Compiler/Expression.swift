@@ -32,31 +32,17 @@ extension TypedIdentifier: CompilableExpression {
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
 
-    guard
-      let parser_statement_query = try? SwiftTreeSitter.Query(
-        language: p4lang,
-        data: String(
-          "(expression (identifier) @identifier)"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
-    }
+    let node = node.child(at: 0)!
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "identifier")
 
-    let qr = parser_statement_query.execute(node: node, in: tree)
-
-    guard let result = qr.next() else {
-      return .Ok(.none)
-    }
-
-    let value_capture = result.captures(named: "identifier")
     guard
       case Result.Ok(let type) = scopes.lookup(
-        identifier: Common.Identifier(name: value_capture[0].node.text!))
+        identifier: Common.Identifier(name: node.text!))
     else {
-      return .Error(Error(withMessage: "Cannot find \(result.captures[0].node.text!) in scope"))
+      return .Error(ErrorOnNode(node: node, withError: "Cannot find \(node.text!) in scope"))
     }
 
-    return .Ok(TypedIdentifier(name: result.captures[0].node.text!, withType: type))
+    return .Ok(TypedIdentifier(name: node.text!, withType: type))
   }
 }
 
@@ -65,39 +51,16 @@ extension P4BooleanValue: CompilableExpression {
     node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
+    let node = node.child(at: 0)!
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "booleanLiteralExpression")
 
-    guard
-      let true_query = try? SwiftTreeSitter.Query(
-        language: p4lang,
-        data: String(
-          "(expression (true))"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
-    }
-
-    let true_qr = true_query.execute(node: node, in: tree)
-
-    if true_qr.next() != nil {
+    if node.text == "false" {
+      return .Ok(P4BooleanValue(withValue: false))
+    } else if node.text == "true" {
       return .Ok(P4BooleanValue(withValue: true))
     }
 
-    guard
-      let false_query = try? SwiftTreeSitter.Query(
-        language: p4lang,
-        data: String(
-          "(expression (false))"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
-    }
-
-    let false_qr = false_query.execute(node: node, in: tree)
-
-    if false_qr.next() != nil {
-      return .Ok(P4BooleanValue(withValue: false))
-    }
-    return .Ok(.none)
+    return .Error(ErrorOnNode(node: node, withError: "Failed to parse boolean literal: \(node.text!)"))
   }
 }
 
@@ -106,29 +69,12 @@ extension P4IntValue: CompilableExpression {
     node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
-
-    guard
-      let integer_query = try? SwiftTreeSitter.Query(
-        language: p4lang,
-        data: String(
-          "(expression (integer) @value)"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
-    }
-
-    let integer_qr = integer_query.execute(node: node, in: tree)
-
-    guard let result = integer_qr.next() else {
-      return .Ok(.none)
-    }
-
-    let value_capture = result.captures(named: "value")
-    if let parsed_int = Int(value_capture[0].node.text!) {
+    let node = node.child(at: 0)!
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "integer")
+    if let parsed_int = Int(node.text!) {
       return .Ok(P4IntValue(withValue: parsed_int))
     } else {
-      print("HERE!!")
-      return .Error(Error(withMessage: "Failed to parse integer: \(result.captures[0].node.text!)"))
+      return .Error(ErrorOnNode(node: node, withError: "Failed to parse integer: \(node.text!)"))
     }
   }
 }
@@ -138,24 +84,9 @@ extension P4StringValue: CompilableExpression {
     node: SwiftTreeSitter.Node, inTree tree: SwiftTreeSitter.MutableTree,
     withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
-
-    guard
-      let string_query = try? SwiftTreeSitter.Query(
-        language: p4lang,
-        data: String(
-          "(expression (string_literal) @value)"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
-    }
-
-    let string_qr = string_query.execute(node: node, in: tree)
-
-    guard let result = string_qr.next() else {
-      return .Ok(.none)
-    }
-
-    return .Ok(P4StringValue(withValue: result.captures[0].node.text!))
+    let node = node.child(at: 0)!
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "string_literal")
+    return .Ok(P4StringValue(withValue: node.text!))
   }
 }
 
@@ -163,6 +94,17 @@ struct Expression {
   public static func Compile(
     node: Node, inTree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression> {
+
+    #RequireNodesType<Node, EvaluatableExpression>(nodes: node, type: ["expression", "keysetExpression"], msg: ["expression", "keyset expression"])
+
+    // If the node is a keyset expression, then dig out the expression:
+    let node =
+      if node.nodeType == "keysetExpression" {
+        node.child(at: 0)!
+      } else {
+        node
+      }
+
     let localElementsParsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
     ]

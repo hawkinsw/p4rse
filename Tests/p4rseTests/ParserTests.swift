@@ -23,6 +23,7 @@ import SwiftTreeSitter
 import Testing
 import TreeSitter
 import TreeSitterP4
+import P4Lang
 
 @testable import P4Compiler
 
@@ -92,4 +93,26 @@ import TreeSitterP4
 
   #expect(compilation_error.msg.contains("asde"))
   #expect(compilation_error.msg.contains("asdf"))
+}
+
+@Test func test_simple_parser_macro_nodetype_test() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (false) {
+              asdf: reject;
+              asde: reject;
+           };
+       }
+    };
+  """
+
+  let p = try! #UseOkResult(ConfigureP4Parser())
+  let result = try! #require(p.parse(simple))
+
+  #expect(
+    #RequireErrorResult<(EvaluatableStatement, LexicalScopes)>(
+      Error(withMessage: "{2, 154}: Did not find assignment statement"),
+      ParserAssignmentStatement.Compile(
+        node: result.rootNode!, inTree: result, withScopes: LexicalScopes())))
 }

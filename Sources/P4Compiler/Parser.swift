@@ -22,21 +22,12 @@ import SwiftTreeSitter
 import TreeSitterExtensions
 import TreeSitterP4
 
-let p4lang = Language(tree_sitter_p4())
-
-public func ErrorOnNode(node: Node, withError error: String) -> Error {
-  return Error(withMessage: "\(node.range): \(error)")
-}
-
 extension ParserAssignmentStatement: CompilableStatement {
   public static func Compile(
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
 
-    if node.nodeType != "assignmentStatement" {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find expected assignment statement"))
-    }
+    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(node: node, type: "assignmentStatement", msg: "assignment statement")
 
     guard let lvalue_node = node.child(at: 0),
       lvalue_node.nodeType == "expression"
@@ -101,7 +92,7 @@ public struct Parser {
       guard let parser = localElementsParsers[node.nodeType ?? ""] else {
         return Result.Error(
           ErrorOnNode(
-            node: node, withError: "Unparseable statement type (\(node.nodeType))"))
+            node: node, withError: "Unparseable statement type (\(node.nodeType ?? "Unknown Statement Type"))"))
       }
 
       switch parser.Compile(node: node, inTree: tree, withScopes: scopes) {
@@ -135,7 +126,7 @@ public struct Parser {
       guard let parser = statementParsers[statement.nodeType ?? ""] else {
         return Result.Error(
           ErrorOnNode(
-            node: statement, withError: "Unparseable statement type (\(statement.nodeType))"))
+            node: statement, withError: "Unparseable statement type (\(statement.nodeType ?? "Unknown Statement Type"))"))
       }
       switch parser.Compile(node: statement, inTree: tree, withScopes: scopes) {
       case Result.Ok(let (parsed, updatedLexicalScopes)):
