@@ -18,14 +18,6 @@
 import Common
 import P4Lang
 
-protocol EvaluatableParserTransition {
-  func program(execution: ProgramExecution) -> (ParserState, ProgramExecution)
-}
-
-protocol EvaluatableParserTransitionStatement {
-  func transition(execution: ProgramExecution) -> (ParserState, ProgramExecution)
-}
-
 public protocol Execution {
   func execute() -> (ParserState, ProgramExecution)
 }
@@ -36,10 +28,10 @@ public protocol Compilable {
   static func compile(_: ToCompile) -> Result<Compiled>
 }
 
-public protocol ParserStateInstance {
+public protocol ParserStateInstance: P4Value {
   func execute(program: ProgramExecution) -> (ParserStateInstance, ProgramExecution)
   func done() -> Bool
-  func current() -> ParserState
+  func state() -> ParserState
 }
 
 public protocol ParserExecution {

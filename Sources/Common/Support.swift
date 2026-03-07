@@ -141,10 +141,10 @@ extension Result: CustomStringConvertible {
   #externalMacro(module: "Macros", type: "UseOkResult")
 @freestanding(expression) public macro UseErrorResult<T>(_: Result<T>) -> Error =
   #externalMacro(module: "Macros", type: "UseErrorResult")
-@freestanding(codeItem) public macro RequireNodeType<N, T>(node: N, type: String, msg: String) =
+@freestanding(codeItem) public macro RequireNodeType<N, T>(node: N, type: String, nice_type_name: String) =
   #externalMacro(module: "Macros", type: "RequireNodeType")
 @freestanding(codeItem) public macro RequireNodesType<N, T>(
-  nodes: N, type: [String], msg: [String]
+  nodes: N, type: [String], nice_type_names: [String]
 ) =
   #externalMacro(module: "Macros", type: "RequireNodesType")
 @freestanding(codeItem) public macro SkipUnlessNodeType<N, T>(node: N, type: String) =

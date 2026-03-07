@@ -33,7 +33,6 @@ public protocol EvaluatableStatement {
 }
 
 public protocol P4Type: CustomStringConvertible {
-  static func create() -> any P4Type
   func eq(rhs: any P4Type) -> Bool
 }
 

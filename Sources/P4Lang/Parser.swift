@@ -56,7 +56,7 @@ public struct KeysetExpression {
 
 }
 
-public struct ParserTransitionSelectExpression {
+public struct SelectExpression {
   public let selector: EvaluatableExpression
   public let keyset_expressions: [KeysetExpression]
 
@@ -67,24 +67,24 @@ public struct ParserTransitionSelectExpression {
     self.keyset_expressions = kses
   }
 
-  public func append_checked_kse(kse: KeysetExpression) -> ParserTransitionSelectExpression {
+  public func append_checked_kse(kse: KeysetExpression) -> SelectExpression {
     var new_kse = self.keyset_expressions
     new_kse.append(kse)
-    return ParserTransitionSelectExpression(
+    return SelectExpression(
       withSelector: self.selector, withKeysetExpressions: new_kse)
   }
 }
 
 public struct ParserTransitionStatement {
   public let next_state: Identifier?
-  public let transition_expression: ParserTransitionSelectExpression?
+  public let transition_expression: SelectExpression?
 
   public init() {
     self.next_state = .none
     self.transition_expression = .none
   }
 
-  public init(withTransitionExpression transition_expression: ParserTransitionSelectExpression) {
+  public init(withTransitionExpression transition_expression: SelectExpression) {
     self.next_state = .none
     self.transition_expression = transition_expression
   }
@@ -159,6 +159,22 @@ public class ParserState: Equatable, CustomStringConvertible, Comparable {
       true
     } else {
       false
+    }
+  }
+}
+
+/// A P4 parser state type
+public struct P4ParserState: P4Type {
+  public static func create() -> any P4Type {
+    return P4ParserState()
+  }
+  public var description: String {
+    return "Parser State"
+  }
+  public func eq(rhs: any P4Type) -> Bool {
+    return switch rhs {
+    case is P4ParserState: true
+    default: false
     }
   }
 }

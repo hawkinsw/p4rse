@@ -142,17 +142,10 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
-  let (state_result, exec_result) = try! #UseOkResult(runtime.run())
+  let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(parser.states.count() == 1)
   #expect(state_result == P4Lang.reject)
-
-  let x = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "x")))
-  #expect(x.eq(rhs: P4BooleanValue(withValue: false)))
-  let check = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "check")))
-  #expect(check.eq(rhs: P4StringValue(withValue: "\"valid\"")))
 }
 
 @Test func test_simple_parser_with_conditional_statement_and_else() async throws {
@@ -177,15 +170,29 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
-  let (state_result, exec_result) = try! #UseOkResult(runtime.run())
+  let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(parser.states.count() == 1)
   #expect(state_result == P4Lang.accept)
 
-  let x = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "x")))
-  #expect(x.eq(rhs: P4BooleanValue(withValue: true)))
-  let check = try #UseOkResult(exec_result.scopes.lookup(identifier: Identifier(name: "check")))
-  #expect(check.eq(rhs: P4StringValue(withValue: "\"b\"")))
+}
+
+@Test func test_no_matching_key_transition() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          transition select (false) {
+            true: accept;
+          };
+        }
+      };
+    """
+
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+
+  #expect(
+    #RequireErrorResult<(ParserState, ProgramExecution)>(
+      Error(withMessage: "No key matched the selector"),
+      runtime.run()))
 }

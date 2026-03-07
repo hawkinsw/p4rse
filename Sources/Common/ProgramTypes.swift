@@ -72,29 +72,6 @@ public class Variable: TypedIdentifier {
   }
 }
 
-/// A base for all instances of P4 types
-open class P4ValueBase<T: P4Type>: P4Value {
-  public init() {}
-
-  public func type() -> P4Type {
-    return T.create()
-  }
-
-  public func eq(rhs: P4Value) -> Bool {
-    return false
-  }
-
-  public var description: String {
-    "Value of \(self.type()) type"
-  }
-
-}
-
-extension P4ValueBase: EvaluatableExpression {
-  public func evaluate(execution: ProgramExecution) -> Result<P4Value> {
-    return .Ok(self)
-  }
-}
 
 /// The type for a P4 struct
 public struct P4Struct: P4Type {
@@ -136,7 +113,19 @@ public struct P4StructField {
 }
 
 /// An instance of a P4 struct
-public class P4StructValue: P4ValueBase<P4Struct> {
+public class P4StructValue: P4Value {
+  public func type() -> any P4Type {
+    return P4Struct()
+  }
+
+  public func eq(rhs: any P4Value) -> Bool {
+    return true
+  }
+
+  public var description: String {
+    return "Struct"
+  }
+
   public let fields: [P4StructField]
   public init(withFields fields: [P4StructField]) {
     self.fields = fields
@@ -161,20 +150,24 @@ public struct P4Boolean: P4Type {
 }
 
 /// An instance of a P4 boolean
-public class P4BooleanValue: P4ValueBase<P4Boolean> {
+public class P4BooleanValue: P4Value {
+  public func type() -> any P4Type {
+    return P4Boolean()
+  }
+
   let value: Bool
 
   public init(withValue value: Bool) {
     self.value = value
   }
-  public override func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4Value) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
     return self.value == bool_rhs.value
   }
 
-  public override var description: String {
+  public var description: String {
     "\(self.value ? "true" : "false") of \(self.type()) type"
   }
 }
@@ -196,18 +189,22 @@ public struct P4Int: P4Type {
 }
 
 /// An instance of a P4 integer
-public class P4IntValue: P4ValueBase<P4Int> {
+public class P4IntValue: P4Value {
+  public func type() -> any P4Type {
+    return P4Int()
+  }
+
   let value: Int
   public init(withValue value: Int) {
     self.value = value
   }
-  public override func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4Value) -> Bool {
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }
     return self.value == int_rhs.value
   }
-  public override var description: String {
+  public var description: String {
     "\(self.value) of \(self.type()) type"
   }
 }
@@ -229,22 +226,27 @@ public struct P4String: P4Type {
   }
 }
 /// An instance of a P4 string
-public class P4StringValue: P4ValueBase<P4String> {
+public class P4StringValue: P4Value {
+  public func type() -> any P4Type {
+    return P4String()
+  }
+
   let value: String
   public init(withValue value: String) {
     self.value = value
   }
-  public override func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4Value) -> Bool {
     guard let string_rhs = rhs as? P4StringValue else {
       return false
     }
     return self.value == string_rhs.value
   }
 
-  public override var description: String {
+  public var description: String {
     "\(self.value) of \(self.type()) type"
   }
 }
+
 
 public class Packet {
   public init() {}

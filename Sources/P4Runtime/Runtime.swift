@@ -41,7 +41,11 @@ public class ParserRuntime: CustomStringConvertible {
 
   /// Run the P4 parser on a given packet
   public func run() -> Result<(ParserState, ProgramExecution)> {
-    return .Ok(parser.execute())
+    let (end_state, execution) = parser.execute()
+    if let error = execution.getError() {
+      return .Error(error)
+    }
+    return .Ok((end_state, execution))
   }
 
   public var description: String {
@@ -53,12 +57,19 @@ public class ParserRuntime: CustomStringConvertible {
 extension ParserInstance: ParserExecution {
   public func execute() -> (ParserState, ProgramExecution) {
     var execution = self as ProgramExecution
+
+    execution = execution.enter_scope()
+    // First, add every state to the scope!
+    for state in self.states {
+      execution = execution.declare(identifier: state.state().state, withValue: state)
+    }
+
     var c = self.start_state
 
     // Evaluate until the state is either accept or reject.
     while !c.done() && !execution.hasError() {
       (c, execution) = c.execute(program: execution)
     }
-    return (c.current(), execution)
+    return (c.state(), execution)
   }
 }

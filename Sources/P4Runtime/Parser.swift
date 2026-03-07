@@ -20,8 +20,9 @@ import P4Lang
 
 extension ParserAssignmentStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> ProgramExecution {
-    guard case Result.Ok(let value) = self.value.evaluate(execution: execution) else {
-      return execution.setError(error: Error(withMessage: "AHHHHH"))
+    let result = self.value.evaluate(execution: execution)
+    guard case Result.Ok(let value) = result else {
+      return execution.setError(error: result.error()!)
     }
     let updated_scopes = execution.scopes.set(identifier: self.lvalue, withValue: value)
 
@@ -32,38 +33,82 @@ extension ParserAssignmentStatement: EvaluatableStatement {
 }
 
 public struct ParserStateDirectTransition: ParserStateInstance {
+
+  public func type() -> any Common.P4Type {
+    return P4ParserState.create()
+  }
+
+  public func eq(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let state as ParserStateInstance: return currrent_state == state.state()
+    default: return false
+    }
+  }
+
+  public var description: String {
+    get {
+      return "Instance of \(currrent_state)"
+    }
+  }
+
   public let currrent_state: ParserState
-  public let next_state: ParserStateInstance
+  public let next_state_identifier: Identifier
 
   public func execute(
     program: Common.ProgramExecution
   ) -> (any ParserStateInstance, Common.ProgramExecution) {
-    var program = program.exit_scope()
-    program = program.enter_scope()
+    var program = program.enter_scope()
 
     for statement in currrent_state.statements {
       program = statement.evaluate(execution: program)
     }
+    let res = program.scopes.lookup(identifier: next_state_identifier)
 
-    return (self.next_state, program)
+    if case .Ok(let value) = res {
+      if value.type().eq(rhs: P4ParserState.create()) {
+        return (value as! ParserStateInstance, program.exit_scope())
+      }
+    }
+
+    program = program.setError(error: res.error()!).exit_scope()
+   
+    return (self, program.exit_scope())
   }
 
   public func done() -> Bool {
     return false
   }
 
-  public func current() -> P4Lang.ParserState {
+  public func state() -> P4Lang.ParserState {
     return currrent_state
   }
 
 }
 
 public struct ParserStateNoTransition: ParserStateInstance {
+
+  public func type() -> any Common.P4Type {
+    return P4ParserState.create()
+  }
+
+  public func eq(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let state as ParserStateInstance: return currrent_state == state.state()
+    default: return false
+    }
+  }
+
+  public var description: String {
+    get {
+      return "Instance of \(currrent_state)"
+    }
+  }
+
   public let currrent_state: ParserState
+
   public func execute(
     program: Common.ProgramExecution
   ) -> (any ParserStateInstance, Common.ProgramExecution) {
-    let program = program.exit_scope()
     return (self, program)
   }
 
@@ -71,90 +116,83 @@ public struct ParserStateNoTransition: ParserStateInstance {
     return true
   }
 
-  public func current() -> P4Lang.ParserState {
+  public func state() -> P4Lang.ParserState {
     return currrent_state
   }
 }
 
 public struct ParserStateSelectTransition: ParserStateInstance {
+  public func type() -> any Common.P4Type {
+    return P4ParserState.create()
+  }
+
+  public func eq(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let state as ParserStateInstance: return currrent_state == state.state()
+    default: return false
+    }
+  }
+
+  public var description: String {
+    get {
+      return "Instance of \(currrent_state)"
+    }
+  }
+
   public func execute(
     program: Common.ProgramExecution
   ) -> (any ParserStateInstance, Common.ProgramExecution) {
-    // Otherwise, we exit the scope from the previous state and enter a new one!
-    var program = program.exit_scope()
-    program = program.enter_scope()
+    var program = program.enter_scope()
 
     // First, evaluate the statements.
     for statement in currrent_state.statements {
       program = statement.evaluate(execution: program)
     }
 
-    switch self.selector.evaluate(execution: program) {
-    case .Ok(let selector_value):
-      for (key, target) in zip(self.keys, self.states) {
-        if case .Ok(let kse_key) = key.evaluate(execution: program),
-          kse_key.eq(rhs: selector_value)
-        {
-          return (target, program)
-        }
+    let res = self.selectExpression.evaluate(execution: program)
+
+    if case .Ok(let value) = res {
+      if value.type().eq(rhs: P4ParserState.create()) {
+        return (value as! ParserStateInstance, program.exit_scope())
       }
-      return (
-        self, program.setError(error: Error(withMessage: "No selector key matched")).setDone()
-      )
-    case .Error(let e): return (self, program.setError(error: e))
     }
+
+    program = program.setError(error: res.error()!).exit_scope()
+    return (self, program.exit_scope())
   }
 
   public func done() -> Bool {
     return false
   }
 
-  public func current() -> P4Lang.ParserState {
+  public func state() -> P4Lang.ParserState {
     return currrent_state
   }
 
-  public let keys: [any EvaluatableExpression]
-  public let states: [ParserStateInstance]
-  public let selector: any EvaluatableExpression
+  public let selectExpression: SelectExpression
   public let currrent_state: ParserState
 }
 
 extension ParserState: Compilable {
-  public typealias ToCompile = (ParserState, [Identifier: ParserStateInstance])
+  public typealias ToCompile = ParserState
   public typealias Compiled = ParserStateInstance
-  public static func compile(_ parser: ToCompile) -> Result<Compiled> {
-    let (state, current) = parser
-    if state == accept || state == reject {
-      return .Ok(ParserStateNoTransition(currrent_state: state))
-    }
+  public static func compile(_ state: ToCompile) -> Result<Compiled> {
 
     if state.direct_transition(),
       let transition_statement = state.transition
     {
       return .Ok(
         ParserStateDirectTransition(
-          currrent_state: state, next_state: current[transition_statement.next_state!]!))
+          currrent_state: state, next_state_identifier: transition_statement.next_state!))
     }
 
     if let transition_select_statement = state.transition,
       let transition_select_expression = transition_select_statement.transition_expression
     {
 
-      var keys: [any EvaluatableExpression] = Array()
-      var states: [any ParserStateInstance] = Array()
-
-      for kse in transition_select_expression.keyset_expressions {
-        guard let next_state = current[kse.next_state_identifier] else {
-          return .Error(
-            Error(withMessage: "Cannot find \(kse.next_state_identifier) as transition target"))
-        }
-        keys.append(kse.key)
-        states.append(next_state)
-      }
       return .Ok(
         ParserStateSelectTransition(
-          keys: keys, states: states, selector: transition_select_expression.selector,
-          currrent_state: state))
+          selectExpression: transition_select_expression, currrent_state: state))
     }
 
     return .Error(Error(withMessage: "Invalid parser state: No meaningful transition"))
@@ -163,24 +201,30 @@ extension ParserState: Compilable {
 
 extension ParserStates: Compilable {
   public typealias ToCompile = ParserStates
-  public typealias Compiled = ParserStateInstance
+  public typealias Compiled = (ParserStateInstance, [ParserStateInstance])
   public static func compile(_ parser: ToCompile) -> Result<Compiled> {
-    var compiled_states = [Identifier: ParserStateInstance]()
+    var compiled_states:[ParserStateInstance] = Array()
 
-    compiled_states[Identifier(name: "accept")] = ParserStateNoTransition(currrent_state: accept)
-    compiled_states[Identifier(name: "reject")] = ParserStateNoTransition(currrent_state: reject)
+    compiled_states.append(ParserStateNoTransition(currrent_state: accept))
+    compiled_states.append(ParserStateNoTransition(currrent_state: reject))
+
+    var start_state: ParserStateInstance? = .none
 
     // TODO: We assume that states are in transition-order!
     for state in parser.states {
-      switch ParserState.compile((state, compiled_states)) {
-      case .Ok(let compiled): compiled_states[state.state] = compiled
+      switch ParserState.compile(state) {
+      case .Ok(let compiled): 
+        if compiled.state().state == Identifier(name: "start") {
+          start_state = compiled
+        }
+        compiled_states.append(compiled)
       case .Error(let e): return .Error(e)
       }
     }
 
     // Now, find the start state:
-    if let start_state = compiled_states[Identifier(name: "start")] {
-      return .Ok(start_state)
+    if let start_state = start_state {
+      return .Ok((start_state, compiled_states))
     } else {
       return .Error(Error(withMessage: "No start state defined"))
     }
@@ -189,14 +233,16 @@ extension ParserStates: Compilable {
 
 public class ParserInstance: ProgramExecution {
 
+  let states: [ParserStateInstance]
   let start_state: ParserStateInstance
 
-  public init(_ _start_state: ParserStateInstance) {
-    self.start_state = _start_state
+  public init(start: ParserStateInstance, states: [ParserStateInstance]) {
+    start_state = start
+    self.states = states
   }
 
   public override var description: String {
-    return "Execution: \(super.description)\nStart State: \(start_state)"
+    return "Execution: \(super.description)\nStates: \(states)"
   }
 }
 
@@ -206,7 +252,7 @@ extension ParserInstance: Compilable {
 
   public static func compile(_ parser: ToCompile) -> Result<Compiled> {
     return switch ParserStates.compile(parser.states) {
-    case .Ok(let start_state): Result.Ok(ParserInstance(start_state))
+    case .Ok(let (start_state, states)): Result.Ok(ParserInstance(start: start_state, states: states))
     case .Error(let e): Result.Error(e)
     }
   }

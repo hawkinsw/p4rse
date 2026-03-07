@@ -67,14 +67,3 @@ extension ExpressionStatement: EvaluatableStatement {
     return execution
   }
 }
-
-// Variables are evaluatable because they can be looked up by identifiers.
-extension TypedIdentifier: EvaluatableExpression {
-  public func type() -> any Common.P4Type {
-    return self.parsed_type
-  }
-
-  public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-    return execution.scopes.lookup(identifier: self)
-  }
-}

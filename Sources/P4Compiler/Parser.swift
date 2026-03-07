@@ -28,7 +28,7 @@ extension ParserAssignmentStatement: CompilableStatement {
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
 
     #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
-      node: node, type: "assignmentStatement", msg: "assignment statement")
+      node: node, type: "assignmentStatement", nice_type_name: "assignment statement")
 
     guard let lvalue_node = node.child(at: 0),
       lvalue_node.nodeType == "expression"
@@ -142,137 +142,26 @@ public struct Parser {
     }
   }
 
-  public struct TransitionSelectExpressionCaseStatement {
-    static func Compile(
-      node: Node, inTree tree: MutableTree, withLexicalScopes scopes: LexicalScopes
-    ) -> Result<(KeysetExpression, LexicalScopes)> {
-      if node.nodeType != "selectCase" {
-        return Result.Error(Error(withMessage: "Expected select case not found"))
-      }
-
-      guard let keysetexpression_node = node.child(at: 0),
-        keysetexpression_node.nodeType == "keysetExpression"
-      else {
-        return Result.Error(Error(withMessage: "Missing keyset expression in select case"))
-      }
-
-      guard let targetstate_node = node.child(at: 2),
-        targetstate_node.nodeType == "identifier"
-      else {
-        return Result.Error(Error(withMessage: "Missing target state in select case"))
-      }
-
-      let maybe_parsed_keysetexpression = Expression.Compile(
-        node: keysetexpression_node, inTree: tree, withScopes: scopes)
-      guard case Result.Ok(let keysetexpression) = maybe_parsed_keysetexpression else {
-        return Result.Error(maybe_parsed_keysetexpression.error()!)
-      }
-
-      let maybe_parsed_targetstate = Identifier.Compile(
-        node: targetstate_node, inTree: tree, withScopes: scopes)
-      guard case .Ok(let targetstate) = maybe_parsed_targetstate else {
-        return Result.Error(maybe_parsed_targetstate.error()!)
-      }
-
-      return .Ok(
-        (
-          KeysetExpression(
-            withKey: keysetexpression, withNextState: targetstate), scopes
-        ))
-    }
-  }
-
-  public struct TransitionSelectExpression {
-    static func Compile(
-      node: Node, inTree tree: MutableTree, withScope scopes: LexicalScopes
-    ) -> Result<(ParserTransitionSelectExpression, LexicalScopes)> {
-      guard
-        let transition_selection_expression_query = try? SwiftTreeSitter.Query(
-          language: p4lang,
-          data: String(
-            "(parserTransitionStatement (transition) (transitionSelectionExpression (selectExpression (select) (expression) @selector (selectBody) @body)))"
-          ).data(using: String.Encoding.utf8)!)
-      else {
-        return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
-      }
-
-      let qr = transition_selection_expression_query.execute(node: node, in: tree)
-
-      guard let query_result = qr.next() else {
-        return .Error(Error(withMessage: "Could not find transition select expression"))
-      }
-
-      let selector = query_result.captures(named: "selector")
-      let body = query_result.captures(named: "body")
-
-      if selector.isEmpty {
-        return .Error(
-          Error(withMessage: "Could not find transition select expression selector expression"))
-      }
-      let selector_node = selector[0].node
-      let maybe_selector = Expression.Compile(node: selector_node, inTree: tree, withScopes: scopes)
-      guard case .Ok(let selector) = maybe_selector else {
-        return .Error(
-          Error(
-            withMessage:
-              "Could not parse transition select expression selector expression: \(maybe_selector.error()!)"
-          ))
-      }
-
-      if body.isEmpty {
-        return .Error(Error(withMessage: "Could not find transition select expression body"))
-      }
-      let body_node = body[0].node
-      var kses: [KeysetExpression] = Array()
-      var kses_errors: [Error] = Array()
-
-      body_node.enumerateNamedChildren { current_node in
-        let maybe_parsed_kse = TransitionSelectExpressionCaseStatement.Compile(
-          node: current_node, inTree: tree, withLexicalScopes: scopes)
-        if case .Ok((let parsed_kse, _)) = maybe_parsed_kse {
-          kses.append(parsed_kse)
-        } else {
-          kses_errors.append(Error(withMessage: "\(maybe_parsed_kse.error()!)"))
-        }
-      }
-
-      if !kses_errors.isEmpty {
-        return .Error(
-          Error(
-            withMessage: "Error(s) parsing select cases: "
-              + (kses_errors.map { error in
-                return "\(error.msg)"
-              }.joined(separator: ";\n"))))
-      }
-
-      return .Ok(
-        (
-          ParserTransitionSelectExpression(withSelector: selector, withKeysetExpressions: kses),
-          scopes
-        ))
-    }
-  }
-
   public struct TransitionStatement {
     static func Compile(
       node: Node, inTree tree: MutableTree, withScope scopes: LexicalScopes
     ) -> Result<(ParserTransitionStatement, LexicalScopes)> {
-      guard
-        let next_state_query = try? SwiftTreeSitter.Query(
-          language: p4lang,
-          data: String(
-            "(parserTransitionStatement (transition) (transitionSelectionExpression (identifier) @next-state))"
-          ).data(using: String.Encoding.utf8)!)
-      else {
-        return Result.Error(Error(withMessage: "Could not compile the tree sitter query"))
+
+      #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(node: node, type: "parserTransitionStatement", nice_type_name: "parser transition statement")
+
+      guard let tse_node = node.child(at: 1),
+      tse_node.nodeType! == "transitionSelectionExpression" else {
+        return .Error(ErrorOnNode(node: node, withError: "Could not find transition select expression"))
       }
 
-      let qr = next_state_query.execute(node: node, in: tree)
+      guard let next_node = tse_node.child(at: 0) else {
+        return .Error(ErrorOnNode(node: node, withError: "Could not find the next token in a transition selection expression"))
+      }
 
-      if let next_state_result = qr.next() {
-        let transition_capture = next_state_result.captures(named: "next-state")
+      // If the next node is an identifier, we have the simple form ...
+      if next_node.nodeType == "identifier" {
         let maybe_parsed_next_state = Identifier.Compile(
-          node: transition_capture[0].node, inTree: tree, withScopes: scopes)
+          node: next_node, inTree: tree, withScopes: scopes)
         if case .Ok(let next_state) = maybe_parsed_next_state {
           return .Ok(
             (ParserTransitionStatement(withNextState: next_state), scopes))
@@ -285,11 +174,12 @@ public struct Parser {
         }
       }
 
+      // We know that the next node is a select expression.
       return
-        switch TransitionSelectExpression.Compile(node: node, inTree: tree, withScope: scopes)
+        switch SelectExpression.compile(node: next_node, inTree: tree, withScopes: scopes)
       {
-      case .Ok((let tse, _)):
-        .Ok((ParserTransitionStatement(withTransitionExpression: tse), scopes))
+      case .Ok(let tse):
+        .Ok((ParserTransitionStatement(withTransitionExpression: tse! as! SelectExpression), scopes))
       case .Error(let e): .Error(e)
       }
     }

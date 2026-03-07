@@ -73,6 +73,13 @@ open class ProgramExecution: CustomStringConvertible {
     return new_pe
   }
 
+  public func declare(identifier: Identifier, withValue value: P4Value) -> ProgramExecution {
+    let new_pe = self
+    let new_scopes = self.scopes.declare(identifier: identifier, withValue: value)
+
+    new_pe.scopes = new_scopes
+    return new_pe
+  }
 }
 
 public typealias ValueScope = Scope<P4Value>

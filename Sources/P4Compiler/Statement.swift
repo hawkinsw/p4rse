@@ -26,10 +26,7 @@ extension BlockStatement: CompilableStatement {
   public static func Compile(
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
-    if node.nodeType != "blockStatement" {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find expected block statement"))
-    }
+    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(node: node, type: "blockStatement", nice_type_name: "block statement")
 
     var currentChildIdx = 0
     var currentChildIdxSafe = 1
@@ -94,12 +91,7 @@ extension ConditionalStatement: CompilableStatement {
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
 
-    guard let node_type = node.nodeType,
-      node_type == "conditionalStatement"
-    else {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find expected conditional statement"))
-    }
+    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(node: node, type: "conditionalStatement", nice_type_name: "conditional statement")
 
     let maybe_condition_expression = node.child(at: 2)
     guard let condition_expression = maybe_condition_expression,
@@ -166,12 +158,7 @@ extension VariableDeclarationStatement: CompilableStatement {
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
 
-    guard let node_type = node.nodeType,
-      node_type == "variableDeclaration"
-    else {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find expected variable declaration statement"))
-    }
+    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(node: node, type: "variableDeclaration", nice_type_name: "variable declaration statement")
 
     let maybe_typeref = node.child(at: 0)
     guard let typeref = maybe_typeref,
@@ -248,10 +235,7 @@ extension ExpressionStatement: CompilableStatement {
   public static func Compile(
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
-    if node.nodeType != "expressionStatement" {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find expected expression statement"))
-    }
+    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(node: node, type: "expressionStatement", nice_type_name: "expression statement")
 
     let _ = node.child(at: 0)
 
