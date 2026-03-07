@@ -39,7 +39,7 @@ let package = Package(
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ],
-            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")]),
+            swiftSettings: [.unsafeFlags(["-enable-experimental-feature", "CodeItemMacros"]), .enableExperimentalFeature("CodeItemMacros")]),
         .target(
             name: "P4Compiler",
             dependencies: [
@@ -51,7 +51,7 @@ let package = Package(
                 .target(name: "P4Lang"),
                 .target(name: "P4Runtime"),
             ],
-            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
+            swiftSettings: [.unsafeFlags(["-enable-experimental-feature", "CodeItemMacros"]), .enableExperimentalFeature("CodeItemMacros")],
         ),
         .target(
             name: "TreeSitterExtensions",
@@ -63,7 +63,7 @@ let package = Package(
         .target(
             name: "Common",
             dependencies: ["Macros"],
-            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
+            swiftSettings: [.unsafeFlags(["-enable-experimental-feature", "CodeItemMacros"]), .enableExperimentalFeature("CodeItemMacros")],
         ),
         .target(
             name: "P4Lang",
@@ -77,5 +77,5 @@ let package = Package(
             name: "Tests",
             dependencies: ["P4Compiler", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common"]
         ),
-    ]
+    ],
 )
