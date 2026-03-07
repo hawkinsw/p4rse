@@ -147,15 +147,22 @@ public struct Parser {
       node: Node, inTree tree: MutableTree, withScope scopes: LexicalScopes
     ) -> Result<(ParserTransitionStatement, LexicalScopes)> {
 
-      #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(node: node, type: "parserTransitionStatement", nice_type_name: "parser transition statement")
+      #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
+        node: node, type: "parserTransitionStatement", nice_type_name: "parser transition statement"
+      )
 
       guard let tse_node = node.child(at: 1),
-      tse_node.nodeType! == "transitionSelectionExpression" else {
-        return .Error(ErrorOnNode(node: node, withError: "Could not find transition select expression"))
+        tse_node.nodeType! == "transitionSelectionExpression"
+      else {
+        return .Error(
+          ErrorOnNode(node: node, withError: "Could not find transition select expression"))
       }
 
       guard let next_node = tse_node.child(at: 0) else {
-        return .Error(ErrorOnNode(node: node, withError: "Could not find the next token in a transition selection expression"))
+        return .Error(
+          ErrorOnNode(
+            node: node,
+            withError: "Could not find the next token in a transition selection expression"))
       }
 
       // If the next node is an identifier, we have the simple form ...
@@ -179,7 +186,8 @@ public struct Parser {
         switch SelectExpression.compile(node: next_node, inTree: tree, withScopes: scopes)
       {
       case .Ok(let tse):
-        .Ok((ParserTransitionStatement(withTransitionExpression: tse! as! SelectExpression), scopes))
+        .Ok(
+          (ParserTransitionStatement(withTransitionExpression: tse! as! SelectExpression), scopes))
       case .Error(let e): .Error(e)
       }
     }

@@ -72,7 +72,6 @@ public class Variable: TypedIdentifier {
   }
 }
 
-
 /// The type for a P4 struct
 public struct P4Struct: P4Type {
 
@@ -246,7 +245,6 @@ public class P4StringValue: P4Value {
     "\(self.value) of \(self.type()) type"
   }
 }
-
 
 public class Packet {
   public init() {}

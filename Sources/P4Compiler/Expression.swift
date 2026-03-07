@@ -184,8 +184,9 @@ extension SelectExpression: CompilableExpression {
     var kses: [KeysetExpression] = Array()
     var kses_errors: [Error] = Array()
 
-    select_body_node.enumerateNamedChildren() { current_node in
-      let maybe_parsed_kse = KeysetExpression.compile(node: current_node, inTree: tree, withScopes: scopes)
+    select_body_node.enumerateNamedChildren { current_node in
+      let maybe_parsed_kse = KeysetExpression.compile(
+        node: current_node, inTree: tree, withScopes: scopes)
       if case .Ok(let parsed_kse) = maybe_parsed_kse {
         kses.append(parsed_kse as! KeysetExpression)
       } else {
@@ -202,8 +203,8 @@ extension SelectExpression: CompilableExpression {
             }.joined(separator: ";\n"))))
     }
     return .Ok(
-        SelectExpression(withSelector: selector, withKeysetExpressions: kses),
-      )
+      SelectExpression(withSelector: selector, withKeysetExpressions: kses),
+    )
   }
 }
 
@@ -211,38 +212,37 @@ extension KeysetExpression: CompilableExpression {
   static func compile(
     node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
   ) -> Result<EvaluatableExpression?> {
-      if node.nodeType != "selectCase" {
-        return Result.Error(Error(withMessage: "Expected select case not found"))
-      }
-
-      guard let keysetexpression_node = node.child(at: 0),
-        keysetexpression_node.nodeType == "keysetExpression"
-      else {
-        return Result.Error(Error(withMessage: "Missing keyset expression in select case"))
-      }
-
-      guard let targetstate_node = node.child(at: 2),
-        targetstate_node.nodeType == "identifier"
-      else {
-        return Result.Error(Error(withMessage: "Missing target state in select case"))
-      }
-
-      let maybe_parsed_keysetexpression = Expression.Compile(
-        node: keysetexpression_node, inTree: tree, withScopes: scopes)
-      guard case Result.Ok(let keysetexpression) = maybe_parsed_keysetexpression else {
-        return Result.Error(maybe_parsed_keysetexpression.error()!)
-      }
-
-      let maybe_parsed_targetstate = Identifier.Compile(
-        node: targetstate_node, inTree: tree, withScopes: scopes)
-      guard case .Ok(let targetstate) = maybe_parsed_targetstate else {
-        return Result.Error(maybe_parsed_targetstate.error()!)
-      }
-
-      return .Ok(
-          KeysetExpression(
-            withKey: keysetexpression, withNextState: targetstate) 
-        )
+    if node.nodeType != "selectCase" {
+      return Result.Error(Error(withMessage: "Expected select case not found"))
     }
-  }
 
+    guard let keysetexpression_node = node.child(at: 0),
+      keysetexpression_node.nodeType == "keysetExpression"
+    else {
+      return Result.Error(Error(withMessage: "Missing keyset expression in select case"))
+    }
+
+    guard let targetstate_node = node.child(at: 2),
+      targetstate_node.nodeType == "identifier"
+    else {
+      return Result.Error(Error(withMessage: "Missing target state in select case"))
+    }
+
+    let maybe_parsed_keysetexpression = Expression.Compile(
+      node: keysetexpression_node, inTree: tree, withScopes: scopes)
+    guard case Result.Ok(let keysetexpression) = maybe_parsed_keysetexpression else {
+      return Result.Error(maybe_parsed_keysetexpression.error()!)
+    }
+
+    let maybe_parsed_targetstate = Identifier.Compile(
+      node: targetstate_node, inTree: tree, withScopes: scopes)
+    guard case .Ok(let targetstate) = maybe_parsed_targetstate else {
+      return Result.Error(maybe_parsed_targetstate.error()!)
+    }
+
+    return .Ok(
+      KeysetExpression(
+        withKey: keysetexpression, withNextState: targetstate)
+    )
+  }
+}

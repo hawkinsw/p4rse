@@ -46,9 +46,7 @@ public struct ParserStateDirectTransition: ParserStateInstance {
   }
 
   public var description: String {
-    get {
-      return "Instance of \(currrent_state)"
-    }
+    return "Instance of \(currrent_state)"
   }
 
   public let currrent_state: ParserState
@@ -71,7 +69,7 @@ public struct ParserStateDirectTransition: ParserStateInstance {
     }
 
     program = program.setError(error: res.error()!).exit_scope()
-   
+
     return (self, program.exit_scope())
   }
 
@@ -99,9 +97,7 @@ public struct ParserStateNoTransition: ParserStateInstance {
   }
 
   public var description: String {
-    get {
-      return "Instance of \(currrent_state)"
-    }
+    return "Instance of \(currrent_state)"
   }
 
   public let currrent_state: ParserState
@@ -134,9 +130,7 @@ public struct ParserStateSelectTransition: ParserStateInstance {
   }
 
   public var description: String {
-    get {
-      return "Instance of \(currrent_state)"
-    }
+    return "Instance of \(currrent_state)"
   }
 
   public func execute(
@@ -203,7 +197,7 @@ extension ParserStates: Compilable {
   public typealias ToCompile = ParserStates
   public typealias Compiled = (ParserStateInstance, [ParserStateInstance])
   public static func compile(_ parser: ToCompile) -> Result<Compiled> {
-    var compiled_states:[ParserStateInstance] = Array()
+    var compiled_states: [ParserStateInstance] = Array()
 
     compiled_states.append(ParserStateNoTransition(currrent_state: accept))
     compiled_states.append(ParserStateNoTransition(currrent_state: reject))
@@ -213,7 +207,7 @@ extension ParserStates: Compilable {
     // TODO: We assume that states are in transition-order!
     for state in parser.states {
       switch ParserState.compile(state) {
-      case .Ok(let compiled): 
+      case .Ok(let compiled):
         if compiled.state().state == Identifier(name: "start") {
           start_state = compiled
         }
@@ -252,7 +246,8 @@ extension ParserInstance: Compilable {
 
   public static func compile(_ parser: ToCompile) -> Result<Compiled> {
     return switch ParserStates.compile(parser.states) {
-    case .Ok(let (start_state, states)): Result.Ok(ParserInstance(start: start_state, states: states))
+    case .Ok(let (start_state, states)):
+      Result.Ok(ParserInstance(start: start_state, states: states))
     case .Error(let e): Result.Error(e)
     }
   }

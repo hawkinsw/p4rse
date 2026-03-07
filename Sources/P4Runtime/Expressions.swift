@@ -51,27 +51,27 @@ extension SelectExpression: EvaluatableExpression {
 }
 
 extension P4StringValue: EvaluatableExpression {
-    public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-      return .Ok(self)
-    }
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    return .Ok(self)
+  }
 }
 
 extension P4BooleanValue: EvaluatableExpression {
-    public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-      return .Ok(self)
-    }
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    return .Ok(self)
+  }
 }
 
 extension P4StructValue: EvaluatableExpression {
-    public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-      return .Ok(self)
-    }
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    return .Ok(self)
+  }
 }
 
 extension P4IntValue: EvaluatableExpression {
-    public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-      return .Ok(self)
-    }
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    return .Ok(self)
+  }
 }
 
 // Variables are evaluatable because they can be looked up by identifiers.
