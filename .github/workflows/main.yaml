@@ -34,7 +34,7 @@ jobs:
       # See https://github.com/orgs/community/discussions/25742
       - run: tree-sitter generate
         working-directory: ./tree-sitter-p4
-      - run: swift build
+      - run: swift build swift --disable-experimental-prebuilts
       - run: swift test
   library-format-tests:
     name: Library Format Tests
