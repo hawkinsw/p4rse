@@ -64,7 +64,7 @@ public class Variable: TypedIdentifier {
   }
 
   public override var description: String {
-    return "\(super.description) = \(value) \(constant ? "(constant)" : "")"
+    return "\(super.description) = \(value?.description ?? "Missing Value") \(constant ? "(constant)" : "")"
   }
 
   public var value_type: P4Value? {
