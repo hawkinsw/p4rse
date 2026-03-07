@@ -5,7 +5,7 @@ name: Continuous Integration
 jobs:
   grammar-tests:
     name: Grammar Tests
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v4
@@ -20,7 +20,7 @@ jobs:
         working-directory: ./tree-sitter-p4
   library-tests:
     name: Library Tests
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v4
@@ -34,11 +34,11 @@ jobs:
       # See https://github.com/orgs/community/discussions/25742
       - run: tree-sitter generate
         working-directory: ./tree-sitter-p4
-      - run: swift build --disable-experimental-prebuilts
+      - run: swift build
       - run: swift test
   library-format-tests:
     name: Library Format Tests
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v4
