@@ -35,152 +35,100 @@ public struct ParserAssignmentStatement {
   }
 }
 
-public struct KeysetExpression {
-  public let key: EvaluatableExpression
-  public let next_state_identifier: Identifier
-  public let next_state: ParserState?
+/// A P4 Parser State
+/// 
+/// Note: A P4 Parser State is both a type and a value.
+public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible{
+    public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
+        return lhs.state == rhs.state 
+    }
 
-  public init(withKey key: EvaluatableExpression, withNextState next_state_id: Identifier) {
-    self.key = key
-    self.next_state_identifier = next_state_id
-    self.next_state = .none
-  }
-  public init(
-    withKey key: EvaluatableExpression, withNextState next_state_id: Identifier,
-    withNextState next_state: ParserState
-  ) {
-    self.key = key
-    self.next_state_identifier = next_state_id
-    self.next_state = next_state
-  }
+    public func eq(rhs: any Common.P4Type) -> Bool {
+      return switch rhs  {
+        case is ParserState: true
+        default: false
+      }
+    }
 
-}
+    public func type() -> any Common.P4Type {
+        return self
+    }
 
-public struct SelectExpression {
-  public let selector: EvaluatableExpression
-  public let keyset_expressions: [KeysetExpression]
-
-  public init(
-    withSelector selector: EvaluatableExpression, withKeysetExpressions kses: [KeysetExpression]
-  ) {
-    self.selector = selector
-    self.keyset_expressions = kses
-  }
-
-  public func append_checked_kse(kse: KeysetExpression) -> SelectExpression {
-    var new_kse = self.keyset_expressions
-    new_kse.append(kse)
-    return SelectExpression(
-      withSelector: self.selector, withKeysetExpressions: new_kse)
-  }
-}
-
-public struct ParserTransitionStatement {
-  public let next_state: Identifier?
-  public let transition_expression: SelectExpression?
-
-  public init() {
-    self.next_state = .none
-    self.transition_expression = .none
-  }
-
-  public init(withTransitionExpression transition_expression: SelectExpression) {
-    self.next_state = .none
-    self.transition_expression = transition_expression
-  }
-
-  public init(withNextState next_state: Identifier) {
-    self.next_state = next_state
-    self.transition_expression = .none
-  }
-}
-
-public class ParserState: Equatable, CustomStringConvertible, Comparable {
+    public func eq(rhs: any Common.P4Value) -> Bool {
+      return switch rhs  {
+        case let other as ParserState: self.state == other.state
+        default: false
+      }
+    }
 
   public private(set) var state: Identifier
   public private(set) var statements: [EvaluatableStatement]
-  public private(set) var transition: ParserTransitionStatement?
-  public private(set) var next_state: ParserState?
-
-  public static func < (lhs: ParserState, rhs: ParserState) -> Bool {
-    // If lhs transitions to rhs, then return true. Otherwise, return false.
-
-    // TODO!!
-    return false
-  }
 
   public var description: String {
     return "Name: \(state)"
   }
 
-  public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
-    return lhs.state == rhs.state
-  }
-
   /// Construct a ParserState
   public init(
-    name: Identifier, withStatements stmts: [EvaluatableStatement]?,
-    withTransition transitionStatement: ParserTransitionStatement
+    name: Identifier, withStatements stmts: [EvaluatableStatement],
   ) {
     state = name
-    transition = transitionStatement
-    statements = stmts ?? Array()
-  }
-
-  public func semantic_check(states: ParserStates) -> Bool {
-    guard let transition = transition else {
-      return self == accept || self == reject
-    }
-
-    if let next_state = transition.next_state,
-      let next_state = states.find(withIdentifier: next_state)
-    {
-      self.next_state = next_state
-      return true
-    }
-
-    return false
+    statements = stmts
   }
 
   /// (private) constructor (no transition)
   ///
   /// accept and reject are the only final states and they are constructed internally.
-  init(name: Identifier) {
+  private init(name: Identifier) {
     state = name
-    transition = .none
     statements = Array()
   }
+}
 
-  public func direct_transition() -> Bool {
-    return
-      if let transition = self.transition,
-      transition.next_state != nil
-    {
-      true
-    } else {
-      false
-    }
+
+public class ParserStateDirectTransition: ParserState {
+
+  private let next_state: Identifier
+
+  public init(name: Identifier, withStatements stmts: [EvaluatableStatement], withNextState next_state: Identifier) {
+    self.next_state = next_state
+    super.init(name: name, withStatements: stmts)
+  }
+
+  public override var description: String {
+    return "State (Name: \(super.state) (direct transition))"
+  }
+
+  public func get_next_state() -> Identifier {
+    return self.next_state
   }
 }
 
-/// A P4 parser state type
-public struct P4ParserState: P4Type {
-  public static func create() -> any P4Type {
-    return P4ParserState()
+public class ParserStateNoTransition: ParserState {
+  public override init(name: Identifier, withStatements stmts: [any EvaluatableStatement]) {
+    super.init(name: name, withStatements: stmts)
   }
-  public var description: String {
-    return "Parser State"
-  }
-  public func eq(rhs: any P4Type) -> Bool {
-    return switch rhs {
-    case is P4ParserState: true
-    default: false
-    }
+  public override var description: String {
+    return "State (Name: \(super.state) (no transition))"
   }
 }
 
-nonisolated(unsafe) public let accept: ParserState = ParserState(name: Identifier(name: "accept"))
-nonisolated(unsafe) public let reject: ParserState = ParserState(name: Identifier(name: "reject"))
+public class ParserStateSelectTransition: ParserState {
+
+  public let selectExpression: SelectExpression
+
+  public override var description: String {
+    return "State (Name: \(super.state) (select transition))"
+  }
+
+  public init(name: Identifier, withStatements stmts: [any EvaluatableStatement], withTransitioniExpression te: SelectExpression) {
+    self.selectExpression = te
+    super.init(name: name, withStatements: stmts)
+  }
+}
+
+nonisolated(unsafe) public let accept = ParserStateNoTransition(name: Identifier(name: "accept"), withStatements: [])
+nonisolated(unsafe) public let reject = ParserStateNoTransition(name: Identifier(name: "reject"), withStatements: [])
 
 public struct ParserStates {
   public var states: [ParserState] = Array()
@@ -198,22 +146,6 @@ public struct ParserStates {
     return .none
   }
 
-  public func semantic_check() -> Result<()> {
-    // Check whether all the states referred to in the transition statements are
-    // valid.
-    let errors = states.filter { state in
-      return !state.semantic_check(states: self)
-    }.map { state in
-      return Result<()>.Error(Error(withMessage: "State \(state) has invalid transition"))
-    }
-
-    if !errors.isEmpty {
-      return errors[0]
-    }
-
-    return .Ok(())
-  }
-
   public init() {
     self.states = Array()
   }
@@ -229,7 +161,21 @@ public struct ParserStates {
   }
 }
 
-public struct Parser: P4Type {
+/// A P4 Parser
+/// 
+/// Note: A Parser is both a type _and_ a value.
+public struct Parser: P4Type, P4Value {
+    public func type() -> any Common.P4Type {
+        return self 
+    }
+
+  public func eq(rhs: any Common.P4Type) -> Bool {
+    return switch rhs {
+    case is Parser: true
+    default: false
+    }
+  }
+
   public var states: ParserStates
 
   public var name: Identifier
@@ -237,10 +183,6 @@ public struct Parser: P4Type {
   public init(withName name: Identifier) {
     self.states = ParserStates()
     self.name = name
-  }
-
-  public static func create() -> any P4Type {
-    return Parser(withName: Identifier(name: ""))
   }
 
   public func findStartState() -> ParserState? {
@@ -252,19 +194,14 @@ public struct Parser: P4Type {
     return .none
   }
 
-  public func semantic_check() -> Result<()> {
-    return self.states.semantic_check()
+  public func eq(rhs: any P4Value) -> Bool {
+    return switch rhs {
+    case let other as Parser: self.name == other.name
+    default: false
+    }
   }
 
   public var description: String {
     return "Parser"
-  }
-
-  public func eq(rhs: P4Type) -> Bool {
-    return if let parser_rhs = rhs as? Parser {
-      self.name == parser_rhs.name
-    } else {
-      false
-    }
   }
 }

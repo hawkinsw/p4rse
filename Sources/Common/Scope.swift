@@ -15,7 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-public struct Scope<T>: CustomStringConvertible {
+public struct Scope<T>: CustomStringConvertible, Sequence {
+  public typealias Element = T
+  public typealias Iterator = Dictionary<Identifier, T>.Values.Iterator
+  public func makeIterator() -> Iterator {
+    self.symbols.values.makeIterator()
+  }
+
   var symbols: [Identifier: T] = Dictionary()
   public init() {}
 
@@ -45,7 +51,7 @@ public struct Scope<T>: CustomStringConvertible {
   }
 }
 
-public struct Scopes<T>: CustomStringConvertible {
+public struct Scopes<T>: CustomStringConvertible, Sequence {
   var scopes: [Scope<T>] = Array()
 
   public init() {}
@@ -115,6 +121,12 @@ public struct Scopes<T>: CustomStringConvertible {
       }
     }
     return .Error(Error(withMessage: "Cannot find \(identifier) in lexical scope."))
+  }
+
+  public typealias Element = T
+  public typealias Iterator = Dictionary<Identifier, T>.Values.Iterator
+  public func makeIterator() -> Iterator {
+    scopes.last?.makeIterator() ?? Scope<T>().makeIterator()
   }
 
   public var count: Int {

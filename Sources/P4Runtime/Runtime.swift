@@ -19,11 +19,11 @@ import Common
 import P4Lang
 
 /// The runtime for a parser
-public class ParserRuntime: CustomStringConvertible {
-  public var parser: ParserInstance
+public struct ParserRuntime: CustomStringConvertible {
+  public var parser: Parser
 
-  init(execution: ParserInstance) {
-    self.parser = execution
+  init(parser: Parser) {
+    self.parser = parser
   }
 
   /// Create a parser runtime from a P4 program
@@ -31,17 +31,15 @@ public class ParserRuntime: CustomStringConvertible {
 
     return switch program.starting_parser() {
     case .Ok(let parser):
-      switch ParserInstance.compile(parser) {
-      case .Ok(let execution): .Ok(P4Runtime.ParserRuntime(execution: execution))
-      case .Error(let error): .Error(error)
-      }
+      .Ok(P4Runtime.ParserRuntime(parser: parser))
     case .Error(let error): .Error(error)
     }
   }
 
   /// Run the P4 parser on a given packet
   public func run() -> Result<(ParserState, ProgramExecution)> {
-    let (end_state, execution) = parser.execute()
+
+    let (end_state, execution) = parser.execute(execution: ProgramExecution())
     if let error = execution.getError() {
       return .Error(error)
     }
@@ -50,26 +48,5 @@ public class ParserRuntime: CustomStringConvertible {
 
   public var description: String {
     return "Runtime:\nExecution: \(parser)"
-  }
-}
-
-/// Instances of parsers are executable
-extension ParserInstance: ParserExecution {
-  public func execute() -> (ParserState, ProgramExecution) {
-    var execution = self as ProgramExecution
-
-    execution = execution.enter_scope()
-    // First, add every state to the scope!
-    for state in self.states {
-      execution = execution.declare(identifier: state.state().state, withValue: state)
-    }
-
-    var c = self.start_state
-
-    // Evaluate until the state is either accept or reject.
-    while !c.done() && !execution.hasError() {
-      (c, execution) = c.execute(program: execution)
-    }
-    return (c.state(), execution)
   }
 }

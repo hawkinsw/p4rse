@@ -62,12 +62,13 @@ public struct Program {
         node: parser_declaration.nodes[1], inTree: tree, withLexicalScopes: program_scope)
       {
       case Result.Ok((let parser, let new_program_scope)):
-        program.types.append(parser)
-        program_scope = new_program_scope
+        program_scope = new_program_scope.declare(identifier: parser.name, withValue: parser)
       case Result.Error(let error): return Result.Error(error)
       }
     }
 
+    // Any of the types that are in the top-level scope should go into the program!
+    program.types = Array(program_scope)
     return Result.Ok(program)
   }
 }

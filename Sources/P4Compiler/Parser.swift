@@ -144,8 +144,8 @@ public struct Parser {
 
   public struct TransitionStatement {
     static func Compile(
-      node: Node, inTree tree: MutableTree, withScope scopes: LexicalScopes
-    ) -> Result<(ParserTransitionStatement, LexicalScopes)> {
+      node: Node, inTree tree: MutableTree, forState state_identifier: Common.Identifier, withStatements stmts: [EvaluatableStatement], withScope scopes: LexicalScopes
+    ) -> Result<(ParserState, LexicalScopes)> {
 
       #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
         node: node, type: "parserTransitionStatement", nice_type_name: "parser transition statement"
@@ -171,7 +171,7 @@ public struct Parser {
           node: next_node, inTree: tree, withScopes: scopes)
         if case .Ok(let next_state) = maybe_parsed_next_state {
           return .Ok(
-            (ParserTransitionStatement(withNextState: next_state), scopes))
+            (ParserStateDirectTransition(name: state_identifier, withStatements: stmts, withNextState: next_state), scopes))
         } else {
           return .Error(
             Error(
@@ -187,7 +187,7 @@ public struct Parser {
       {
       case .Ok(let tse):
         .Ok(
-          (ParserTransitionStatement(withTransitionExpression: tse! as! SelectExpression), scopes))
+          (ParserStateSelectTransition(name: state_identifier, withStatements: stmts, withTransitioniExpression: tse as! SelectExpression), scopes))
       case .Error(let e): .Error(e)
       }
     }
@@ -287,18 +287,8 @@ public struct Parser {
           ErrorOnNode(node: node, withError: "Missing transition statement of state declaration"))
       }
       currentChild = node.child(at: currentChildIdx)
-      switch TransitionStatement.Compile(
-        node: currentChild!, inTree: tree, withScope: current_scopes)
-      {
-      case .Ok(let (transition_statement, new_scopes)):
-        return Result.Ok(
-          (
-            ParserState(
-              name: state_identifier, withStatements: parsed_s,
-              withTransition: transition_statement), new_scopes
-          ))
-      case .Error(let e): return .Error(e)
-      }
+      return TransitionStatement.Compile(
+        node: currentChild!, inTree: tree, forState: state_identifier, withStatements: parsed_s, withScope: current_scopes)
     }
   }
 
@@ -326,14 +316,13 @@ public struct Parser {
 
     var error: Error? = .none
 
-    var parser_scopes = scopes
-
     // TODO: Assert that there is only one.
     captures[0].node.enumerateChildren { parser_state in
-      switch Parser.State.Compile(node: parser_state, inTree: tree, withLexicalScopes: scopes) {
-      case Result.Ok(let (state, new_parser_scopes)):
+      switch Parser.State.Compile(
+        node: parser_state, inTree: tree, withLexicalScopes: scopes.enter())
+      {
+      case Result.Ok(let (state, _)):
         parser.states = parser.states.append(state: state)
-        parser_scopes = new_parser_scopes
       case Result.Error(let e): error = e
       }
     }
@@ -342,6 +331,6 @@ public struct Parser {
       return .Error(error)
     }
 
-    return Result.Ok((parser, parser_scopes))
+    return Result.Ok((parser, scopes))
   }
 }

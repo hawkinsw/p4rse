@@ -19,7 +19,7 @@ import Common
 import P4Lang
 
 public protocol Execution {
-  func execute() -> (ParserState, ProgramExecution)
+  func execute(execution: ProgramExecution) -> ProgramExecution
 }
 
 public protocol Compilable {
@@ -28,12 +28,12 @@ public protocol Compilable {
   static func compile(_: ToCompile) -> Result<Compiled>
 }
 
-public protocol ParserStateInstance: P4Value {
-  func execute(program: ProgramExecution) -> (ParserStateInstance, ProgramExecution)
+public protocol EvaluatableParserState: P4Value {
+  func execute(program: ProgramExecution) -> (EvaluatableParserState, ProgramExecution)
   func done() -> Bool
   func state() -> ParserState
 }
 
 public protocol ParserExecution {
-  func execute() -> (ParserState, ProgramExecution)
+  func execute(execution: ProgramExecution) -> (ParserState, ProgramExecution)
 }

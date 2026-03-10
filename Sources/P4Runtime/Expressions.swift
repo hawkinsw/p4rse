@@ -24,7 +24,8 @@ extension KeysetExpression: EvaluatableExpression {
   }
 
   public func type() -> any Common.P4Type {
-    return P4ParserState.create()
+    // TODO
+    return reject
   }
 }
 
@@ -45,8 +46,9 @@ extension SelectExpression: EvaluatableExpression {
     }
   }
 
+  // TODO
   public func type() -> any Common.P4Type {
-    return P4ParserState.create()
+    return reject
   }
 }
 

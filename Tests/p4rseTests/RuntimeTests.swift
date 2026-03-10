@@ -73,11 +73,12 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
 
   #expect(
-    #RequireErrorResult<ParserRuntime>(
-      Error(withMessage: "No start state defined"),
-      P4Runtime.ParserRuntime.create(program: program)))
+    #RequireErrorResult<(ParserState, ProgramExecution)>(
+      Error(withMessage: "Could not find the start state"),
+      runtime.run()))
 }
 
 @Test func test_simple_parser_with_transition_select_expression() async throws {
