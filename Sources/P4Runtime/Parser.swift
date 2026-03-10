@@ -126,10 +126,12 @@ extension Parser: ParserExecution {
     }
 
     guard let _current_state = self.findStartState(),
-    var current_state = _current_state as? EvaluatableParserState else {
-      return (reject, execution.setError(error: Error(withMessage: "Could not find the start state")))
+      var current_state = _current_state as? EvaluatableParserState
+    else {
+      return (
+        reject, execution.setError(error: Error(withMessage: "Could not find the start state"))
+      )
     }
-
 
     // Evaluate until the state is either accept or reject.
     while !current_state.done() && !execution.hasError() {

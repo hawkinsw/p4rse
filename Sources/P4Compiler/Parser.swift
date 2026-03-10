@@ -144,7 +144,8 @@ public struct Parser {
 
   public struct TransitionStatement {
     static func Compile(
-      node: Node, forState state_identifier: Common.Identifier, withStatements stmts: [EvaluatableStatement], withTypesInScope scopes: LexicalScopes
+      node: Node, forState state_identifier: Common.Identifier,
+      withStatements stmts: [EvaluatableStatement], withTypesInScope scopes: LexicalScopes
     ) -> Result<(ParserState, LexicalScopes)> {
 
       #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
@@ -171,7 +172,10 @@ public struct Parser {
           node: next_node, withTypesInScopes: scopes)
         if case .Ok(let next_state) = maybe_parsed_next_state {
           return .Ok(
-            (ParserStateDirectTransition(name: state_identifier, withStatements: stmts, withNextState: next_state), scopes))
+            (
+              ParserStateDirectTransition(
+                name: state_identifier, withStatements: stmts, withNextState: next_state), scopes
+            ))
         } else {
           return .Error(
             Error(
@@ -187,7 +191,11 @@ public struct Parser {
       {
       case .Ok(let tse):
         .Ok(
-          (ParserStateSelectTransition(name: state_identifier, withStatements: stmts, withTransitioniExpression: tse as! SelectExpression), scopes))
+          (
+            ParserStateSelectTransition(
+              name: state_identifier, withStatements: stmts,
+              withTransitioniExpression: tse as! SelectExpression), scopes
+          ))
       case .Error(let e): .Error(e)
       }
     }
@@ -249,11 +257,11 @@ public struct Parser {
       currentChild = node.child(at: currentChildIdx)
       if currentChild!.nodeType == "annotations" {
         return Result.Error(
-          ErrorOnNode(node: currentChild!, withError: "Annotations in parser state are not yet handled."))
+          ErrorOnNode(
+            node: currentChild!, withError: "Annotations in parser state are not yet handled."))
 
         // Would increment here.
       }
-
 
       // Skip the keyword state
       currentChildIdx += 1
@@ -306,12 +314,13 @@ public struct Parser {
       }
       currentChild = node.child(at: currentChildIdx)
       return TransitionStatement.Compile(
-        node: currentChild!, forState: state_identifier, withStatements: parsed_s, withTypesInScope: current_scopes)
+        node: currentChild!, forState: state_identifier, withStatements: parsed_s,
+        withTypesInScope: current_scopes)
     }
   }
 
   static func Compile(
-    withName name: Common.Identifier, node: Node, 
+    withName name: Common.Identifier, node: Node,
     withTypesInScope scopes: LexicalScopes
   ) -> Result<(P4Lang.Parser, LexicalScopes)> {
 
@@ -321,7 +330,7 @@ public struct Parser {
     var error: Error? = .none
 
     // TODO: Assert that there is only one.
-    node.enumerateNamedChildren() { parser_state in
+    node.enumerateNamedChildren { parser_state in
       if parser_state.nodeType != "parserState" {
         return
       }

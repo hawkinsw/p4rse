@@ -45,7 +45,7 @@ public struct Program {
 
     var errors: [Error] = Array()
 
-    result?.rootNode?.enumerateNamedChildren() { declaration_node in
+    result?.rootNode?.enumerateNamedChildren { declaration_node in
       if declaration_node.nodeType != "declaration" {
         return
       }
@@ -60,12 +60,14 @@ public struct Program {
       var currentChild: Node? = .none
 
       if parser_node.childCount < currentChildIdxSafe {
-        errors.append(ErrorOnNode(node: parser_node, withError: "Missing elements of parser declaration"))
+        errors.append(
+          ErrorOnNode(node: parser_node, withError: "Missing elements of parser declaration"))
         return
       }
       currentChild = parser_node.child(at: currentChildIdx)
       if currentChild!.nodeType != "parserType" {
-          errors.append(ErrorOnNode(node: currentChild!, withError: "Missing type for parser declaration"))
+        errors.append(
+          ErrorOnNode(node: currentChild!, withError: "Missing type for parser declaration"))
         return
       }
 
@@ -79,14 +81,17 @@ public struct Program {
 
         if type_node!.childCount < currentChildIdxSafe {
           errors.append(
-            ErrorOnNode(node: parser_node, withError: "Missing elements of parser type in parser declaration"))
+            ErrorOnNode(
+              node: parser_node, withError: "Missing elements of parser type in parser declaration")
+          )
           return
         }
 
         var currentChild = type_node!.child(at: currentChildIdx)
         if currentChild!.nodeType == "annotations" {
           errors.append(
-            ErrorOnNode(node: currentChild!, withError: "Annotations in parser type are not yet handled."))
+            ErrorOnNode(
+              node: currentChild!, withError: "Annotations in parser type are not yet handled."))
           return
 
           // Will increment indexes here.
@@ -96,7 +101,8 @@ public struct Program {
         currentChildIdx += 1
         currentChildIdxSafe += 1
         if type_node!.childCount < currentChildIdxSafe {
-          errors.append(ErrorOnNode(node: type_node!, withError: "Missing name in parser type declaration"))
+          errors.append(
+            ErrorOnNode(node: type_node!, withError: "Missing name in parser type declaration"))
           return
         }
         currentChild = type_node?.child(at: currentChildIdx)
@@ -114,23 +120,26 @@ public struct Program {
         return
       }
 
-      currentChildIdx += 1;
-      currentChildIdxSafe += 1;
+      currentChildIdx += 1
+      currentChildIdxSafe += 1
       if parser_node.childCount < currentChildIdxSafe {
-        errors.append(ErrorOnNode(node: parser_node, withError: "Constructor parameters are not yet handled."))
+        errors.append(
+          ErrorOnNode(node: parser_node, withError: "Constructor parameters are not yet handled."))
         return
       }
 
       if currentChild!.nodeType == "constructorParameters" {
-        errors.append(ErrorOnNode(node: currentChild!, withError: "Constructor parameters are not yet handled."))
+        errors.append(
+          ErrorOnNode(node: currentChild!, withError: "Constructor parameters are not yet handled.")
+        )
         return
 
         // Will increment indexes here.
       }
 
       // Skip the '{'
-      currentChildIdx += 1;
-      currentChildIdxSafe += 1;
+      currentChildIdx += 1
+      currentChildIdxSafe += 1
       if parser_node.childCount < currentChildIdxSafe {
         errors.append(Error(withMessage: "Missing body of parser declaration"))
         return
@@ -138,7 +147,8 @@ public struct Program {
       currentChild = parser_node.child(at: currentChildIdx)
 
       if currentChild!.nodeType == "parserLocalElements" {
-        errors.append(ErrorOnNode(node: currentChild!, withError: "Parser Local Elements are not yet handled."))
+        errors.append(
+          ErrorOnNode(node: currentChild!, withError: "Parser Local Elements are not yet handled."))
         return
         // Will increment indexes here.
       }
@@ -165,9 +175,11 @@ public struct Program {
     }
 
     if !errors.isEmpty {
-      return Result.Error(Error(withMessage: errors.map() { error in 
-        return error.msg
-      }.joined(separator: ";")))
+      return Result.Error(
+        Error(
+          withMessage: errors.map { error in
+            return error.msg
+          }.joined(separator: ";")))
     }
 
     // Any of the types that are in the top-level scope should go into the program!

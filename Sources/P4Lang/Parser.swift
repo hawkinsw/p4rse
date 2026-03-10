@@ -36,30 +36,30 @@ public struct ParserAssignmentStatement {
 }
 
 /// A P4 Parser State
-/// 
+///
 /// Note: A P4 Parser State is both a type and a value.
-public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible{
-    public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
-        return lhs.state == rhs.state 
-    }
+public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
+  public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
+    return lhs.state == rhs.state
+  }
 
-    public func eq(rhs: any Common.P4Type) -> Bool {
-      return switch rhs  {
-        case is ParserState: true
-        default: false
-      }
+  public func eq(rhs: any Common.P4Type) -> Bool {
+    return switch rhs {
+    case is ParserState: true
+    default: false
     }
+  }
 
-    public func type() -> any Common.P4Type {
-        return self
-    }
+  public func type() -> any Common.P4Type {
+    return self
+  }
 
-    public func eq(rhs: any Common.P4Value) -> Bool {
-      return switch rhs  {
-        case let other as ParserState: self.state == other.state
-        default: false
-      }
+  public func eq(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as ParserState: self.state == other.state
+    default: false
     }
+  }
 
   public private(set) var state: Identifier
   public private(set) var statements: [EvaluatableStatement]
@@ -85,12 +85,14 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible{
   }
 }
 
-
 public class ParserStateDirectTransition: ParserState {
 
   private let next_state: Identifier
 
-  public init(name: Identifier, withStatements stmts: [EvaluatableStatement], withNextState next_state: Identifier) {
+  public init(
+    name: Identifier, withStatements stmts: [EvaluatableStatement],
+    withNextState next_state: Identifier
+  ) {
     self.next_state = next_state
     super.init(name: name, withStatements: stmts)
   }
@@ -121,14 +123,19 @@ public class ParserStateSelectTransition: ParserState {
     return "State (Name: \(super.state) (select transition))"
   }
 
-  public init(name: Identifier, withStatements stmts: [any EvaluatableStatement], withTransitioniExpression te: SelectExpression) {
+  public init(
+    name: Identifier, withStatements stmts: [any EvaluatableStatement],
+    withTransitioniExpression te: SelectExpression
+  ) {
     self.selectExpression = te
     super.init(name: name, withStatements: stmts)
   }
 }
 
-nonisolated(unsafe) public let accept = ParserStateNoTransition(name: Identifier(name: "accept"), withStatements: [])
-nonisolated(unsafe) public let reject = ParserStateNoTransition(name: Identifier(name: "reject"), withStatements: [])
+nonisolated(unsafe) public let accept = ParserStateNoTransition(
+  name: Identifier(name: "accept"), withStatements: [])
+nonisolated(unsafe) public let reject = ParserStateNoTransition(
+  name: Identifier(name: "reject"), withStatements: [])
 
 public struct ParserStates {
   public var states: [ParserState] = Array()
@@ -162,12 +169,12 @@ public struct ParserStates {
 }
 
 /// A P4 Parser
-/// 
+///
 /// Note: A Parser is both a type _and_ a value.
 public struct Parser: P4Type, P4Value {
-    public func type() -> any Common.P4Type {
-        return self 
-    }
+  public func type() -> any Common.P4Type {
+    return self
+  }
 
   public func eq(rhs: any Common.P4Type) -> Bool {
     return switch rhs {
