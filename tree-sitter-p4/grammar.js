@@ -56,7 +56,7 @@ export default grammar({
         annotations: $ => repeat1($.annotation),
 
         //annotation: $ => choice(seq('@', "[a-z]+"), seq('@', "[a-z]+", '(', $.annotationBody, ')'), seq('@', "[a-z]+", '[', $.structuredAnnotationBody, ']')),
-        annotation: $ => choice(seq('@', "[a-z]+")),// seq('@', "[a-z]+", '(', /* empty for now*/ ')'), seq('@', "[a-z]+", '[', /* empty for now */ ']')),
+        annotation: $ => choice($.annotation_literal), // seq('@', "[a-z]+", '(', /* empty for now*/ ')'), seq('@', "[a-z]+", '[', /* empty for now */ ']')),
 
 
         // Instantiation
@@ -146,7 +146,7 @@ export default grammar({
         type_identifier: $ => /[a-z]+/,
         string_literal: $ => /".*"/,
         integer: $ => /[0-9]+/,
-
+        annotation_literal: $ => /@[a-z_]+/,
     },
 }
 );

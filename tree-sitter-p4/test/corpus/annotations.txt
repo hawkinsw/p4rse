@@ -1,0 +1,101 @@
+=========================
+Simple Annotated Declaration
+=========================
+@testing parser simple() {
+  state start {
+    bool l;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (annotations
+     (annotation
+      (annotation_literal)
+     )
+    )
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (bool)
+         )
+        )
+        (identifier)
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+
+=========================
+Simple Annotated State
+=========================
+parser simple() {
+  @testing state start {
+    bool l;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (annotations
+      (annotation
+       (annotation_literal)
+      )
+     )
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (bool)
+         )
+        )
+        (identifier)
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
