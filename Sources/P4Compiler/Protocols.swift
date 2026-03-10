@@ -24,7 +24,7 @@ import TreeSitterP4
 
 public protocol CompilableStatement {
   static func Compile(
-    node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
+    node: Node, withTypesInScope scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)>
 }
 

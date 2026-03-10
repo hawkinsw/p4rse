@@ -24,7 +24,7 @@ import TreeSitterP4
 
 extension BlockStatement: CompilableStatement {
   public static func Compile(
-    node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
+    node: Node, withTypesInScope scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
     #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
       node: node, type: "blockStatement", nice_type_name: "block statement")
@@ -56,7 +56,7 @@ extension BlockStatement: CompilableStatement {
     currentChild = node.child(at: currentChildIdx)
     if currentChild!.nodeType == "statements" {
       switch Parser.Statements.Compile(
-        node: currentChild!, inTree: tree, withLexicalScopes: scopes.enter())
+        node: currentChild!, withTypesInScope: scopes.enter())
       {
       case .Ok(let (parsed_statements, parsed_scopes)):
         new_scopes = parsed_scopes
@@ -89,7 +89,7 @@ extension BlockStatement: CompilableStatement {
 
 extension ConditionalStatement: CompilableStatement {
   public static func Compile(
-    node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
+    node: Node, withTypesInScope scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
 
     #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
@@ -114,7 +114,7 @@ extension ConditionalStatement: CompilableStatement {
 
     guard
       case .Ok(let condition) = Expression.Compile(
-        node: condition_expression, inTree: tree, withScopes: scopes)
+        node: condition_expression, withTypesInScope: scopes)
     else {
       return Result.Error(
         Error(withMessage: "Could not parse a conditional expression in a conditional statement"))
@@ -122,7 +122,7 @@ extension ConditionalStatement: CompilableStatement {
 
     guard
       case .Ok((let thenns, _)) = Parser.Statement.Compile(
-        node: thens, inTree: tree, withScope: scopes)
+        node: thens, withTypesInScope: scopes)
     else {
       return Result.Error(
         Error(
@@ -134,7 +134,7 @@ extension ConditionalStatement: CompilableStatement {
       if let elss = node.child(at: 6) {
         .some(
           Parser.Statement.Compile(
-            node: elss, inTree: tree, withScope: scopes))
+            node: elss, withTypesInScope: scopes))
       } else {
         .none
       }
@@ -157,7 +157,7 @@ extension ConditionalStatement: CompilableStatement {
 
 extension VariableDeclarationStatement: CompilableStatement {
   public static func Compile(
-    node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
+    node: Node, withTypesInScope scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
 
     #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
@@ -193,7 +193,7 @@ extension VariableDeclarationStatement: CompilableStatement {
 
     guard
       case .Ok(let parsed_variablename) = Identifier.Compile(
-        node: variablename, inTree: tree, withScopes: scopes.enter())
+        node: variablename, withTypesInScopes: scopes.enter())
     else {
       return Result.Error(
         Error(withMessage: "Could not parse variable name"))
@@ -201,7 +201,7 @@ extension VariableDeclarationStatement: CompilableStatement {
 
     guard
       case .Ok(let parsed_rvalue) = Expression.Compile(
-        node: rvalue, inTree: tree, withScopes: scopes.enter())
+        node: rvalue, withTypesInScope: scopes.enter())
     else {
       return Result.Error(
         Error(
@@ -236,7 +236,7 @@ extension VariableDeclarationStatement: CompilableStatement {
 
 extension ExpressionStatement: CompilableStatement {
   public static func Compile(
-    node: Node, inTree tree: MutableTree, withScopes scopes: LexicalScopes
+    node: Node, withTypesInScope scopes: LexicalScopes
   ) -> Result<(EvaluatableStatement, LexicalScopes)> {
     #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
       node: node, type: "expressionStatement", nice_type_name: "expression statement")
