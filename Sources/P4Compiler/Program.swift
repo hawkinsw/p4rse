@@ -38,33 +38,136 @@ public struct Program {
       return Result.Error(Error(withMessage: "Could not compile the P4 program"))
     }
 
-    guard
-      let parser_declaration_query = try? SwiftTreeSitter.Query(
-        language: p4lang,
-        data: String(
-          "(parserDeclaration (parserType parser_name: (identifier) @parser-name) (parserStates) @parser-states)"
-        ).data(using: String.Encoding.utf8)!)
-    else {
-      return Result.Error(
-        Error(withMessage: "Could not compile the parser declaration tree sitter query"))
-    }
-
     var program = P4Lang.Program()
 
     // Set up a lexical scope for parsing.
     var program_scope = LexicalScopes().enter()
 
-    let parser_qc = parser_declaration_query.execute(in: tree)
+    var errors: [Error] = Array()
 
-    for parser_declaration in parser_qc {
+    result?.rootNode?.enumerateNamedChildren() { declaration_node in
+      if declaration_node.nodeType != "declaration" {
+        return
+      }
+
+      let parser_node = declaration_node.child(at: 0)!
+      if parser_node.nodeType != "parserDeclaration" {
+        return
+      }
+
+      var currentChildIdx = 0
+      var currentChildIdxSafe = 1
+      var currentChild: Node? = .none
+
+      if parser_node.childCount < currentChildIdxSafe {
+        errors.append(ErrorOnNode(node: parser_node, withError: "Missing elements of parser declaration"))
+        return
+      }
+      currentChild = parser_node.child(at: currentChildIdx)
+      if currentChild!.nodeType != "parserType" {
+          errors.append(ErrorOnNode(node: currentChild!, withError: "Missing type for parser declaration"))
+        return
+      }
+
+      let type_node = currentChild
+      var parser_name: Common.Identifier? = .none
+
+      do {
+        // Parse the parser type (type_node)
+        var currentChildIdx = 0
+        var currentChildIdxSafe = 1
+
+        if type_node!.childCount < currentChildIdxSafe {
+          errors.append(
+            ErrorOnNode(node: parser_node, withError: "Missing elements of parser type in parser declaration"))
+          return
+        }
+
+        var currentChild = type_node!.child(at: currentChildIdx)
+        if currentChild!.nodeType == "annotations" {
+          errors.append(
+            ErrorOnNode(node: currentChild!, withError: "Annotations in parser type are not yet handled."))
+          return
+
+          // Will increment indexes here.
+        }
+
+        // Skip the parser keyword
+        currentChildIdx += 1
+        currentChildIdxSafe += 1
+        if type_node!.childCount < currentChildIdxSafe {
+          errors.append(ErrorOnNode(node: type_node!, withError: "Missing name in parser type declaration"))
+          return
+        }
+        currentChild = type_node?.child(at: currentChildIdx)
+
+        switch Identifier.Compile(node: currentChild!, withTypesInScopes: program_scope) {
+        case .Ok(let id): parser_name = id
+        case .Error(let e):
+          errors.append(e)
+          return
+        }
+      }
+
+      // It's an error if there is no parser name.
+      if parser_name == .none {
+        return
+      }
+
+      currentChildIdx += 1;
+      currentChildIdxSafe += 1;
+      if parser_node.childCount < currentChildIdxSafe {
+        errors.append(ErrorOnNode(node: parser_node, withError: "Constructor parameters are not yet handled."))
+        return
+      }
+
+      if currentChild!.nodeType == "constructorParameters" {
+        errors.append(ErrorOnNode(node: currentChild!, withError: "Constructor parameters are not yet handled."))
+        return
+
+        // Will increment indexes here.
+      }
+
+      // Skip the '{'
+      currentChildIdx += 1;
+      currentChildIdxSafe += 1;
+      if parser_node.childCount < currentChildIdxSafe {
+        errors.append(Error(withMessage: "Missing body of parser declaration"))
+        return
+      }
+      currentChild = parser_node.child(at: currentChildIdx)
+
+      if currentChild!.nodeType == "parserLocalElements" {
+        errors.append(ErrorOnNode(node: currentChild!, withError: "Parser Local Elements are not yet handled."))
+        return
+        // Will increment indexes here.
+      }
+
+      if parser_node.childCount < currentChildIdxSafe {
+        errors.append(Error(withMessage: "Missing body of parser declaration"))
+        return
+      }
+
+      if currentChild!.nodeType != "parserStates" {
+        errors.append(Error(withMessage: "Missing parser states in parser declaration"))
+        return
+      }
+
       switch Parser.Compile(
-        withName: Common.Identifier(name: parser_declaration.nodes[0].text!),
-        node: parser_declaration.nodes[1], inTree: tree, withLexicalScopes: program_scope)
+        withName: parser_name!, node: currentChild!, withTypesInScope: program_scope)
       {
       case Result.Ok((let parser, let new_program_scope)):
         program_scope = new_program_scope.declare(identifier: parser.name, withValue: parser)
-      case Result.Error(let error): return Result.Error(error)
+      case Result.Error(let error): errors.append(error)
       }
+
+      // Assume that there is only '}' after -- the parser guaranteed that for us!
+    }
+
+    if !errors.isEmpty {
+      return Result.Error(Error(withMessage: errors.map() { error in 
+        return error.msg
+      }.joined(separator: ";")))
     }
 
     // Any of the types that are in the top-level scope should go into the program!
