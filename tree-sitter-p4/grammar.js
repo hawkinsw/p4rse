@@ -88,11 +88,16 @@ export default grammar({
         parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression, $._semicolon),
 
         // Expressions
-        expression: $ => choice($.identifier, $.integer, $.booleanLiteralExpression, $.string_literal), // Very limited.
+        expression: $ => choice($.identifier, $.integer, $.booleanLiteralExpression, $.string_literal, $.binaryOperatorExpression, $.arrayAccessExpression), // Very limited.
         booleanLiteralExpression: $ => choice($.true, $.false),
         selectExpression: $ => seq($.select, '(', $.expression, ')', '{', $.selectBody, '}'), // TODO: Should be expression list and not just a single expression
         transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
         keysetExpression: $ => $.expression,
+        binaryOperatorExpression: $ => choice($.binaryEqualOperatorExpression),
+        arrayAccessExpression: $=> seq($.identifier, $.open_bracket, $.expression, $.close_bracket),
+
+        // Binary Operations
+        binaryEqualOperatorExpression: $ => prec.left(2, seq($.expression, $.double_equal, $.expression)),
 
         // Tokens
         _semicolon: $ => ";",
@@ -147,6 +152,9 @@ export default grammar({
         string_literal: $ => /".*"/,
         integer: $ => /[0-9]+/,
         annotation_literal: $ => /@[a-z_]+/,
+        double_equal: $=> '==',
+        open_bracket: $=> '[',
+        close_bracket: $=> ']',
     },
 }
 );
