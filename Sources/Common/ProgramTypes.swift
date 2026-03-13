@@ -199,6 +199,7 @@ public class P4IntValue: P4Value {
     self.value = value
   }
   public func eq(rhs: P4Value) -> Bool {
+    print("Int value equal.")
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }

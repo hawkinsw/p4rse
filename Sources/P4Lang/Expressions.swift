@@ -56,3 +56,19 @@ public struct SelectExpression {
       withSelector: self.selector, withKeysetExpressions: new_kse)
   }
 }
+
+public typealias NamedBinaryOperatorEvaluator = (String, P4Type, (P4Value, P4Value) -> P4Value)
+public struct BinaryOperatorExpression {
+  public let evaluator: NamedBinaryOperatorEvaluator
+  public let left: EvaluatableExpression
+  public let right: EvaluatableExpression
+
+  public init(
+    withEvaluator evaluator: NamedBinaryOperatorEvaluator, withLhs lhs: EvaluatableExpression,
+    withRhs rhs: EvaluatableExpression
+  ) {
+    self.evaluator = evaluator
+    self.left = lhs
+    self.right = rhs
+  }
+}

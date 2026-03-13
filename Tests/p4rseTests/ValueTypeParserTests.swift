@@ -19,6 +19,7 @@ import Common
 import Foundation
 import Macros
 import P4Runtime
+import P4Lang
 import SwiftTreeSitter
 import Testing
 import TreeSitter
@@ -115,4 +116,116 @@ import TreeSitterP4
           "{77, 29}: Failed to parse a statement element: Cannot initialize where_from (with type String) from rvalue with type Boolean"
       ),
       Program.Compile(simple_parser_declaration)))
+}
+
+@Test func test_expression_in_declaration_initializer() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = 5 == 5 == true;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  // 5 == 5 == true
+  // true == true
+  // true
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_expression_in_declaration_initializer2() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = 5 == 5 == false;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  // 5 == 5 == true
+  // true == false
+  // false
+  #expect(state_result == P4Lang.reject)
+}
+
+@Test func test_expression_in_declaration_initializer_false() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = 6 == 5 == true;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  // 6 == 5 == true
+  // false == true
+  // false
+  #expect(state_result == P4Lang.reject)
+}
+
+@Test func test_expression_in_declaration_initializer_false2() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = 6 == 5 == false;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  // 6 == 5 == false
+  // false == false
+  // true
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_expression_in_declaration_initializer_invalid_types() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = false == 5 == true;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  // TODO: This test should throw an error.
+
+  // false == 5 == true
+  // false == true
+  // false
+  #expect(state_result == P4Lang.reject)
 }

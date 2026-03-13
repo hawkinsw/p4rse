@@ -197,3 +197,101 @@ import TreeSitterP4
       Error(withMessage: "No key matched the selector"),
       runtime.run()))
 }
+
+@Test func test_simple_parser_binary_operator_equal() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (true == true) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_simple_parser_binary_operator_equal_not_equal() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (true == false) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.reject)
+}
+
+@Test func test_simple_parser_binary_operator_equal_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (5 == 5) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_simple_parser_binary_operator_equal_not_equal_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (5 == 6) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.reject)
+}
+
+@Test func test_simple_parser_binary_operator_equal_invalid_types() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (5 == true) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+
+  // TODO: This test should throw an error.
+
+  #expect(state_result == P4Lang.reject)
+}

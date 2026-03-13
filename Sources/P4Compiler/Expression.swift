@@ -19,6 +19,7 @@ import Common
 import P4Lang
 import SwiftTreeSitter
 import TreeSitterP4
+import P4Runtime
 
 protocol CompilableExpression {
   static func compile(
@@ -108,7 +109,7 @@ struct Expression {
       }
 
     let localElementsParsers: [CompilableExpression.Type] = [
-      P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
+      P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self, BinaryOperatorExpression.self
     ]
 
     for le_parser in localElementsParsers {
@@ -240,5 +241,68 @@ extension KeysetExpression: CompilableExpression {
       KeysetExpression(
         withKey: keysetexpression, withNextState: targetstate)
     )
+  }
+}
+
+extension BinaryOperatorExpression: CompilableExpression {
+  static func compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Result<(EvaluatableExpression)?> {
+    let expression = node.child(at: 0)!
+
+    #SkipUnlessNodeType<Node, EvaluatableExpression?>(node: expression, type: "binaryOperatorExpression")
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+
+    if expression.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Malformed binary operator expression"))
+    }
+    currentChild = expression.child(at: currentChildIdx)
+
+    let binary_operator_expression_node = currentChild!
+    #RequireNodesType<Node, EvaluatableExpression?>(nodes: binary_operator_expression_node, type: ["binaryEqualOperatorExpression"], nice_type_names: ["binary equal operator"])
+
+    if binary_operator_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing LHS for binary operator expression"))
+    }
+    currentChild = binary_operator_expression_node.child(at: currentChildIdx)
+    let left_hand_side_raw = currentChild!
+
+    currentChildIdx = currentChildIdx + 1 
+    currentChildIdxSafe = currentChildIdxSafe + 1 
+    if binary_operator_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression"))
+    }
+    currentChild = binary_operator_expression_node.child(at: currentChildIdx)
+
+
+    currentChildIdx = currentChildIdx + 1 
+    currentChildIdxSafe = currentChildIdxSafe + 1 
+    if binary_operator_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression"))
+    }
+    currentChild = binary_operator_expression_node.child(at: currentChildIdx)
+    let right_hand_side_raw = currentChild!
+
+    let maybe_left_hand_side = Expression.Compile(node: left_hand_side_raw, withContext: context)
+    guard case Result.Ok(let left_hand_side) = maybe_left_hand_side else {
+      return Result.Error(maybe_left_hand_side.error()!)
+    }
+
+    let maybe_right_hand_side = Expression.Compile(node: right_hand_side_raw, withContext: context)
+    guard case Result.Ok(let right_hand_side) = maybe_right_hand_side else {
+      return Result.Error(maybe_right_hand_side.error()!)
+    }
+
+    return .Ok(
+      BinaryOperatorExpression(
+        withEvaluator: ("Binary Equal", P4Boolean.create(), binary_equal_operator_evaluator),
+        withLhs: left_hand_side, withRhs: right_hand_side))
   }
 }
