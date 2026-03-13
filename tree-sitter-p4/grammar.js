@@ -94,7 +94,7 @@ export default grammar({
         transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
         keysetExpression: $ => $.expression,
         binaryOperatorExpression: $ => choice($.binaryEqualOperatorExpression),
-        arrayAccessExpression: $=> seq($.identifier, $.open_bracket, $.expression, $.close_bracket),
+        arrayAccessExpression: $=> seq($.expression, $.open_bracket, $.expression, $.close_bracket),
 
         // Binary Operations
         binaryEqualOperatorExpression: $ => prec.left(2, seq($.expression, $.double_equal, $.expression)),

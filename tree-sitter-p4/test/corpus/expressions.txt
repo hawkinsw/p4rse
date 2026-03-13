@@ -144,7 +144,9 @@ parser simple() {
        (expressionStatement
         (expression
          (arrayAccessExpression
-          (identifier)
+          (expression
+           (identifier)
+          )
           (open_bracket)
           (expression
            (integer)
