@@ -1,0 +1,168 @@
+=========================
+Simple boolean Equality
+=========================
+parser simple() {
+  state start {
+    if (true == false) {
+    }
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (conditionalStatement
+        (if)
+        (expression
+         (binaryOperatorExpression
+          (binaryEqualOperatorExpression
+           (expression
+            (booleanLiteralExpression
+             (true)
+            )
+           )
+           (double_equal)
+           (expression
+            (booleanLiteralExpression
+             (false)
+            )
+           )
+          )
+         )
+        )
+        (statement
+         (blockStatement)
+        )
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+
+=========================
+Simple Integer Equality
+=========================
+parser simple() {
+  state start {
+    if (1 == 2) {
+    }
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (conditionalStatement
+        (if)
+        (expression
+         (binaryOperatorExpression
+          (binaryEqualOperatorExpression
+           (expression
+            (integer)
+           )
+           (double_equal)
+           (expression
+            (integer)
+           )
+          )
+         )
+        )
+        (statement
+         (blockStatement)
+        )
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+=========================
+Simple Array Access
+=========================
+parser simple() {
+  state start {
+    undeclared_array[5];
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (expressionStatement
+        (expression
+         (arrayAccessExpression
+          (identifier)
+          (open_bracket)
+          (expression
+           (integer)
+          )
+          (close_bracket)
+         )
+        )
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
