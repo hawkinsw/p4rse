@@ -40,10 +40,40 @@ public func ErrorOnNode(node: Node, withError error: String) -> Error {
   return Error(withMessage: "\(node.range): \(error)")
 }
 
+/// Context for compilation.
 public struct CompilerContext {
-  public let names: LexicalScopes
+  let names: LexicalScopes
+  let types: LexicalScopes
 
   public init(withNames _names: LexicalScopes) {
     names = _names
+    types = LexicalScopes()
   }
+
+  public init(withNames _names: LexicalScopes, withTypes _types: LexicalScopes) {
+    names = _names
+    types = _types
+  }
+
+  /// Update a compiler context
+  ///
+  /// Create a new compiler context based on the current with the same types and new names.
+  /// 
+  /// - Parameter names: a ``LexicalScopes`` with the updated names for the newly created compiler context.
+  /// - Returns: A new compiler context based on the current with the same types and new names.
+  public func update(newNames names: LexicalScopes) -> CompilerContext {
+    return CompilerContext(withNames: names, withTypes: self.types)
+  }
+
+  /// Update a compiler context
+  ///
+  /// Create a new compiler context based on the current with the same names and new types.
+  /// 
+  /// - Parameter types: a ``LexicalScopes`` with the updated types for the newly created compiler context.
+  /// - Returns: A new compiler context based on the current with the same names and new types.
+  public func update(newTypes types: LexicalScopes) -> CompilerContext {
+    return CompilerContext(withNames: self.names, withTypes: types)
+  }
+
+
 }
