@@ -120,6 +120,13 @@ extension Parser: ParserExecution {
     execution = execution.declare(identifier: accept.state().state, withValue: accept)
     execution = execution.declare(identifier: reject.state().state, withValue: reject)
 
+    // Add initial values to the global scope
+    if let initial = execution.initial_values() {
+      for (name, value) in initial {
+        execution = execution.declare(identifier: name, withValue: value)
+      }
+    }
+
     // First, add every state to the scope!
     for state in self.states.states {
       execution = execution.declare(identifier: state.state, withValue: state)

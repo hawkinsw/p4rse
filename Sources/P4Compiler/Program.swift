@@ -24,6 +24,10 @@ import TreeSitterP4
 
 public struct Program {
   public static func Compile(_ source: String) -> Result<P4Lang.Program> {
+    return Program.Compile(source, withGlobalTypes: .none)
+  }
+
+  public static func Compile(_ source: String, withGlobalTypes globalTypes: LexicalScopes?) -> Result<P4Lang.Program> {
 
     let maybe_parser = ConfigureP4Parser()
     guard case .Ok(let p) = maybe_parser else {
@@ -44,6 +48,11 @@ public struct Program {
     var compilation_context = CompilerContext(withNames: LexicalScopes().enter())
 
     var errors: [Error] = Array()
+
+    // If the caller gave any global types, add them here.
+    if let globalTypes = globalTypes {
+      compilation_context = compilation_context.update(newNames: globalTypes)
+    }
 
     result?.rootNode?.enumerateNamedChildren { declaration_node in
       if declaration_node.nodeType != "declaration" {
@@ -185,7 +194,9 @@ public struct Program {
     }
 
     // Any of the types that are in the top-level scope should go into the program!
-    program.types = Array(compilation_context.names)
+    program.types = Array(compilation_context.names.map() { (_, v) in
+      v
+    })
     return Result.Ok(program)
   }
 }

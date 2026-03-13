@@ -113,3 +113,32 @@ extension BinaryOperatorExpression: EvaluatableExpression {
     return self.evaluator.1
   }
 }
+
+extension ArrayAccessExpression: EvaluatableExpression {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    let maybe_name = self.name.evaluate(execution: execution)
+    guard case Result.Ok(let name) = maybe_name else {
+      return maybe_name
+    }
+
+    let maybe_indexor = self.indexor.evaluate(execution: execution)
+    guard case Result.Ok(let indexor) = maybe_indexor else {
+      return maybe_indexor
+    }
+
+    guard let indexor_int = indexor as? P4IntValue else {
+      return Result.Error(Error(withMessage: "\(indexor) cannot index an array"))
+    }
+
+    guard let array = name as? P4ArrayValue else {
+      return Result.Error(Error(withMessage: "\(name) does not name an array"))
+    }
+    let accessed = array.access(indexor_int.access())
+
+    return accessed.evaluate(execution: execution)
+  }
+
+  public func type() -> any Common.P4Type {
+    return P4Int.create()
+  }
+}

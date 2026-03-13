@@ -110,7 +110,7 @@ struct Expression {
 
     let localElementsParsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
-      BinaryOperatorExpression.self,
+      BinaryOperatorExpression.self, ArrayAccessExpression.self
     ]
 
     for le_parser in localElementsParsers {
@@ -309,5 +309,69 @@ extension BinaryOperatorExpression: CompilableExpression {
       BinaryOperatorExpression(
         withEvaluator: ("Binary Equal", P4Boolean.create(), binary_equal_operator_evaluator),
         withLhs: left_hand_side, withRhs: right_hand_side))
+  }
+}
+
+extension ArrayAccessExpression: CompilableExpression {
+    static func compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(any Common.EvaluatableExpression)?> {
+    let expression = node.child(at: 0)!
+
+    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+      node: expression, type: "arrayAccessExpression")
+
+    let array_access_expression_node = expression
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+
+    // What is the "name" of the array?
+    if array_access_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Malformed array access expression"))
+    }
+    currentChild = expression.child(at: currentChildIdx)
+
+    #RequireNodeType<Node, EvaluatableExpression?>(
+      node: currentChild!, type: "expression",
+      nice_type_name: "array identifier expression")
+    let array_access_identifier_node = currentChild!
+
+    // Check for the [
+    currentChildIdx = currentChildIdx + 1
+    currentChildIdxSafe = currentChildIdxSafe + 1
+    if array_access_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing [ for array access expression")
+      )
+    }
+
+    // What is the indexor of the array?
+    currentChildIdx = currentChildIdx + 1
+    currentChildIdxSafe = currentChildIdxSafe + 1
+    if array_access_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing indexor expression for array access expression")
+      )
+    }
+    currentChild = array_access_expression_node.child(at: currentChildIdx)
+
+    #RequireNodeType<Node, EvaluatableExpression?>(
+      node: currentChild!, type: "expression",
+      nice_type_name: "array indexor expression")
+
+    let array_access_indexor_node = currentChild!
+
+    let maybe_array_identifier = Expression.Compile(node: array_access_identifier_node, withContext: context)
+    guard case Result.Ok(let array_identifier) = maybe_array_identifier else {
+      return Result.Error(maybe_array_identifier.error()!)
+    }
+
+    let maybe_array_indexor = Expression.Compile(node: array_access_indexor_node, withContext: context)
+    guard case Result.Ok(let array_indexor) = maybe_array_indexor else {
+      return Result.Error(maybe_array_indexor.error()!)
+    }
+
+    return .Ok(ArrayAccessExpression(withName: array_identifier, withIndexor: array_indexor))
   }
 }

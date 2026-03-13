@@ -229,3 +229,59 @@ import TreeSitterP4
   // false
   #expect(state_result == P4Lang.reject)
 }
+
+@Test func test_array_access() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = ta[1] == 2;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  var test_types = LexicalScopes().enter()
+  test_types = test_types.declare(identifier: Identifier(name: "ta"), withValue: P4Array.create())
+  var test_values = ValueScopes().enter()
+  test_values = test_values.declare(
+    identifier: Identifier(name: "ta"),
+    withValue: P4ArrayValue(withValue: [
+      P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3),
+    ]))
+  let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_array_access2() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          bool where_to = ta[0] == 2;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  var test_types = LexicalScopes().enter()
+  test_types = test_types.declare(identifier: Identifier(name: "ta"), withValue: P4Array.create())
+  var test_values = ValueScopes().enter()
+  test_values = test_values.declare(
+    identifier: Identifier(name: "ta"),
+    withValue: P4ArrayValue(withValue: [
+      P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3),
+    ]))
+  let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.reject)
+}

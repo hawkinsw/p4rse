@@ -72,3 +72,13 @@ public struct BinaryOperatorExpression {
     self.right = rhs
   }
 }
+
+public struct ArrayAccessExpression {
+  public let indexor: EvaluatableExpression
+  public let name: EvaluatableExpression
+
+  public init(withName name: EvaluatableExpression, withIndexor indexor: EvaluatableExpression) {
+    self.name = name
+    self.indexor = indexor
+  }
+}

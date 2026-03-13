@@ -17,10 +17,17 @@
 
 open class ProgramExecution: CustomStringConvertible {
   public var scopes: ValueScopes = ValueScopes()
+  let initialValues: ValueScopes?
   var error: Error?
   var debug: DebugLevel = DebugLevel.Error
 
-  public init() {}
+  public init() {
+    initialValues = .none
+  }
+
+  public init(withGlobalValues values: ValueScopes) {
+    initialValues = values
+  }
 
   open var description: String {
     return "Runtime:\nScopes: \(scopes)"
@@ -79,6 +86,10 @@ open class ProgramExecution: CustomStringConvertible {
 
     new_pe.scopes = new_scopes
     return new_pe
+  }
+
+  public func initial_values() -> ValueScopes? {
+    return self.initialValues
   }
 }
 

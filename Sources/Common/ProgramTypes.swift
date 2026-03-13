@@ -198,8 +198,12 @@ public class P4IntValue: P4Value {
   public init(withValue value: Int) {
     self.value = value
   }
+
+  public func access() -> Int {
+    return self.value
+  }
+
   public func eq(rhs: P4Value) -> Bool {
-    print("Int value equal.")
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }
@@ -250,4 +254,50 @@ public class P4StringValue: P4Value {
 
 public class Packet {
   public init() {}
+}
+
+/// A P4 array type
+public struct P4Array: P4Type {
+
+  public static func create() -> any P4Type {
+    return P4Array()
+  }
+  public var description: String {
+    return "Array"
+  }
+  public func eq(rhs: any P4Type) -> Bool {
+    return switch rhs {
+    case is P4Array: true
+    default: false
+    }
+  }
+}
+
+/// An instance of a P4 array
+public class P4ArrayValue: P4Value {
+  public func type() -> any P4Type {
+    return P4Array()
+  }
+
+  let value: Array<EvaluatableExpression>
+
+  public init(withValue value: Array<EvaluatableExpression>) {
+    self.value = value
+  }
+
+  public func access(_ index: Int) -> EvaluatableExpression {
+    return self.value[index]
+  }
+
+  public func eq(rhs: P4Value) -> Bool {
+    guard let _ = rhs as? P4ArrayValue else {
+      return false
+    }
+    // TODO!!
+    return true
+  }
+
+  public var description: String {
+    "\(self.value) of \(self.type()) type"
+  }
 }

@@ -22,16 +22,27 @@ import P4Lang
 public struct ParserRuntime: CustomStringConvertible {
   public var parser: Parser
 
+  let initialValues: ValueScopes?
+
   init(parser: Parser) {
     self.parser = parser
+    self.initialValues = .none
+  }
+
+  init(parser: Parser, withInitialValues initial: ValueScopes?) {
+    self.parser = parser
+    self.initialValues = initial
   }
 
   /// Create a parser runtime from a P4 program
   public static func create(program: P4Lang.Program) -> Result<ParserRuntime> {
+    return ParserRuntime.create(program: program, withInitialValues: .none)
+  }
 
+  public static func create(program: P4Lang.Program, withInitialValues initial: ValueScopes?) -> Result<ParserRuntime> {
     return switch program.starting_parser() {
     case .Ok(let parser):
-      .Ok(P4Runtime.ParserRuntime(parser: parser))
+      .Ok(P4Runtime.ParserRuntime(parser: parser, withInitialValues: initial))
     case .Error(let error): .Error(error)
     }
   }
@@ -39,7 +50,13 @@ public struct ParserRuntime: CustomStringConvertible {
   /// Run the P4 parser on a given packet
   public func run() -> Result<(ParserState, ProgramExecution)> {
 
-    let (end_state, execution) = parser.execute(execution: ProgramExecution())
+    let pe = if let initial = initialValues {
+      ProgramExecution(withGlobalValues: initial)
+    } else {
+      ProgramExecution()
+    }
+
+    let (end_state, execution) = parser.execute(execution: pe)
     if let error = execution.getError() {
       return .Error(error)
     }
