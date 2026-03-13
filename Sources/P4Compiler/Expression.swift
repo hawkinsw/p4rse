@@ -17,9 +17,9 @@
 
 import Common
 import P4Lang
+import P4Runtime
 import SwiftTreeSitter
 import TreeSitterP4
-import P4Runtime
 
 protocol CompilableExpression {
   static func compile(
@@ -109,7 +109,8 @@ struct Expression {
       }
 
     let localElementsParsers: [CompilableExpression.Type] = [
-      P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self, BinaryOperatorExpression.self
+      P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
+      BinaryOperatorExpression.self,
     ]
 
     for le_parser in localElementsParsers {
@@ -250,7 +251,8 @@ extension BinaryOperatorExpression: CompilableExpression {
   ) -> Result<(EvaluatableExpression)?> {
     let expression = node.child(at: 0)!
 
-    #SkipUnlessNodeType<Node, EvaluatableExpression?>(node: expression, type: "binaryOperatorExpression")
+    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+      node: expression, type: "binaryOperatorExpression")
 
     var currentChildIdx = 0
     var currentChildIdxSafe = 1
@@ -263,7 +265,9 @@ extension BinaryOperatorExpression: CompilableExpression {
     currentChild = expression.child(at: currentChildIdx)
 
     let binary_operator_expression_node = currentChild!
-    #RequireNodesType<Node, EvaluatableExpression?>(nodes: binary_operator_expression_node, type: ["binaryEqualOperatorExpression"], nice_type_names: ["binary equal operator"])
+    #RequireNodesType<Node, EvaluatableExpression?>(
+      nodes: binary_operator_expression_node, type: ["binaryEqualOperatorExpression"],
+      nice_type_names: ["binary equal operator"])
 
     if binary_operator_expression_node.childCount < currentChildIdxSafe {
       return Result.Error(
@@ -272,20 +276,21 @@ extension BinaryOperatorExpression: CompilableExpression {
     currentChild = binary_operator_expression_node.child(at: currentChildIdx)
     let left_hand_side_raw = currentChild!
 
-    currentChildIdx = currentChildIdx + 1 
-    currentChildIdxSafe = currentChildIdxSafe + 1 
+    currentChildIdx = currentChildIdx + 1
+    currentChildIdxSafe = currentChildIdxSafe + 1
     if binary_operator_expression_node.childCount < currentChildIdxSafe {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression"))
+        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression")
+      )
     }
     currentChild = binary_operator_expression_node.child(at: currentChildIdx)
 
-
-    currentChildIdx = currentChildIdx + 1 
-    currentChildIdxSafe = currentChildIdxSafe + 1 
+    currentChildIdx = currentChildIdx + 1
+    currentChildIdxSafe = currentChildIdxSafe + 1
     if binary_operator_expression_node.childCount < currentChildIdxSafe {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression"))
+        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression")
+      )
     }
     currentChild = binary_operator_expression_node.child(at: currentChildIdx)
     let right_hand_side_raw = currentChild!

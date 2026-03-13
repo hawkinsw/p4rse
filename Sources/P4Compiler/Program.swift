@@ -168,7 +168,8 @@ public struct Program {
       {
       case Result.Ok((let parser, let updated_context)):
         // Create a new context with the name of the parser that was just compiled in scope.
-        compilation_context = compilation_context.update(newNames: updated_context.names.declare(identifier: parser.name, withValue: parser))
+        compilation_context = compilation_context.update(
+          newNames: updated_context.names.declare(identifier: parser.name, withValue: parser))
       case Result.Error(let error): errors.append(error)
       }
 

@@ -220,8 +220,9 @@ extension VariableDeclarationStatement: CompilableStatement {
           VariableDeclarationStatement(
             identifier: parsed_variablename, withInitializer: parsed_rvalue),
           // Context with updated names to include the newly declared name.
-          context.update(newNames: context.names.declare(
-            identifier: parsed_variablename, withValue: declaration_p4_type))
+          context.update(
+            newNames: context.names.declare(
+              identifier: parsed_variablename, withValue: declaration_p4_type))
         ))
 
     } else {

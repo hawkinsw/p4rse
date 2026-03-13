@@ -54,7 +54,8 @@ extension ParserAssignmentStatement: CompilableStatement {
     guard case .Ok(let lvalue_identifier) = maybe_parsed_lvalue else {
       return Result.Error(maybe_parsed_lvalue.error()!)
     }
-    guard case Result.Ok(let lvalue_type) = context.names.lookup(identifier: lvalue_identifier) else {
+    guard case Result.Ok(let lvalue_type) = context.names.lookup(identifier: lvalue_identifier)
+    else {
       return Result.Error(
         ErrorOnNode(
           node: lvalue_node,

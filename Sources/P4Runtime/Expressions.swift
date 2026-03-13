@@ -95,21 +95,21 @@ public func binary_equal_operator_evaluator(left: P4Value, right: P4Value) -> P4
 }
 
 extension BinaryOperatorExpression: EvaluatableExpression {
-    public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-        let maybe_evaluated_left = self.left.evaluate(execution: execution)
-        guard case Result.Ok(let evaluated_left) = maybe_evaluated_left else {
-          return maybe_evaluated_left
-        }
-
-        let maybe_evaluated_right = self.right.evaluate(execution: execution)
-        guard case Result.Ok(let evaluated_right) = maybe_evaluated_right else {
-          return maybe_evaluated_right
-        }
-
-        return Result.Ok(self.evaluator.2(evaluated_left, evaluated_right))
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    let maybe_evaluated_left = self.left.evaluate(execution: execution)
+    guard case Result.Ok(let evaluated_left) = maybe_evaluated_left else {
+      return maybe_evaluated_left
     }
 
-    public func type() -> any Common.P4Type {
-        return self.evaluator.1 
+    let maybe_evaluated_right = self.right.evaluate(execution: execution)
+    guard case Result.Ok(let evaluated_right) = maybe_evaluated_right else {
+      return maybe_evaluated_right
     }
+
+    return Result.Ok(self.evaluator.2(evaluated_left, evaluated_right))
+  }
+
+  public func type() -> any Common.P4Type {
+    return self.evaluator.1
+  }
 }
