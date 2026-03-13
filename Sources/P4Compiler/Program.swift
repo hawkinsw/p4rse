@@ -27,7 +27,9 @@ public struct Program {
     return Program.Compile(source, withGlobalTypes: .none)
   }
 
-  public static func Compile(_ source: String, withGlobalTypes globalTypes: LexicalScopes?) -> Result<P4Lang.Program> {
+  public static func Compile(
+    _ source: String, withGlobalTypes globalTypes: LexicalScopes?
+  ) -> Result<P4Lang.Program> {
 
     let maybe_parser = ConfigureP4Parser()
     guard case .Ok(let p) = maybe_parser else {
@@ -194,9 +196,10 @@ public struct Program {
     }
 
     // Any of the types that are in the top-level scope should go into the program!
-    program.types = Array(compilation_context.names.map() { (_, v) in
-      v
-    })
+    program.types = Array(
+      compilation_context.names.map { (_, v) in
+        v
+      })
     return Result.Ok(program)
   }
 }

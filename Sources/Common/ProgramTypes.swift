@@ -279,9 +279,9 @@ public class P4ArrayValue: P4Value {
     return P4Array()
   }
 
-  let value: Array<EvaluatableExpression>
+  let value: [EvaluatableExpression]
 
-  public init(withValue value: Array<EvaluatableExpression>) {
+  public init(withValue value: [EvaluatableExpression]) {
     self.value = value
   }
 
@@ -290,7 +290,7 @@ public class P4ArrayValue: P4Value {
   }
 
   public func eq(rhs: P4Value) -> Bool {
-    guard let _ = rhs as? P4ArrayValue else {
+    guard rhs as? P4ArrayValue != nil else {
       return false
     }
     // TODO!!

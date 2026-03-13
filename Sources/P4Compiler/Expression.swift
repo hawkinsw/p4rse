@@ -110,7 +110,7 @@ struct Expression {
 
     let localElementsParsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
-      BinaryOperatorExpression.self, ArrayAccessExpression.self
+      BinaryOperatorExpression.self, ArrayAccessExpression.self,
     ]
 
     for le_parser in localElementsParsers {
@@ -313,7 +313,9 @@ extension BinaryOperatorExpression: CompilableExpression {
 }
 
 extension ArrayAccessExpression: CompilableExpression {
-    static func compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(any Common.EvaluatableExpression)?> {
+  static func compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(any Common.EvaluatableExpression)?> {
     let expression = node.child(at: 0)!
 
     #SkipUnlessNodeType<Node, EvaluatableExpression?>(
@@ -362,12 +364,14 @@ extension ArrayAccessExpression: CompilableExpression {
 
     let array_access_indexor_node = currentChild!
 
-    let maybe_array_identifier = Expression.Compile(node: array_access_identifier_node, withContext: context)
+    let maybe_array_identifier = Expression.Compile(
+      node: array_access_identifier_node, withContext: context)
     guard case Result.Ok(let array_identifier) = maybe_array_identifier else {
       return Result.Error(maybe_array_identifier.error()!)
     }
 
-    let maybe_array_indexor = Expression.Compile(node: array_access_indexor_node, withContext: context)
+    let maybe_array_indexor = Expression.Compile(
+      node: array_access_indexor_node, withContext: context)
     guard case Result.Ok(let array_indexor) = maybe_array_indexor else {
       return Result.Error(maybe_array_indexor.error()!)
     }
