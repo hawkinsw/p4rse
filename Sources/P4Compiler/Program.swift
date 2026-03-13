@@ -40,8 +40,8 @@ public struct Program {
 
     var program = P4Lang.Program()
 
-    // Set up a lexical scope for parsing.
-    var program_scope = LexicalScopes().enter()
+    // Set up a context for parsing.
+    var compilation_context = CompilerContext(withNames: LexicalScopes().enter())
 
     var errors: [Error] = Array()
 
@@ -107,7 +107,7 @@ public struct Program {
         }
         currentChild = type_node?.child(at: currentChildIdx)
 
-        switch Identifier.Compile(node: currentChild!, withTypesInScopes: program_scope) {
+        switch Identifier.Compile(node: currentChild!, withContext: compilation_context) {
         case .Ok(let id): parser_name = id
         case .Error(let e):
           errors.append(e)
@@ -164,10 +164,11 @@ public struct Program {
       }
 
       switch Parser.Compile(
-        withName: parser_name!, node: currentChild!, withTypesInScope: program_scope)
+        withName: parser_name!, node: currentChild!, withContext: compilation_context)
       {
-      case Result.Ok((let parser, let new_program_scope)):
-        program_scope = new_program_scope.declare(identifier: parser.name, withValue: parser)
+      case Result.Ok((let parser, let updated_context)):
+        // Create a new context with the name of the parser that was just compiled in scope.
+        compilation_context = CompilerContext(withNames: updated_context.names.declare(identifier: parser.name, withValue: parser))
       case Result.Error(let error): errors.append(error)
       }
 
@@ -183,7 +184,7 @@ public struct Program {
     }
 
     // Any of the types that are in the top-level scope should go into the program!
-    program.types = Array(program_scope)
+    program.types = Array(compilation_context.names)
     return Result.Ok(program)
   }
 }

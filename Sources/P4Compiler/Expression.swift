@@ -22,13 +22,13 @@ import TreeSitterP4
 
 protocol CompilableExpression {
   static func compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
+    node: Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?>
 }
 
 extension TypedIdentifier: CompilableExpression {
   static func compile(
-    node: SwiftTreeSitter.Node, withTypesInScope scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
 
     let node = node.child(at: 0)!
@@ -36,7 +36,7 @@ extension TypedIdentifier: CompilableExpression {
       node: node, type: "identifier")
 
     guard
-      case Result.Ok(let type) = scopes.lookup(
+      case Result.Ok(let type) = context.names.lookup(
         identifier: Common.Identifier(name: node.text!))
     else {
       return .Error(ErrorOnNode(node: node, withError: "Cannot find \(node.text!) in scope"))
@@ -48,7 +48,7 @@ extension TypedIdentifier: CompilableExpression {
 
 extension P4BooleanValue: CompilableExpression {
   static func compile(
-    node: SwiftTreeSitter.Node, withTypesInScope scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
     #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
@@ -67,7 +67,7 @@ extension P4BooleanValue: CompilableExpression {
 
 extension P4IntValue: CompilableExpression {
   static func compile(
-    node: SwiftTreeSitter.Node, withTypesInScope scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
     #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "integer")
@@ -81,7 +81,7 @@ extension P4IntValue: CompilableExpression {
 
 extension P4StringValue: CompilableExpression {
   static func compile(
-    node: SwiftTreeSitter.Node, withTypesInScope scopes: LexicalScopes
+    node: SwiftTreeSitter.Node, withContext scopes: CompilerContext
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
     #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
@@ -92,7 +92,7 @@ extension P4StringValue: CompilableExpression {
 
 struct Expression {
   public static func Compile(
-    node: Node, withTypesInScope: LexicalScopes
+    node: Node, withContext: CompilerContext
   ) -> Result<EvaluatableExpression> {
 
     #RequireNodesType<Node, EvaluatableExpression>(
@@ -113,7 +113,7 @@ struct Expression {
 
     for le_parser in localElementsParsers {
       switch le_parser.compile(
-        node: node, withTypesInScope: withTypesInScope)
+        node: node, withContext: withContext)
       {
       case .Ok(.some(let parsed)): return .Ok(parsed)
       case .Error(let e): return .Error(e)
@@ -127,7 +127,7 @@ struct Expression {
 
 struct LValue {
   public static func Compile(
-    node: Node, withTypesInScope: LexicalScopes
+    node: Node, withContext: CompilerContext
   ) -> Result<Common.Identifier> {
     return if let node_text_value = node.text {
       .Ok(Common.Identifier(name: node_text_value))
@@ -139,7 +139,7 @@ struct LValue {
 
 struct Identifier {
   public static func Compile(
-    node: Node, withTypesInScopes scopes: LexicalScopes
+    node: Node, withContext context: CompilerContext
   ) -> Result<Common.Identifier> {
     return if let node_text_value = node.text {
       .Ok(Common.Identifier(name: node_text_value))
@@ -151,9 +151,9 @@ struct Identifier {
 
 extension SelectExpression: CompilableExpression {
   static func compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
+    node: Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
-    #RequireNodeType<Node, (SelectExpression, LexicalScopes)>(
+    #RequireNodeType<Node, (SelectExpression, CompilerContext)>(
       node: node, type: "selectExpression", nice_type_name: "parser select expression")
 
     guard let selector_node = node.child(at: 2),
@@ -168,7 +168,7 @@ extension SelectExpression: CompilableExpression {
       return .Error(ErrorOnNode(node: node, withError: "Could not find select expression body"))
     }
 
-    let maybe_selector = Expression.Compile(node: selector_node, withTypesInScope: scopes)
+    let maybe_selector = Expression.Compile(node: selector_node, withContext: context)
     guard case .Ok(let selector) = maybe_selector else {
       return .Error(
         Error(
@@ -182,7 +182,7 @@ extension SelectExpression: CompilableExpression {
 
     select_body_node.enumerateNamedChildren { current_node in
       let maybe_parsed_kse = KeysetExpression.compile(
-        node: current_node, withTypesInScope: scopes)
+        node: current_node, withContext: context)
       if case .Ok(let parsed_kse) = maybe_parsed_kse {
         kses.append(parsed_kse as! KeysetExpression)
       } else {
@@ -206,7 +206,7 @@ extension SelectExpression: CompilableExpression {
 
 extension KeysetExpression: CompilableExpression {
   static func compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
+    node: Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
     if node.nodeType != "selectCase" {
       return Result.Error(Error(withMessage: "Expected select case not found"))
@@ -225,13 +225,13 @@ extension KeysetExpression: CompilableExpression {
     }
 
     let maybe_parsed_keysetexpression = Expression.Compile(
-      node: keysetexpression_node, withTypesInScope: scopes)
+      node: keysetexpression_node, withContext: context)
     guard case Result.Ok(let keysetexpression) = maybe_parsed_keysetexpression else {
       return Result.Error(maybe_parsed_keysetexpression.error()!)
     }
 
     let maybe_parsed_targetstate = Identifier.Compile(
-      node: targetstate_node, withTypesInScopes: scopes)
+      node: targetstate_node, withContext: context)
     guard case .Ok(let targetstate) = maybe_parsed_targetstate else {
       return Result.Error(maybe_parsed_targetstate.error()!)
     }

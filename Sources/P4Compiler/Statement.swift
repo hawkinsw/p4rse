@@ -24,9 +24,9 @@ import TreeSitterP4
 
 extension BlockStatement: CompilableStatement {
   public static func Compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
-  ) -> Result<(EvaluatableStatement, LexicalScopes)> {
-    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(EvaluatableStatement, CompilerContext)> {
+    #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
       node: node, type: "blockStatement", nice_type_name: "block statement")
 
     var currentChildIdx = 0
@@ -47,7 +47,7 @@ extension BlockStatement: CompilableStatement {
 
     var statements: [EvaluatableStatement] = Array()
     var parse_err: Error? = .none
-    var new_scopes: LexicalScopes = LexicalScopes()
+    var current_context = context
 
     if node.childCount < currentChildIdxSafe {
       return Result.Error(
@@ -56,10 +56,10 @@ extension BlockStatement: CompilableStatement {
     currentChild = node.child(at: currentChildIdx)
     if currentChild!.nodeType == "statements" {
       switch Parser.Statements.Compile(
-        node: currentChild!, withTypesInScope: scopes.enter())
+        node: currentChild!, withContext: current_context)
       {
-      case .Ok(let (parsed_statements, parsed_scopes)):
-        new_scopes = parsed_scopes
+      case .Ok(let (parsed_statements, updated_context)):
+        current_context = updated_context
         statements = parsed_statements
       case .Error(let error):
         parse_err = error
@@ -83,16 +83,16 @@ extension BlockStatement: CompilableStatement {
         ErrorOnNode(node: currentChild!, withError: "Missing } on block statement"))
     }
 
-    return .Ok((BlockStatement(statements), new_scopes))
+    return .Ok((BlockStatement(statements), current_context))
   }
 }
 
 extension ConditionalStatement: CompilableStatement {
   public static func Compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
-  ) -> Result<(EvaluatableStatement, LexicalScopes)> {
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(EvaluatableStatement, CompilerContext)> {
 
-    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
+    #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
       node: node, type: "conditionalStatement", nice_type_name: "conditional statement")
 
     let maybe_condition_expression = node.child(at: 2)
@@ -114,7 +114,7 @@ extension ConditionalStatement: CompilableStatement {
 
     guard
       case .Ok(let condition) = Expression.Compile(
-        node: condition_expression, withTypesInScope: scopes)
+        node: condition_expression, withContext: context)
     else {
       return Result.Error(
         Error(withMessage: "Could not parse a conditional expression in a conditional statement"))
@@ -122,7 +122,7 @@ extension ConditionalStatement: CompilableStatement {
 
     guard
       case .Ok((let thenns, _)) = Parser.Statement.Compile(
-        node: thens, withTypesInScope: scopes)
+        node: thens, withContext: context)
     else {
       return Result.Error(
         Error(
@@ -130,11 +130,11 @@ extension ConditionalStatement: CompilableStatement {
             "Could not parse the then block in a conditional statement"))
     }
 
-    let optional_elss: Result<(any EvaluatableStatement, LexicalScopes)>? =
+    let optional_elss: Result<(any EvaluatableStatement, CompilerContext)>? =
       if let elss = node.child(at: 6) {
         .some(
           Parser.Statement.Compile(
-            node: elss, withTypesInScope: scopes))
+            node: elss, withContext: context))
       } else {
         .none
       }
@@ -149,18 +149,18 @@ extension ConditionalStatement: CompilableStatement {
               "Could not parse the else block in a conditional statement"))
       }
       return .Ok(
-        (ConditionalStatement(condition: condition, withThen: thenns, andElse: elss), scopes))
+        (ConditionalStatement(condition: condition, withThen: thenns, andElse: elss), context))
     }
-    return .Ok((ConditionalStatement(condition: condition, withThen: thenns), scopes))
+    return .Ok((ConditionalStatement(condition: condition, withThen: thenns), context))
   }
 }
 
 extension VariableDeclarationStatement: CompilableStatement {
   public static func Compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
-  ) -> Result<(EvaluatableStatement, LexicalScopes)> {
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(EvaluatableStatement, CompilerContext)> {
 
-    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
+    #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
       node: node, type: "variableDeclaration", nice_type_name: "variable declaration statement")
 
     let maybe_typeref = node.child(at: 0)
@@ -193,7 +193,7 @@ extension VariableDeclarationStatement: CompilableStatement {
 
     guard
       case .Ok(let parsed_variablename) = Identifier.Compile(
-        node: variablename, withTypesInScopes: scopes.enter())
+        node: variablename, withContext: context)
     else {
       return Result.Error(
         Error(withMessage: "Could not parse variable name"))
@@ -201,7 +201,7 @@ extension VariableDeclarationStatement: CompilableStatement {
 
     guard
       case .Ok(let parsed_rvalue) = Expression.Compile(
-        node: rvalue, withTypesInScope: scopes.enter())
+        node: rvalue, withContext: context)
     else {
       return Result.Error(
         Error(
@@ -219,8 +219,9 @@ extension VariableDeclarationStatement: CompilableStatement {
         (
           VariableDeclarationStatement(
             identifier: parsed_variablename, withInitializer: parsed_rvalue),
-          scopes.declare(
-            identifier: parsed_variablename, withValue: declaration_p4_type)
+          // Context with updated names to include the newly declared name.
+          CompilerContext(withNames: context.names.declare(
+            identifier: parsed_variablename, withValue: declaration_p4_type))
         ))
 
     } else {
@@ -236,13 +237,13 @@ extension VariableDeclarationStatement: CompilableStatement {
 
 extension ExpressionStatement: CompilableStatement {
   public static func Compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
-  ) -> Result<(EvaluatableStatement, LexicalScopes)> {
-    #RequireNodeType<Node, (EvaluatableStatement, LexicalScopes)>(
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(EvaluatableStatement, CompilerContext)> {
+    #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
       node: node, type: "expressionStatement", nice_type_name: "expression statement")
 
     let _ = node.child(at: 0)
 
-    return Result.Ok((ExpressionStatement(), scopes))
+    return Result.Ok((ExpressionStatement(), context))
   }
 }

@@ -39,3 +39,11 @@ public func ConfigureP4Parser() -> Result<SwiftTreeSitter.Parser> {
 public func ErrorOnNode(node: Node, withError error: String) -> Error {
   return Error(withMessage: "\(node.range): \(error)")
 }
+
+public struct CompilerContext {
+  public let names: LexicalScopes
+
+  public init(withNames _names: LexicalScopes) {
+    names = _names
+  }
+}

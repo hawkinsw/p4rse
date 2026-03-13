@@ -24,8 +24,8 @@ import TreeSitterP4
 
 public protocol CompilableStatement {
   static func Compile(
-    node: Node, withTypesInScope scopes: LexicalScopes
-  ) -> Result<(EvaluatableStatement, LexicalScopes)>
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(EvaluatableStatement, CompilerContext)>
 }
 
 public protocol CompilableValue {

@@ -111,8 +111,8 @@ import P4Lang
   let result = try! #require(p.parse(simple))
 
   #expect(
-    #RequireErrorResult<(EvaluatableStatement, LexicalScopes)>(
+    #RequireErrorResult<(EvaluatableStatement, CompilerContext)>(
       Error(withMessage: "{2, 154}: Did not find assignment statement"),
       ParserAssignmentStatement.Compile(
-        node: result.rootNode!, withTypesInScope: LexicalScopes())))
+        node: result.rootNode!, withContext: CompilerContext(withNames: LexicalScopes()))))
 }
