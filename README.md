@@ -14,7 +14,7 @@ As an example of what can be parsed and evaluated, here is a fairly complex P4 p
 ```P4
 parser main_parser() {
     state start {
-        bool where_to = true;
+        bool where_to = ts.yesno;
         string where_from = "here";
         string where_where = "here";
         if (where_to) {
@@ -31,6 +31,8 @@ parser main_parser() {
     }
 };
 ```
+
+(assuming hat `ts` is an instance of a `struct` with the boolean-typed field `yesno`)
 
 Please check back often!
 
