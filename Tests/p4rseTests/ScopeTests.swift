@@ -28,39 +28,39 @@ import TreeSitterP4
 
 @Test func test_scope() async throws {
   let s = LexicalScope()
-  let s2 = s.declare(identifier: Identifier(name: "first"), withValue: P4Int.create())
+  let s2 = s.declare(identifier: Identifier(name: "first"), withValue: P4Int())
   let found_first = try! #require(s2.lookup(identifier: Identifier(name: "first")))
 
-  #expect(found_first.eq(rhs: P4Int.create()))
+  #expect(found_first.eq(rhs: P4Int()))
   #expect(s2.count == 1)
 }
 
 @Test func test_scope_no_set() async throws {
   var ss = LexicalScopes().enter()
-  ss = ss.declare(identifier: Identifier(name: "first"), withValue: P4Int.create())
+  ss = ss.declare(identifier: Identifier(name: "first"), withValue: P4Int())
   ss = ss.enter()
-  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4Boolean.create())
+  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4Boolean())
 
   let found_first = try! #UseOkResult(ss.lookup(identifier: Identifier(name: "first")))
   let found_second = try! #UseOkResult(ss.lookup(identifier: Identifier(name: "second")))
 
-  #expect(found_first.eq(rhs: P4Int.create()))
-  #expect(found_second.eq(rhs: P4Boolean.create()))
+  #expect(found_first.eq(rhs: P4Int()))
+  #expect(found_second.eq(rhs: P4Boolean()))
 }
 
 @Test func test_scope_set() async throws {
   var ss = LexicalScopes().enter()
   let id = Identifier(name: "first")
-  let id_type = P4Int.create()
+  let id_type = P4Int()
 
   ss = ss.declare(identifier: id, withValue: id_type)
   ss = ss.enter()
-  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4Boolean.create())
+  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4Boolean())
   // Change the value of `first`.
-  ss = ss.set(identifier: id, withValue: P4String.create())
+  ss = ss.set(identifier: id, withValue: P4String())
 
   // Verify the change!
   let found = try! #UseOkResult(ss.lookup(identifier: id))
 
-  #expect(found.eq(rhs: P4String.create()))
+  #expect(found.eq(rhs: P4String()))
 }

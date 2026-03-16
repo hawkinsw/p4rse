@@ -27,6 +27,10 @@ public class Identifier: CustomStringConvertible, Equatable, Hashable {
     self.name = name
   }
 
+  public init(id: Identifier) {
+    self.name = id.name
+  }
+
   public var description: String {
     return "\(name)"
   }
@@ -38,11 +42,16 @@ public class Identifier: CustomStringConvertible, Equatable, Hashable {
 
 /// A P4 identifier
 public class TypedIdentifier: Identifier {
-  public var parsed_type: P4Type
+  public var type: P4Type
 
   public init(name: String, withType type: P4Type) {
-    self.parsed_type = type
+    self.type = type
     super.init(name: name)
+  }
+
+  public init(id: Identifier, withType type: P4Type) {
+    self.type = type
+    super.init(id: id)
   }
 
   public override var description: String {
@@ -73,23 +82,61 @@ public class Variable: TypedIdentifier {
   }
 }
 
+public typealias P4StructFieldIdentifier = TypedIdentifier
+
+public struct P4StructFields: Sequence, CustomStringConvertible, Equatable {
+  public typealias Element = [P4StructFieldIdentifier].Iterator.Element
+
+  public typealias Iterator = [P4StructFieldIdentifier].Iterator
+
+  public func makeIterator() -> Iterator {
+    return self.fields.makeIterator()
+  }
+
+  let fields: [P4StructFieldIdentifier]
+
+  public init(_ fields: [P4StructFieldIdentifier]) {
+    self.fields = fields
+  }
+
+  public var description: String {
+    return self.fields.map { field in
+      field.name
+    }.joined(separator: ",")
+  }
+
+  public func get_field_type(_ field: Identifier) -> P4Type? {
+    if let found_field = self.fields.makeIterator().first(where: { current in
+      return current.name == field.name
+    }) {
+      return found_field.type
+    }
+    return .none
+  }
+
+  public func count() -> Int {
+    return self.fields.count
+  }
+}
+
 /// The type for a P4 struct
 public struct P4Struct: P4Type {
 
-  public let name: String
-  // The type of the struct created is always anonymous.
-  public static func create() -> any P4Type {
-    return P4Struct()
+  public let name: Identifier
+  public let fields: P4StructFields
+
+  public init(withName name: Identifier, andFields fields: P4StructFields) {
+    self.name = name
+    self.fields = fields
   }
 
-  public init(withName name: String) {
-    self.name = name
-  }
   public init() {
-    self.name = ""
+    self.name = Identifier(name: "")
+    self.fields = P4StructFields([])
   }
+
   public var description: String {
-    return "Struct \(self.name)"
+    return "Struct \(self.name) with fields: \(self.fields)"
   }
 
   public func eq(rhs: P4Type) -> Bool {
@@ -101,21 +148,10 @@ public struct P4Struct: P4Type {
   }
 }
 
-/// The field of a P4 struct
-public struct P4StructField {
-  public let name: TypedIdentifier
-  public let type: P4Type
-
-  public init(withName name: TypedIdentifier, withType type: P4Type) {
-    self.name = name
-    self.type = type
-  }
-}
-
 /// An instance of a P4 struct
 public class P4StructValue: P4Value {
   public func type() -> any P4Type {
-    return P4Struct()
+    return self.stype
   }
 
   public func eq(rhs: any P4Value) -> Bool {
@@ -126,18 +162,37 @@ public class P4StructValue: P4Value {
     return "Struct"
   }
 
-  public let fields: [P4StructField]
-  public init(withFields fields: [P4StructField]) {
-    self.fields = fields
+  public let stype: P4Struct
+  public let values: [P4Value?]
+
+  public convenience init(withType type: P4Struct) {
+    self.init(withType: type, andInitializers: [])
+  }
+
+  public init(withType type: P4Struct, andInitializers initializers: [P4Value]) {
+    var values: [P4Value?] = Array(repeating: .none, count: type.fields.count())
+
+    for i in 0..<initializers.count {
+      values[i] = initializers[i]
+    }
+
+    self.values = values
+    self.stype = type
+  }
+
+  public func get(field: P4StructFieldIdentifier) -> P4Value? {
+    for field_idx in 0..<stype.fields.count() {
+      if stype.fields.fields[field_idx] == field {
+        return values[field_idx]
+      }
+    }
+    return .none
   }
 }
 
 /// A P4 boolean type
 public struct P4Boolean: P4Type {
-
-  public static func create() -> any P4Type {
-    return P4Boolean()
-  }
+  public init() {}
   public var description: String {
     return "Boolean"
   }
@@ -174,9 +229,8 @@ public class P4BooleanValue: P4Value {
 
 /// A P4 int type
 public struct P4Int: P4Type {
-  public static func create() -> any P4Type {
-    return P4Int()
-  }
+  public init() {}
+
   public var description: String {
     return "Int"
   }
@@ -216,10 +270,7 @@ public class P4IntValue: P4Value {
 
 /// A P4 string type
 public struct P4String: P4Type {
-
-  public static func create() -> any P4Type {
-    return P4String()
-  }
+  public init() {}
   public var description: String {
     return "String"
   }
@@ -258,13 +309,20 @@ public class Packet {
 
 /// A P4 array type
 public struct P4Array: P4Type {
-
-  public static func create() -> any P4Type {
-    return P4Array()
+  public init(withValueType vtype: P4Type) {
+    self.vtype = vtype
   }
+
+  let vtype: P4Type
+
+  public func value_type() -> P4Type {
+    return self.vtype
+  }
+
   public var description: String {
     return "Array"
   }
+
   public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
     case is P4Array: true
@@ -276,12 +334,14 @@ public struct P4Array: P4Type {
 /// An instance of a P4 array
 public class P4ArrayValue: P4Value {
   public func type() -> any P4Type {
-    return P4Array()
+    return P4Array(withValueType: self.vtype)
   }
 
   let value: [EvaluatableExpression]
+  let vtype: P4Type
 
-  public init(withValue value: [EvaluatableExpression]) {
+  public init(withType type: P4Type, withValue value: [EvaluatableExpression]) {
+    self.vtype = type
     self.value = value
   }
 

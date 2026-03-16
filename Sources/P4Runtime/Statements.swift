@@ -44,7 +44,7 @@ extension ConditionalStatement: EvaluatableStatement {
     guard case .Ok(let evaluated_condition) = self.condition.evaluate(execution: execution) else {
       return execution.setError(error: Error(withMessage: "Could not evaluate \(self.condition)"))
     }
-    if !evaluated_condition.type().eq(rhs: P4Boolean.create()) {
+    if !evaluated_condition.type().eq(rhs: P4Boolean()) {
       return execution.setError(error: Error(withMessage: "Condition expression is not a Boolean"))
     }
     if evaluated_condition.eq(rhs: P4BooleanValue.init(withValue: true)) {

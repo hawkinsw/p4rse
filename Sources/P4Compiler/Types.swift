@@ -24,19 +24,19 @@ import TreeSitterP4
 
 extension P4Boolean: CompilableType {
   public static func CompileType(type: String) -> Common.Result<(any Common.P4Type)?> {
-    return type == "bool" ? .Ok(P4Boolean.create()) : .Ok(.none)
+    return type == "bool" ? .Ok(P4Boolean()) : .Ok(.none)
   }
 }
 
 extension P4Int: CompilableType {
   public static func CompileType(type: String) -> Common.Result<(any Common.P4Type)?> {
-    return type == "int" ? .Ok(P4Int.create()) : .Ok(.none)
+    return type == "int" ? .Ok(P4Int()) : .Ok(.none)
   }
 }
 
 extension P4String: CompilableType {
   public static func CompileType(type: String) -> Common.Result<(any Common.P4Type)?> {
-    return type == "string" ? .Ok(P4String.create()) : .Ok(.none)
+    return type == "string" ? .Ok(P4String()) : .Ok(.none)
   }
 }
 public struct Types {

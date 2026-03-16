@@ -76,9 +76,24 @@ public struct BinaryOperatorExpression {
 public struct ArrayAccessExpression {
   public let indexor: EvaluatableExpression
   public let name: EvaluatableExpression
+  public let type: P4Array
 
-  public init(withName name: EvaluatableExpression, withIndexor indexor: EvaluatableExpression) {
+  public init(
+    withName name: EvaluatableExpression, withType type: P4Array,
+    withIndexor indexor: EvaluatableExpression
+  ) {
     self.name = name
+    self.type = type
     self.indexor = indexor
+  }
+}
+
+public struct FieldAccessExpression {
+  public let field: P4StructFieldIdentifier
+  public let strct: EvaluatableExpression
+
+  public init(withStruct strct: EvaluatableExpression, withField field: P4StructFieldIdentifier) {
+    self.strct = strct
+    self.field = field
   }
 }

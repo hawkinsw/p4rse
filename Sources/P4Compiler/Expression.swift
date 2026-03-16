@@ -110,7 +110,7 @@ struct Expression {
 
     let localElementsParsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
-      BinaryOperatorExpression.self, ArrayAccessExpression.self,
+      BinaryOperatorExpression.self, ArrayAccessExpression.self, FieldAccessExpression.self,
     ]
 
     for le_parser in localElementsParsers {
@@ -307,7 +307,7 @@ extension BinaryOperatorExpression: CompilableExpression {
 
     return .Ok(
       BinaryOperatorExpression(
-        withEvaluator: ("Binary Equal", P4Boolean.create(), binary_equal_operator_evaluator),
+        withEvaluator: ("Binary Equal", P4Boolean(), binary_equal_operator_evaluator),
         withLhs: left_hand_side, withRhs: right_hand_side))
   }
 }
@@ -370,12 +370,110 @@ extension ArrayAccessExpression: CompilableExpression {
       return Result.Error(maybe_array_identifier.error()!)
     }
 
+    let maybe_array_type = array_identifier.type()
+    guard let array_type = maybe_array_type as? P4Array else {
+      return Result.Error(
+        ErrorOnNode(
+          node: array_access_identifier_node,
+          withError: "\(array_identifier) does not name an array type")
+      )
+    }
+
     let maybe_array_indexor = Expression.Compile(
       node: array_access_indexor_node, withContext: context)
     guard case Result.Ok(let array_indexor) = maybe_array_indexor else {
       return Result.Error(maybe_array_indexor.error()!)
     }
 
-    return .Ok(ArrayAccessExpression(withName: array_identifier, withIndexor: array_indexor))
+    return .Ok(
+      ArrayAccessExpression(
+        withName: array_identifier, withType: array_type, withIndexor: array_indexor))
+  }
+}
+
+extension FieldAccessExpression: CompilableExpression {
+  static func compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(any Common.EvaluatableExpression)?> {
+    let expression = node.child(at: 0)!
+
+    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+      node: expression, type: "fieldAccessExpression")
+
+    let field_access_expression_node = expression
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+
+    // What is the "name" of the struct?
+    if field_access_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Malformed field access expression"))
+    }
+    currentChild = expression.child(at: currentChildIdx)
+
+    #RequireNodeType<Node, EvaluatableExpression?>(
+      node: currentChild!, type: "expression",
+      nice_type_name: "struct identifier expression")
+    let struct_identifier_node = currentChild!
+
+    // Check for the .
+    currentChildIdx = currentChildIdx + 1
+    currentChildIdxSafe = currentChildIdxSafe + 1
+    if field_access_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing . for field access expression")
+      )
+    }
+
+    // What is the field of the struct?
+    currentChildIdx = currentChildIdx + 1
+    currentChildIdxSafe = currentChildIdxSafe + 1
+    if field_access_expression_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing field name for field access expression")
+      )
+    }
+    currentChild = field_access_expression_node.child(at: currentChildIdx)
+
+    #RequireNodeType<Node, EvaluatableExpression?>(
+      node: currentChild!, type: "identifier",
+      nice_type_name: "field name")
+
+    let field_name_node = currentChild!
+
+    // Make sure that the identifier really identifies a struct.
+    let maybe_struct_identifier = Expression.Compile(
+      node: struct_identifier_node, withContext: context)
+    guard case Result.Ok(let struct_identifier) = maybe_struct_identifier else {
+      return Result.Error(maybe_struct_identifier.error()!)
+    }
+    guard let struct_type = struct_identifier.type() as? P4Struct else {
+      return .Error(
+        ErrorOnNode(
+          node: struct_identifier_node,
+          withError: "\(struct_identifier_node.text!) does not have struct type"))
+    }
+
+    let maybe_field_name = Identifier.Compile(
+      node: field_name_node, withContext: context)
+    guard case Result.Ok(let field_name) = maybe_field_name else {
+      return Result.Error(maybe_field_name.error()!)
+    }
+
+    // Make sure that the field is valid for the struct type.
+    let maybe_field_type = struct_type.fields.get_field_type(field_name)
+    guard let field_type = maybe_field_type else {
+      return .Error(
+        ErrorOnNode(
+          node: field_name_node,
+          withError: "\(field_name) is not a valid field for struct with type \(struct_type)"))
+    }
+
+    return .Ok(
+      FieldAccessExpression(
+        withStruct: struct_identifier,
+        withField: P4StructFieldIdentifier(id: field_name, withType: field_type)))
   }
 }

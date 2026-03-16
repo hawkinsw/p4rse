@@ -76,10 +76,16 @@ extension P4IntValue: EvaluatableExpression {
   }
 }
 
+extension P4ArrayValue: EvaluatableExpression {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    return .Ok(self)
+  }
+}
+
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableExpression {
   public func type() -> any Common.P4Type {
-    return self.parsed_type
+    return self.type
   }
 
   public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
@@ -139,6 +145,30 @@ extension ArrayAccessExpression: EvaluatableExpression {
   }
 
   public func type() -> any Common.P4Type {
-    return P4Int.create()
+    return self.type.value_type()
+  }
+}
+
+extension FieldAccessExpression: EvaluatableExpression {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    let maybe_struct = self.strct.evaluate(execution: execution)
+    guard case Result.Ok(let strct) = maybe_struct else {
+      return maybe_struct
+    }
+
+    guard let struct_strct = strct as? P4StructValue else {
+      return Result.Error(Error(withMessage: "\(strct) does not identify a struct"))
+    }
+
+    // TODO: Create a default value?
+    guard let value = struct_strct.get(field: self.field) else {
+      return .Error(Error(withMessage: "Missing value"))
+    }
+
+    return .Ok(value)
+  }
+
+  public func type() -> any Common.P4Type {
+    return self.field.type
   }
 }

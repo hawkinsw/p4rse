@@ -199,14 +199,12 @@ extension VariableDeclarationStatement: CompilableStatement {
         Error(withMessage: "Could not parse variable name"))
     }
 
+    let maybe_parsed_rvalue = Expression.Compile(node: rvalue, withContext: context)
+
     guard
-      case .Ok(let parsed_rvalue) = Expression.Compile(
-        node: rvalue, withContext: context)
+      case .Ok(let parsed_rvalue) = maybe_parsed_rvalue
     else {
-      return Result.Error(
-        Error(
-          withMessage:
-            "Could not parse initial value expression in a variable declaration statement"))
+      return .Error(maybe_parsed_rvalue.error()!)
     }
 
     guard case .Ok(let declaration_p4_type) = Types.CompileBasicType(type: typeref.text!) else {
