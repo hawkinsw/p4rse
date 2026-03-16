@@ -117,6 +117,7 @@ parser simple() {
   )
  )
 )
+
 =========================
 Simple Array Access
 =========================
@@ -152,6 +153,110 @@ parser simple() {
            (integer)
           )
           (close_bracket)
+         )
+        )
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+
+=========================
+Simple Struct Access
+=========================
+parser simple() {
+  state start {
+    abc.xyz;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (expressionStatement
+        (expression
+         (fieldAccessExpression
+          (expression
+           (identifier)
+          )
+          (field_access)
+          (identifier)
+         )
+        )
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+
+=========================
+Nested Struct Access
+=========================
+parser simple() {
+  state start {
+    abc.cde.xyz;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (expressionStatement
+        (expression
+         (fieldAccessExpression
+          (expression
+           (fieldAccessExpression
+            (expression
+             (identifier)
+            )
+            (field_access)
+            (identifier)
+           )
+          )
+          (field_access)
+          (identifier)
          )
         )
        )
