@@ -16,14 +16,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import Foundation
-import Common
 import Macros
 import SwiftTreeSitter
 import Testing
 import TreeSitter
 import TreeSitterP4
 
-@testable import P4Compiler
+@testable import Common
 
 @Test func test_simple_struct() async throws {
   let fields = P4StructFields([

@@ -41,7 +41,7 @@ import P4Lang
       Program.Compile(simple_parser_declaration)))
 }
 
-@Test func test_simple_parser_with_statement() async throws {
+@Test func test_simple_compilation_with_statement() async throws {
   let simple_parser_declaration = """
     parser main_parser() {
        state start {
@@ -61,7 +61,7 @@ import P4Lang
   #expect(state.statements.count == 1)
 }
 
-@Test func test_simple_parser_with_instantiation() async throws {
+@Test func test_simple_compilation_with_instantiation() async throws {
   let simple_parser_declaration = """
     parser main_parser() {
        state start {
@@ -95,7 +95,7 @@ import P4Lang
   #expect(compilation_error.msg.contains("asdf"))
 }
 
-@Test func test_simple_parser_macro_nodetype_test() async throws {
+@Test func test_simple_compiler_macro_nodetype_test() async throws {
   let simple = """
     parser main_parser() {
        state start {
@@ -113,6 +113,6 @@ import P4Lang
   #expect(
     #RequireErrorResult<(EvaluatableStatement, CompilerContext)>(
       Error(withMessage: "{2, 154}: Did not find assignment statement"),
-      ParserAssignmentStatement.Compile(
+      ParserAssignmentStatement.Compile( // Note: Calling ParserAssignmentStatement compilation directly.
         node: result.rootNode!, withContext: CompilerContext(withNames: LexicalScopes()))))
 }

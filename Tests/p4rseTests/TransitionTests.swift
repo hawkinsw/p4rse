@@ -27,49 +27,58 @@ import TreeSitterP4
 
 @testable import P4Compiler
 
-@Test func test_simple_runtime() async throws {
+@Test func test_simple_parser_with_transition_select_expression() async throws {
   let simple_parser_declaration = """
-    parser main_parser() {
-       state start {
-           true;
-           transition accept;
-       }
-    };
+      parser main_parser() {
+        state start {
+          transition select (true) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  // We should be in the accept state.
+  #expect(parser.states.count() == 1)
+
   #expect(state_result == P4Lang.accept)
 }
 
-@Test func test_simple_runtime_to_accept() async throws {
+@Test func test_simple_parser_with_transition_select_expression_to_reject() async throws {
   let simple_parser_declaration = """
-    parser main_parser() {
-       state start {
-           true;
-           transition reject;
-       }
-    };
+      parser main_parser() {
+        state start {
+          transition select (false) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  // We should be in the accept state.
+
+  #expect(parser.states.count() == 1)
   #expect(state_result == P4Lang.reject)
 }
 
-@Test func test_simple_runtime_no_start_state() async throws {
+@Test func test_no_matching_key_transition() async throws {
   let simple_parser_declaration = """
-    parser main_parser() {
-       state tart {
-           true;
-           transition reject;
-       }
-    };
+      parser main_parser() {
+        state start {
+          transition select (false) {
+            true: accept;
+          };
+        }
+      };
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
@@ -77,6 +86,6 @@ import TreeSitterP4
 
   #expect(
     #RequireErrorResult<(ParserState, ProgramExecution)>(
-      Error(withMessage: "Could not find the start state"),
+      Error(withMessage: "No key matched the selector"),
       runtime.run()))
 }

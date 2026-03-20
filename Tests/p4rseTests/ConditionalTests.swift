@@ -27,56 +27,56 @@ import TreeSitterP4
 
 @testable import P4Compiler
 
-@Test func test_simple_runtime() async throws {
+@Test func test_simple_parser_with_conditional_statement() async throws {
   let simple_parser_declaration = """
-    parser main_parser() {
-       state start {
-           true;
-           transition accept;
-       }
-    };
+      parser main_parser() {
+        state start {
+          bool x = true;
+          string check = "Invalid";
+          if (x) {
+            x = false;
+            check = "valid";
+          }
+          transition select (x) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  // We should be in the accept state.
-  #expect(state_result == P4Lang.accept)
-}
-
-@Test func test_simple_runtime_to_accept() async throws {
-  let simple_parser_declaration = """
-    parser main_parser() {
-       state start {
-           true;
-           transition reject;
-       }
-    };
-    """
-
-  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
-  let (state_result, _) = try! #UseOkResult(runtime.run())
-  // We should be in the accept state.
   #expect(state_result == P4Lang.reject)
 }
 
-@Test func test_simple_runtime_no_start_state() async throws {
+@Test func test_simple_parser_with_conditional_statement_and_else() async throws {
   let simple_parser_declaration = """
-    parser main_parser() {
-       state tart {
-           true;
-           transition reject;
-       }
-    };
+      parser main_parser() {
+        state start {
+          bool x = false;
+          string check = "Invalid";
+          if (x) {
+            x = false;
+            check = "a";
+          } else {
+            x = true;
+            check = "b";
+          }
+          transition select (x) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(
-    #RequireErrorResult<(ParserState, ProgramExecution)>(
-      Error(withMessage: "Could not find the start state"),
-      runtime.run()))
+  #expect(state_result == P4Lang.accept)
+
 }
