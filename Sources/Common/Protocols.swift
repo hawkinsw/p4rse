@@ -40,3 +40,8 @@ public protocol P4Value: CustomStringConvertible {
   func type() -> any P4Type
   func eq(rhs: P4Value) -> Bool
 }
+
+public protocol EvaluatableLValueExpression: EvaluatableExpression {
+  func set(to: P4Value, inScopes scopes: ValueScopes, duringExecution execution: ProgramExecution) -> Result<(ValueScopes, P4Value)>
+  func check(to: EvaluatableExpression, inScopes scopes: TypeScopes) -> Result<()>
+}

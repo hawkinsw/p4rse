@@ -24,9 +24,13 @@ extension ParserAssignmentStatement: EvaluatableStatement {
     guard case Result.Ok(let value) = result else {
       return execution.setError(error: result.error()!)
     }
-    let updated_scopes = execution.scopes.set(identifier: self.lvalue, withValue: value)
 
-    execution.scopes = updated_scopes
+    let maybe_updated_scopes = self.lvalue.set(
+      to: value, inScopes: execution.scopes, duringExecution: execution)
+    guard case Result.Ok(let updated_scopes) = maybe_updated_scopes else {
+      return execution.setError(error: maybe_updated_scopes.error()!)
+    }
+    execution.scopes = updated_scopes.0
 
     return execution
   }

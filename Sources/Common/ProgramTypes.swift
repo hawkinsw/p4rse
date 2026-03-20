@@ -117,6 +117,18 @@ public struct P4StructFields: Sequence, CustomStringConvertible, Equatable {
   public func count() -> Int {
     return self.fields.count
   }
+
+  public func describe_with_values(values: [P4Value?]) -> String {
+    assert(values.count == self.count())
+    return zip(self.fields, values).map() { (field, value) in 
+      let actual_value = if let v = value {
+        v.description
+      } else {
+        "Unset"
+      }
+      return String("\(field): \(actual_value)")
+    }.joined(separator: "; ")
+  }
 }
 
 /// The type for a P4 struct
@@ -159,7 +171,7 @@ public class P4StructValue: P4Value {
   }
 
   public var description: String {
-    return "Struct"
+    return "Struct: \(self.stype.fields.describe_with_values(values: self.values))"
   }
 
   public let stype: P4Struct
@@ -169,7 +181,7 @@ public class P4StructValue: P4Value {
     self.init(withType: type, andInitializers: [])
   }
 
-  public init(withType type: P4Struct, andInitializers initializers: [P4Value]) {
+  public init(withType type: P4Struct, andInitializers initializers: [P4Value?]) {
     var values: [P4Value?] = Array(repeating: .none, count: type.fields.count())
 
     for i in 0..<initializers.count {
@@ -188,6 +200,23 @@ public class P4StructValue: P4Value {
     }
     return .none
   }
+
+  public func set(field: P4StructFieldIdentifier, to: P4Value) -> Result<P4StructValue> {
+    var updated_values = self.values
+
+    for field_idx in 0..<stype.fields.count() {
+      if stype.fields.fields[field_idx] == field {
+        if !stype.fields.fields[field_idx].type.eq(rhs: to.type()) {
+          return .Error(Error(withMessage: "Cannot assign value with type \(to.type()) to field with type \(stype.fields.fields[field_idx].type))"))
+        }
+        updated_values[field_idx] = to
+        break
+      }
+    }
+
+    return .Ok(P4StructValue(withType: self.stype, andInitializers: updated_values))
+  }
+
 }
 
 /// A P4 boolean type
@@ -337,16 +366,23 @@ public class P4ArrayValue: P4Value {
     return P4Array(withValueType: self.vtype)
   }
 
-  let value: [EvaluatableExpression]
+  let value: [P4Value]
   let vtype: P4Type
 
-  public init(withType type: P4Type, withValue value: [EvaluatableExpression]) {
+  public init(withType type: P4Type, withValue value: [P4Value]) {
     self.vtype = type
     self.value = value
   }
 
-  public func access(_ index: Int) -> EvaluatableExpression {
+  public func access(_ index: Int) -> P4Value {
     return self.value[index]
+  }
+
+  public func set(index: Int, to: P4Value) -> Result<P4ArrayValue> {
+    // TODO: Check for OOB
+    var updated_values = self.value
+    updated_values[index] = to
+    return Result.Ok(P4ArrayValue(withType: self.vtype, withValue: updated_values))
   }
 
   public func eq(rhs: P4Value) -> Bool {

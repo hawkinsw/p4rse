@@ -22,65 +22,6 @@ import SwiftTreeSitter
 import TreeSitterExtensions
 import TreeSitterP4
 
-extension ParserAssignmentStatement: CompilableStatement {
-  public static func Compile(
-    node: Node, withContext context: CompilerContext
-  ) -> Result<(EvaluatableStatement, CompilerContext)> {
-
-    #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
-      node: node, type: "assignmentStatement", nice_type_name: "assignment statement")
-
-    guard let lvalue_node = node.child(at: 0),
-      lvalue_node.nodeType == "expression"
-    else {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing lvalue in assignment statement"))
-    }
-
-    guard let rvalue_node = node.child(at: 2),
-      rvalue_node.nodeType == "expression"
-    else {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing rvalue in assignment statement"))
-    }
-
-    let maybe_parsed_rvalue = Expression.Compile(
-      node: rvalue_node, withContext: context)
-    guard case Result.Ok(let rvalue) = maybe_parsed_rvalue else {
-      return Result.Error(maybe_parsed_rvalue.error()!)
-    }
-
-    let maybe_parsed_lvalue = LValue.Compile(node: lvalue_node, withContext: context)
-    guard case .Ok(let lvalue_identifier) = maybe_parsed_lvalue else {
-      return Result.Error(maybe_parsed_lvalue.error()!)
-    }
-    guard case Result.Ok(let lvalue_type) = context.names.lookup(identifier: lvalue_identifier)
-    else {
-      return Result.Error(
-        ErrorOnNode(
-          node: lvalue_node,
-          withError: "Cannot assign to variable \(lvalue_identifier) not in scope"))
-    }
-
-    if rvalue.type().eq(rhs: lvalue_type) {
-      return Result.Ok(
-        (
-          ParserAssignmentStatement(
-            withLValue: TypedIdentifier(name: lvalue_node.text!, withType: lvalue_type),
-            withValue: rvalue
-          ), context
-        ))
-
-    } else {
-      return Result.Error(
-        ErrorOnNode(
-          node: node,
-          withError:
-            "Cannot assign value of type \(rvalue.type()) to \(lvalue_identifier) (with type \(lvalue_type))"
-        ))
-    }
-  }
-}
 
 public struct Parser {
   public struct LocalElements {

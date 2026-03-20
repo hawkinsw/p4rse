@@ -27,6 +27,12 @@ protocol CompilableExpression {
   ) -> Result<EvaluatableExpression?>
 }
 
+protocol CompilableLValueExpression {
+  static func compile_as_lvalue(
+    node: Node, withContext context: CompilerContext
+  ) -> Result<EvaluatableLValueExpression?>
+}
+
 extension TypedIdentifier: CompilableExpression {
   static func compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
@@ -44,6 +50,26 @@ extension TypedIdentifier: CompilableExpression {
     }
 
     return .Ok(TypedIdentifier(name: node.text!, withType: type))
+  }
+}
+
+extension TypedIdentifier: CompilableLValueExpression {
+  static func compile_as_lvalue(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Result<EvaluatableLValueExpression?> {
+
+    let expression = node.child(at: 0)!
+    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+      node: expression, type: "identifier")
+
+    let maybe_parsed_expression =  TypedIdentifier.compile(node: node, withContext: context)
+    guard case .Ok(let maybe_typed_identifier)  = maybe_parsed_expression else {
+      return .Error(maybe_parsed_expression.error()!)
+    }
+
+    let typed_identifier_expression = maybe_typed_identifier as! TypedIdentifier
+
+    return Result.Ok(typed_identifier_expression)
   }
 }
 
@@ -130,12 +156,25 @@ struct Expression {
 struct LValue {
   public static func Compile(
     node: Node, withContext: CompilerContext
-  ) -> Result<Common.Identifier> {
-    return if let node_text_value = node.text {
-      .Ok(Common.Identifier(name: node_text_value))
-    } else {
-      .Error(Error(withMessage: "Could not parse an identifier for an LValue"))
+  ) -> Result<EvaluatableLValueExpression> {
+
+    // Try to compile all the expressions that are LValuable!
+
+    let lvalueParsers: [CompilableLValueExpression.Type] = [
+      TypedIdentifier.self, FieldAccessExpression.self, ArrayAccessExpression.self,
+    ]
+
+    for lvalue_parser in lvalueParsers {
+      switch lvalue_parser.compile_as_lvalue(
+        node: node, withContext: withContext)
+      {
+      case .Ok(.some(let parsed)): return .Ok(parsed)
+      case .Error(let e): return .Error(e)
+      default: continue
+      }
     }
+
+    return Result.Error(Error(withMessage: "\(node.range): Could not parse into expression"))
   }
 }
 
@@ -475,5 +514,43 @@ extension FieldAccessExpression: CompilableExpression {
       FieldAccessExpression(
         withStruct: struct_identifier,
         withField: P4StructFieldIdentifier(id: field_name, withType: field_type)))
+  }
+}
+
+extension FieldAccessExpression: CompilableLValueExpression {
+  static func compile_as_lvalue(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Result<EvaluatableLValueExpression?> {
+    let expression = node.child(at: 0)!
+    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+      node: expression, type: "fieldAccessExpression")
+
+    let maybe_parsed_expression =  FieldAccessExpression.compile(node: node, withContext: context)
+    guard case .Ok(let maybe_field_access_expression)  = maybe_parsed_expression else {
+      return .Error(maybe_parsed_expression.error()!)
+    }
+
+    let field_access_expression = maybe_field_access_expression as! FieldAccessExpression
+
+    return Result.Ok(field_access_expression)
+  }
+}
+
+extension ArrayAccessExpression: CompilableLValueExpression {
+  static func compile_as_lvalue(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Result<EvaluatableLValueExpression?> {
+    let expression = node.child(at: 0)!
+    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+      node: expression, type: "arrayAccessExpression")
+
+    let maybe_parsed_expression =  ArrayAccessExpression.compile(node: node, withContext: context)
+    guard case .Ok(let maybe_array_access_expression)  = maybe_parsed_expression else {
+      return .Error(maybe_parsed_expression.error()!)
+    }
+
+    let array_access_expression = maybe_array_access_expression as! ArrayAccessExpression
+
+    return Result.Ok(array_access_expression)
   }
 }
