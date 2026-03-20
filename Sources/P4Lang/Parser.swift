@@ -83,6 +83,10 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
     state = name
     statements = Array()
   }
+
+  public func def() -> any P4Value {
+    return ParserState(name: Identifier(name: ""))
+  }
 }
 
 public class ParserStateDirectTransition: ParserState {
@@ -210,5 +214,9 @@ public struct Parser: P4Type, P4Value {
 
   public var description: String {
     return "Parser"
+  }
+
+  public func def() -> any P4Value {
+    return Parser(withName: Identifier(name: ""))
   }
 }

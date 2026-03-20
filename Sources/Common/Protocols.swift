@@ -34,14 +34,21 @@ public protocol EvaluatableStatement {
 
 public protocol P4Type: CustomStringConvertible {
   func eq(rhs: any P4Type) -> Bool
+  func def() -> P4Value
 }
 
-public protocol P4Value: CustomStringConvertible {
+public protocol P4Value: EvaluatableExpression, CustomStringConvertible {
   func type() -> any P4Type
   func eq(rhs: P4Value) -> Bool
 }
 
+public extension P4Value {
+  func evaluate(execution: ProgramExecution) -> Result<P4Value> {
+    return Result.Ok(self)
+  }
+}
+
 public protocol EvaluatableLValueExpression: EvaluatableExpression {
-  func set(to: P4Value, inScopes scopes: ValueScopes, duringExecution execution: ProgramExecution) -> Result<(ValueScopes, P4Value)>
-  func check(to: EvaluatableExpression, inScopes scopes: TypeScopes) -> Result<()>
+  func set(to: P4Value, inScopes scopes: VarValueScopes, duringExecution execution: ProgramExecution) -> Result<(VarValueScopes, P4Value)>
+  func check(to: EvaluatableExpression, inScopes scopes: VarTypeScopes) -> Result<()>
 }

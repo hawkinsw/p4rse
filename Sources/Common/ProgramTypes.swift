@@ -158,6 +158,10 @@ public struct P4Struct: P4Type {
       false
     }
   }
+
+  public func def() -> any P4Value {
+    return P4StructValue(withType: self)
+  }
 }
 
 /// An instance of a P4 struct
@@ -231,6 +235,9 @@ public struct P4Boolean: P4Type {
     default: false
     }
   }
+  public func def() -> any P4Value {
+    return P4BooleanValue(withValue: false)
+  }
 }
 
 /// An instance of a P4 boolean
@@ -268,6 +275,9 @@ public struct P4Int: P4Type {
     case is P4Int: true
     default: false
     }
+  }
+  public func def() -> any P4Value {
+    return P4IntValue(withValue: 0)
   }
 }
 
@@ -308,6 +318,9 @@ public struct P4String: P4Type {
     case is P4String: true
     default: false
     }
+  }
+  public func def() -> any P4Value {
+    return P4StringValue(withValue: "")
   }
 }
 /// An instance of a P4 string
@@ -357,6 +370,10 @@ public struct P4Array: P4Type {
     case is P4Array: true
     default: false
     }
+  }
+
+  public func def() -> P4Value {
+    return P4ArrayValue(withType: self, withValue: [])
   }
 }
 
