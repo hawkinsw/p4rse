@@ -182,14 +182,6 @@ extension VariableDeclarationStatement: CompilableStatement {
     }
 
     let maybe_rvalue = node.childCount > 3 ? node.child(at: 3) : .none
-    guard let rvalue = maybe_rvalue,
-      rvalue.nodeType == "expression"
-    else {
-      return Result.Error(
-        ErrorOnNode(
-          node: node,
-          withError: "Did not find initial value expression for variable declaration statement"))
-    }
 
     guard
       case .Ok(let parsed_variablename) = Identifier.Compile(
@@ -199,38 +191,47 @@ extension VariableDeclarationStatement: CompilableStatement {
         Error(withMessage: "Could not parse variable name"))
     }
 
-    let maybe_parsed_rvalue = Expression.Compile(node: rvalue, withContext: context)
-
-    guard
-      case .Ok(let parsed_rvalue) = maybe_parsed_rvalue
-    else {
-      return .Error(maybe_parsed_rvalue.error()!)
-    }
-
-    guard case .Ok(let declaration_p4_type) = Types.CompileBasicType(type: typeref.text!) else {
+    guard case .Ok(let declaration_p4_type) = Types.CompileType(type: typeref, withContext: context) else {
       return Result.Error(
         Error(withMessage: "Could not parse a P4 type from \(typeref.text!)"))
     }
 
-    if parsed_rvalue.type().eq(rhs: declaration_p4_type) {
-      return Result.Ok(
-        (
-          VariableDeclarationStatement(
-            identifier: parsed_variablename, withInitializer: parsed_rvalue),
-          // Context with updated names to include the newly declared name.
-          context.update(
-            newNames: context.names.declare(
-              identifier: parsed_variablename, withValue: declaration_p4_type))
-        ))
+    var initializer: EvaluatableExpression = declaration_p4_type.def()
+    // If there is an initializer, it must be an expression.
+    if let rvalue = maybe_rvalue {
+      guard rvalue.nodeType == "expression" else {
+        return Result.Error(
+          ErrorOnNode(
+            node: node,
+            withError: "initial value for declaration statement is not an expression"))
+      }
 
-    } else {
-      return Result.Error(
-        Error(
-          withMessage:
-            "Cannot initialize \(parsed_variablename) (with type \(declaration_p4_type)) from rvalue with type \(parsed_rvalue.type())"
-        ))
+      let maybe_parsed_rvalue = Expression.Compile(node: rvalue, withContext: context)
+      guard
+        case .Ok(let parsed_rvalue) = maybe_parsed_rvalue
+      else {
+        return .Error(maybe_parsed_rvalue.error()!)
+      }
 
+      if parsed_rvalue.type().eq(rhs: declaration_p4_type) {
+        initializer = parsed_rvalue
+      } else {
+        return Result.Error(
+          Error(
+            withMessage:
+              "Cannot initialize \(parsed_variablename) (with type \(declaration_p4_type)) from rvalue with type \(parsed_rvalue.type())"
+          ))
+      }
     }
+    return Result.Ok(
+      (
+        VariableDeclarationStatement(
+          identifier: parsed_variablename, withInitializer: initializer),
+        // Context with updated names to include the newly declared name.
+        context.update(
+          newNames: context.names.declare(
+            identifier: parsed_variablename, withValue: declaration_p4_type))
+      ))
   }
 }
 

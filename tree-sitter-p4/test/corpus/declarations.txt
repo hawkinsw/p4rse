@@ -186,3 +186,47 @@ parser simple() {
  )
 )
 
+=========================
+Non Basic Type Declaration (No Initial Value)
+=========================
+parser simple() {
+  state start {
+    header_t header;
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (variableDeclaration
+        (typeRef
+         (type_identifier)
+        )
+        (identifier)
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+

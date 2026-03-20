@@ -34,7 +34,7 @@ export default grammar({
         direction: $ => choice($.in, $.out, $.inout),
 
         // Common - Types
-        typeRef: $ => $.baseType,
+        typeRef: $ => choice($.baseType, $.type_identifier),
         baseType: $ => choice($.bool, $.error, $.string, $.int, $.bit /* omitting "templated" types" */),
         constructorParameters: $ => seq('(', optional($.parameterList), ')'),
 
@@ -148,11 +148,11 @@ export default grammar({
         varbit: $ => "varbit",
         valueset: $ => "valueset",
         void: $ => "void",
-        identifier: $ => /[a-z_]+/,
-        type_identifier: $ => /[a-z]+/,
+        identifier: $ => /[A-Za-z_]+/,
+        type_identifier: $ => /[A-Za-z_]+/,
         string_literal: $ => /".*"/,
         integer: $ => /[0-9]+/,
-        annotation_literal: $ => /@[a-z_]+/,
+        annotation_literal: $ => /@[A-Za-z_]+/,
         double_equal: $=> '==',
         open_bracket: $=> '[',
         close_bracket: $=> ']',

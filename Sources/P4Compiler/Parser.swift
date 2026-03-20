@@ -64,9 +64,6 @@ public struct Parser {
         "variableDeclaration": VariableDeclarationStatement.self,
         "conditionalStatement": ConditionalStatement.self, "blockStatement": BlockStatement.self,
       ]
-
-      // Iterate through statement parsers and give each one a chance.
-
       guard let parser = statementParsers[statement.nodeType ?? ""] else {
         return Result.Error(
           ErrorOnNode(
@@ -151,7 +148,7 @@ public struct Parser {
         return Result.Error(ErrorOnNode(node: node, withError: "Did not find expected statements"))
       }
 
-      var parse_err: Error? = .none
+      var parse_errs: [Error] = Array()
       var current_context = context
       var parsed_s: [EvaluatableStatement] = Array()
 
@@ -163,12 +160,14 @@ public struct Parser {
           current_context = updated_context
           parsed_s.append(parsed_statement)
         case .Error(let e):
-          parse_err = e
+          parse_errs.append(e)
         }
       }
 
-      if let parse_err = parse_err {
-        return Result.Error(parse_err)
+      if !parse_errs.isEmpty {
+        return Result.Error(Error(withMessage: parse_errs.map() { err in
+          return String(err.msg)
+        }.joined(separator: ";")))
       }
       return Result.Ok((parsed_s, current_context))
     }
@@ -224,7 +223,7 @@ public struct Parser {
       currentChildIdx += 2
       currentChildIdxSafe += 2
 
-      var parse_err: Error? = .none
+      var parse_errs: [Error] = Array()
       var current_context = context
       var parsed_s: [EvaluatableStatement] = Array()
 
@@ -240,14 +239,16 @@ public struct Parser {
           parsed_s = state_statements
           current_context = updated_context
         case .Error(let error):
-          parse_err = error
+          parse_errs.append(error)
         }
         currentChildIdx += 1
         currentChildIdxSafe += 1
       }
 
-      if let parse_err = parse_err {
-        return Result.Error(parse_err)
+      if !parse_errs.isEmpty {
+        return Result.Error(Error(withMessage: parse_errs.map() { err in
+          return String(err.msg)
+        }.joined(separator: ";")))
       }
 
       if node.childCount < currentChildIdxSafe {

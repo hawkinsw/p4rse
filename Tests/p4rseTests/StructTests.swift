@@ -62,6 +62,65 @@ import TreeSitterP4
   #expect(state_result == P4Lang.accept)
 }
 
+@Test func test_field_access_declared() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          Testing ts;
+          ts.yesno = true;
+          bool where_to = ts.yesno;
+          transition select (where_to) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  var test_types = TypeTypeScopes().enter()
+  let fields = P4StructFields([
+    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
+    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+  ])
+  let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
+  test_types = test_types.declare(identifier: Identifier(name: "Testing"), withValue: struct_type)
+
+ let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration, withGlobalInstances: .none, withGlobalTypes: test_types))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_field_access_declared2() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          Testing ts;
+          ts.yesno = true;
+          ts.count = 5;
+          bool where_to = ts.yesno;
+          transition select (ts.count == 5) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  var test_types = TypeTypeScopes().enter()
+  let fields = P4StructFields([
+    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
+    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+  ])
+  let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
+  test_types = test_types.declare(identifier: Identifier(name: "Testing"), withValue: struct_type)
+
+ let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration, withGlobalInstances: .none, withGlobalTypes: test_types))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+  #expect(state_result == P4Lang.accept)
+}
+
 @Test func test_field_access_opp() async throws {
   let simple_parser_declaration = """
       parser main_parser() {
