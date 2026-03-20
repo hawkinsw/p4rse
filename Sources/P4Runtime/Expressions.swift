@@ -66,7 +66,8 @@ extension TypedIdentifier: EvaluatableExpression {
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes, duringExecution execution: ProgramExecution
+    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes,
+    duringExecution execution: ProgramExecution
   ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     if case .Error(let e) = scopes.lookup(identifier: self) {
       return .Error(e)
@@ -75,13 +76,18 @@ extension TypedIdentifier: EvaluatableLValueExpression {
     return .Ok((scopes.set(identifier: self, withValue: to), to))
   }
 
-  public func check(to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes) -> Result<()> {
+  public func check(
+    to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
+  ) -> Result<()> {
     guard case .Ok(let type) = scopes.lookup(identifier: self) else {
       return .Error(Error(withMessage: "Cannot assign to identifier not in scope"))
     }
 
     if !type.eq(rhs: to.type()) {
-      return .Error(Error(withMessage: "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type)"))
+      return .Error(
+        Error(
+          withMessage:
+            "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type)"))
     }
     return .Ok(())
   }
@@ -145,7 +151,8 @@ extension ArrayAccessExpression: EvaluatableExpression {
 
 extension ArrayAccessExpression: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes, duringExecution execution: ProgramExecution
+    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes,
+    duringExecution execution: ProgramExecution
   ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     // For purposes of documentation, assume the field access expression we are evaluating is
     // (strct_id)[indexor] = new_value
@@ -155,19 +162,21 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
     // First, evaluate strct_id and make sure that it names a struct.
     let maybe_value = self.name.evaluate(execution: execution)
     guard case .Ok(let value) = maybe_value else {
-        return Result.Error(Error(withMessage: "\(self.name) cannot be evaluated: \(maybe_value.error()!)"))
+      return Result.Error(
+        Error(withMessage: "\(self.name) cannot be evaluated: \(maybe_value.error()!)"))
     }
     guard let array_value = value as? P4ArrayValue else {
-        return Result.Error(Error(withMessage: "\(self.name) does not identify a struct"))
+      return Result.Error(Error(withMessage: "\(self.name) does not identify a struct"))
     }
 
     // Now, get the indexor!
     let maybe_indexor_value = self.indexor.evaluate(execution: execution)
     guard case .Ok(let indexor_value) = maybe_indexor_value else {
-        return Result.Error(Error(withMessage: "\(self.indexor) cannot be evaluated: \(maybe_indexor_value.error()!)"))
+      return Result.Error(
+        Error(withMessage: "\(self.indexor) cannot be evaluated: \(maybe_indexor_value.error()!)"))
     }
     guard let indexor_int = indexor_value as? P4IntValue else {
-        return Result.Error(Error(withMessage: "\(self.indexor) cannot be used to index an array"))
+      return Result.Error(Error(withMessage: "\(self.indexor) cannot be used to index an array"))
     }
 
     // Now we have an array and an index!
@@ -187,7 +196,11 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
   ) -> Common.Result<()> {
 
     if !self.type.value_type().eq(rhs: to.type()) {
-      return .Error(Error(withMessage: "Cannot assign value of type \(to.type()) to array with values of type \(self.name.type())"))
+      return .Error(
+        Error(
+          withMessage:
+            "Cannot assign value of type \(to.type()) to array with values of type \(self.name.type())"
+        ))
     }
     return .Ok(())
   }
@@ -219,7 +232,8 @@ extension FieldAccessExpression: EvaluatableExpression {
 
 extension FieldAccessExpression: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes, duringExecution execution: ProgramExecution
+    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes,
+    duringExecution execution: ProgramExecution
   ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     // For purposes of documentation, assume the field access expression we are evaluating is
     // (strct_id).field_id = new_field_value
@@ -229,11 +243,12 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
     // First, evaluate strct_id and make sure that it names a struct.
     let maybe_value = self.strct.evaluate(execution: execution)
     guard case .Ok(let value) = maybe_value else {
-        return Result.Error(Error(withMessage: "\(self.strct) cannot be evaluated: \(maybe_value.error()!)"))
+      return Result.Error(
+        Error(withMessage: "\(self.strct) cannot be evaluated: \(maybe_value.error()!)"))
     }
 
     guard let struct_value = value as? P4StructValue else {
-        return Result.Error(Error(withMessage: "\(self.strct) does not identify a struct"))
+      return Result.Error(Error(withMessage: "\(self.strct) does not identify a struct"))
     }
 
     // Now we know that struct_id identifies a structure value.
@@ -255,8 +270,11 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
     to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
   ) -> Common.Result<()> {
 
-    if !self.field.type.eq(rhs:to.type()) {
-      return .Error(Error(withMessage: "Cannot assign value of type \(to.type()) to field with type \(self.field.type)"))
+    if !self.field.type.eq(rhs: to.type()) {
+      return .Error(
+        Error(
+          withMessage:
+            "Cannot assign value of type \(to.type()) to field with type \(self.field.type)"))
     }
     return .Ok(())
   }

@@ -120,12 +120,13 @@ public struct P4StructFields: Sequence, CustomStringConvertible, Equatable {
 
   public func describe_with_values(values: [P4Value?]) -> String {
     assert(values.count == self.count())
-    return zip(self.fields, values).map() { (field, value) in 
-      let actual_value = if let v = value {
-        v.description
-      } else {
-        "Unset"
-      }
+    return zip(self.fields, values).map { (field, value) in
+      let actual_value =
+        if let v = value {
+          v.description
+        } else {
+          "Unset"
+        }
       return String("\(field): \(actual_value)")
     }.joined(separator: "; ")
   }
@@ -211,7 +212,11 @@ public class P4StructValue: P4Value {
     for field_idx in 0..<stype.fields.count() {
       if stype.fields.fields[field_idx] == field {
         if !stype.fields.fields[field_idx].type.eq(rhs: to.type()) {
-          return .Error(Error(withMessage: "Cannot assign value with type \(to.type()) to field with type \(stype.fields.fields[field_idx].type))"))
+          return .Error(
+            Error(
+              withMessage:
+                "Cannot assign value with type \(to.type()) to field with type \(stype.fields.fields[field_idx].type))"
+            ))
         }
         updated_values[field_idx] = to
         break

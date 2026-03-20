@@ -22,7 +22,6 @@ import SwiftTreeSitter
 import TreeSitterExtensions
 import TreeSitterP4
 
-
 public struct Parser {
   public struct LocalElements {
     static func Compile(
@@ -165,9 +164,11 @@ public struct Parser {
       }
 
       if !parse_errs.isEmpty {
-        return Result.Error(Error(withMessage: parse_errs.map() { err in
-          return String(err.msg)
-        }.joined(separator: ";")))
+        return Result.Error(
+          Error(
+            withMessage: parse_errs.map { err in
+              return String(err.msg)
+            }.joined(separator: ";")))
       }
       return Result.Ok((parsed_s, current_context))
     }
@@ -246,9 +247,11 @@ public struct Parser {
       }
 
       if !parse_errs.isEmpty {
-        return Result.Error(Error(withMessage: parse_errs.map() { err in
-          return String(err.msg)
-        }.joined(separator: ";")))
+        return Result.Error(
+          Error(
+            withMessage: parse_errs.map { err in
+              return String(err.msg)
+            }.joined(separator: ";")))
       }
 
       if node.childCount < currentChildIdxSafe {

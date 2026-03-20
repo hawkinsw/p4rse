@@ -26,4 +26,3 @@ public typealias TypeTypeScope = Scope<P4Type>
 
 /// Scopes that resolve type identifiers to their types.
 public typealias TypeTypeScopes = Scopes<P4Type>
-

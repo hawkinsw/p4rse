@@ -29,7 +29,9 @@ public struct ParserAssignmentStatement {
   public let lvalue: EvaluatableLValueExpression
   public let value: EvaluatableExpression
 
-  public init(withLValue lvalue: EvaluatableLValueExpression, withValue value: EvaluatableExpression) {
+  public init(
+    withLValue lvalue: EvaluatableLValueExpression, withValue value: EvaluatableExpression
+  ) {
     self.lvalue = lvalue
     self.value = value
   }

@@ -191,7 +191,8 @@ extension VariableDeclarationStatement: CompilableStatement {
         Error(withMessage: "Could not parse variable name"))
     }
 
-    guard case .Ok(let declaration_p4_type) = Types.CompileType(type: typeref, withContext: context) else {
+    guard case .Ok(let declaration_p4_type) = Types.CompileType(type: typeref, withContext: context)
+    else {
       return Result.Error(
         Error(withMessage: "Could not parse a P4 type from \(typeref.text!)"))
     }

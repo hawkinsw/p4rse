@@ -62,8 +62,8 @@ extension TypedIdentifier: CompilableLValueExpression {
     #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
       node: expression, type: "identifier")
 
-    let maybe_parsed_expression =  TypedIdentifier.compile(node: node, withContext: context)
-    guard case .Ok(let maybe_typed_identifier)  = maybe_parsed_expression else {
+    let maybe_parsed_expression = TypedIdentifier.compile(node: node, withContext: context)
+    guard case .Ok(let maybe_typed_identifier) = maybe_parsed_expression else {
       return .Error(maybe_parsed_expression.error()!)
     }
 
@@ -525,8 +525,8 @@ extension FieldAccessExpression: CompilableLValueExpression {
     #SkipUnlessNodeType<Node, EvaluatableExpression?>(
       node: expression, type: "fieldAccessExpression")
 
-    let maybe_parsed_expression =  FieldAccessExpression.compile(node: node, withContext: context)
-    guard case .Ok(let maybe_field_access_expression)  = maybe_parsed_expression else {
+    let maybe_parsed_expression = FieldAccessExpression.compile(node: node, withContext: context)
+    guard case .Ok(let maybe_field_access_expression) = maybe_parsed_expression else {
       return .Error(maybe_parsed_expression.error()!)
     }
 
@@ -544,8 +544,8 @@ extension ArrayAccessExpression: CompilableLValueExpression {
     #SkipUnlessNodeType<Node, EvaluatableExpression?>(
       node: expression, type: "arrayAccessExpression")
 
-    let maybe_parsed_expression =  ArrayAccessExpression.compile(node: node, withContext: context)
-    guard case .Ok(let maybe_array_access_expression)  = maybe_parsed_expression else {
+    let maybe_parsed_expression = ArrayAccessExpression.compile(node: node, withContext: context)
+    guard case .Ok(let maybe_array_access_expression) = maybe_parsed_expression else {
       return .Error(maybe_parsed_expression.error()!)
     }
 

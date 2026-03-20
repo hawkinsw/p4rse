@@ -42,13 +42,15 @@ public protocol P4Value: EvaluatableExpression, CustomStringConvertible {
   func eq(rhs: P4Value) -> Bool
 }
 
-public extension P4Value {
-  func evaluate(execution: ProgramExecution) -> Result<P4Value> {
+extension P4Value {
+  public func evaluate(execution: ProgramExecution) -> Result<P4Value> {
     return Result.Ok(self)
   }
 }
 
 public protocol EvaluatableLValueExpression: EvaluatableExpression {
-  func set(to: P4Value, inScopes scopes: VarValueScopes, duringExecution execution: ProgramExecution) -> Result<(VarValueScopes, P4Value)>
+  func set(
+    to: P4Value, inScopes scopes: VarValueScopes, duringExecution execution: ProgramExecution
+  ) -> Result<(VarValueScopes, P4Value)>
   func check(to: EvaluatableExpression, inScopes scopes: VarTypeScopes) -> Result<()>
 }

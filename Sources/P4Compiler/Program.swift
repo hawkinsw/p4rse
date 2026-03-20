@@ -27,12 +27,15 @@ public struct Program {
     return Program.Compile(source, withGlobalInstances: .none, withGlobalTypes: .none)
   }
 
-  public static func Compile(_ source: String, withGlobalInstances globalInstances: VarTypeScopes) -> Result<P4Lang.Program> {
+  public static func Compile(
+    _ source: String, withGlobalInstances globalInstances: VarTypeScopes
+  ) -> Result<P4Lang.Program> {
     return Program.Compile(source, withGlobalInstances: globalInstances, withGlobalTypes: .none)
   }
 
   public static func Compile(
-    _ source: String, withGlobalInstances globalInstances: VarTypeScopes?, withGlobalTypes globalTypes: TypeTypeScopes?
+    _ source: String, withGlobalInstances globalInstances: VarTypeScopes?,
+    withGlobalTypes globalTypes: TypeTypeScopes?
   ) -> Result<P4Lang.Program> {
 
     let maybe_parser = ConfigureP4Parser()
