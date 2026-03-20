@@ -27,7 +27,7 @@ import TreeSitterP4
 @testable import P4Compiler
 
 @Test func test_scope() async throws {
-  let s = LexicalScope()
+  let s = VarTypeScope()
   let s2 = s.declare(identifier: Identifier(name: "first"), withValue: P4Int())
   let found_first = try! #require(s2.lookup(identifier: Identifier(name: "first")))
 
@@ -36,7 +36,7 @@ import TreeSitterP4
 }
 
 @Test func test_scope_no_set() async throws {
-  var ss = LexicalScopes().enter()
+  var ss = VarTypeScopes().enter()
   ss = ss.declare(identifier: Identifier(name: "first"), withValue: P4Int())
   ss = ss.enter()
   ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4Boolean())
@@ -49,7 +49,7 @@ import TreeSitterP4
 }
 
 @Test func test_scope_set() async throws {
-  var ss = LexicalScopes().enter()
+  var ss = VarTypeScopes().enter()
   let id = Identifier(name: "first")
   let id_type = P4Int()
 

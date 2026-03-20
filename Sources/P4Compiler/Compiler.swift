@@ -42,15 +42,15 @@ public func ErrorOnNode(node: Node, withError error: String) -> Error {
 
 /// Context for compilation.
 public struct CompilerContext {
-  let names: LexicalScopes
-  let types: LexicalScopes
+  let names: VarTypeScopes
+  let types: TypeTypeScopes
 
-  public init(withNames _names: LexicalScopes) {
+  public init(withNames _names: VarTypeScopes) {
     names = _names
-    types = LexicalScopes()
+    types = TypeTypeScopes()
   }
 
-  public init(withNames _names: LexicalScopes, withTypes _types: LexicalScopes) {
+  public init(withNames _names: VarTypeScopes, withTypes _types: TypeTypeScopes) {
     names = _names
     types = _types
   }
@@ -59,9 +59,9 @@ public struct CompilerContext {
   ///
   /// Create a new compiler context based on the current with the same types and new names.
   ///
-  /// - Parameter names: a ``LexicalScopes`` with the updated names for the newly created compiler context.
+  /// - Parameter names: a ``TypeScopes`` with the updated names for the newly created compiler context.
   /// - Returns: A new compiler context based on the current with the same types and new names.
-  public func update(newNames names: LexicalScopes) -> CompilerContext {
+  public func update(newNames names: VarTypeScopes) -> CompilerContext {
     return CompilerContext(withNames: names, withTypes: self.types)
   }
 
@@ -69,9 +69,9 @@ public struct CompilerContext {
   ///
   /// Create a new compiler context based on the current with the same names and new types.
   ///
-  /// - Parameter types: a ``LexicalScopes`` with the updated types for the newly created compiler context.
+  /// - Parameter types: a ``TypeScopes`` with the updated types for the newly created compiler context.
   /// - Returns: A new compiler context based on the current with the same names and new types.
-  public func update(newTypes types: LexicalScopes) -> CompilerContext {
+  public func update(newTypes types: TypeTypeScopes) -> CompilerContext {
     return CompilerContext(withNames: self.names, withTypes: types)
   }
 

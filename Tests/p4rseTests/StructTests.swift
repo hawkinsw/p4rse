@@ -39,15 +39,15 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
     withValue: P4StructValue(withType: struct_type, andInitializers: [
@@ -56,7 +56,7 @@ import TreeSitterP4
     ]))
 
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.accept)
@@ -74,15 +74,15 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
     withValue: P4StructValue(withType: struct_type, andInitializers: [
@@ -91,7 +91,7 @@ import TreeSitterP4
     ]))
 
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.reject)
@@ -109,15 +109,15 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
     withValue: P4StructValue(withType: struct_type, andInitializers: [
@@ -126,7 +126,7 @@ import TreeSitterP4
     ]))
 
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.accept)
@@ -143,15 +143,15 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
     withValue: P4StructValue(withType: struct_type, andInitializers: [
@@ -160,7 +160,7 @@ import TreeSitterP4
     ]))
 
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.reject)
@@ -178,7 +178,7 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
@@ -189,9 +189,9 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
@@ -206,7 +206,7 @@ import TreeSitterP4
           ])
       ]))
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.accept)
@@ -225,15 +225,15 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
     withValue: P4StructValue(withType: struct_type, andInitializers: [
@@ -242,7 +242,7 @@ import TreeSitterP4
     ]))
 
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.accept)
@@ -257,20 +257,20 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
 
   #expect(
     #RequireErrorResult(
       Error(
         withMessage: "{49, 13}: Failed to parse a statement element: {49, 8}: Cannot assign value of type Int to field with type Boolean"
       ),
-      Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+      Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   )
 }
 
@@ -287,7 +287,7 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
@@ -298,9 +298,9 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
@@ -315,7 +315,7 @@ import TreeSitterP4
           ])
       ]))
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.accept)
@@ -335,7 +335,7 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
@@ -346,9 +346,9 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
 
-  var test_values = ValueScopes().enter()
+  var test_values = VarValueScopes().enter()
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
@@ -363,7 +363,7 @@ import TreeSitterP4
           ])
       ]))
   let program = try #UseOkResult(
-    Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+    Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.accept)
@@ -382,7 +382,7 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
     P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
@@ -393,14 +393,14 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_types = test_types.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
 
   #expect(
     #RequireErrorResult(
       Error(
         withMessage: "{49, 20}: Failed to parse a statement element: {49, 11}: Cannot assign value of type Boolean to field with type Int"
       ),
-      Program.Compile(simple_parser_declaration, withGlobalTypes: test_types))
+      Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   )
 
 }

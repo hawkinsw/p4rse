@@ -24,11 +24,15 @@ import TreeSitterP4
 
 public struct Program {
   public static func Compile(_ source: String) -> Result<P4Lang.Program> {
-    return Program.Compile(source, withGlobalTypes: .none)
+    return Program.Compile(source, withGlobalInstances: .none, withGlobalTypes: .none)
+  }
+
+  public static func Compile(_ source: String, withGlobalInstances globalInstances: VarTypeScopes) -> Result<P4Lang.Program> {
+    return Program.Compile(source, withGlobalInstances: globalInstances, withGlobalTypes: .none)
   }
 
   public static func Compile(
-    _ source: String, withGlobalTypes globalTypes: LexicalScopes?
+    _ source: String, withGlobalInstances globalInstances: VarTypeScopes?, withGlobalTypes globalTypes: TypeTypeScopes?
   ) -> Result<P4Lang.Program> {
 
     let maybe_parser = ConfigureP4Parser()
@@ -47,13 +51,18 @@ public struct Program {
     var program = P4Lang.Program()
 
     // Set up a context for parsing.
-    var compilation_context = CompilerContext(withNames: LexicalScopes().enter())
+    var compilation_context = CompilerContext(withNames: VarTypeScopes().enter())
 
     var errors: [Error] = Array()
 
+    // If the caller gave any global instances, add them here.
+    if let globalInstances = globalInstances {
+      compilation_context = compilation_context.update(newNames: globalInstances)
+    }
+
     // If the caller gave any global types, add them here.
     if let globalTypes = globalTypes {
-      compilation_context = compilation_context.update(newNames: globalTypes)
+      compilation_context = compilation_context.update(newTypes: globalTypes)
     }
 
     result?.rootNode?.enumerateNamedChildren { declaration_node in

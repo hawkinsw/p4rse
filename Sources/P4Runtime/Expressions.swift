@@ -52,36 +52,6 @@ extension SelectExpression: EvaluatableExpression {
   }
 }
 
-extension P4StringValue: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-    return .Ok(self)
-  }
-}
-
-extension P4BooleanValue: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-    return .Ok(self)
-  }
-}
-
-extension P4StructValue: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-    return .Ok(self)
-  }
-}
-
-extension P4IntValue: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-    return .Ok(self)
-  }
-}
-
-extension P4ArrayValue: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-    return .Ok(self)
-  }
-}
-
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableExpression {
   public func type() -> any Common.P4Type {
@@ -96,8 +66,8 @@ extension TypedIdentifier: EvaluatableExpression {
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.ValueScopes, duringExecution execution: ProgramExecution
-  ) -> Common.Result<(Common.ValueScopes, P4Value)> {
+    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes, duringExecution execution: ProgramExecution
+  ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     if case .Error(let e) = scopes.lookup(identifier: self) {
       return .Error(e)
     }
@@ -105,7 +75,7 @@ extension TypedIdentifier: EvaluatableLValueExpression {
     return .Ok((scopes.set(identifier: self, withValue: to), to))
   }
 
-  public func check(to: any Common.EvaluatableExpression, inScopes scopes: Common.TypeScopes) -> Result<()> {
+  public func check(to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes) -> Result<()> {
     guard case .Ok(let type) = scopes.lookup(identifier: self) else {
       return .Error(Error(withMessage: "Cannot assign to identifier not in scope"))
     }
@@ -175,8 +145,8 @@ extension ArrayAccessExpression: EvaluatableExpression {
 
 extension ArrayAccessExpression: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.ValueScopes, duringExecution execution: ProgramExecution
-  ) -> Common.Result<(Common.ValueScopes, P4Value)> {
+    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes, duringExecution execution: ProgramExecution
+  ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     // For purposes of documentation, assume the field access expression we are evaluating is
     // (strct_id)[indexor] = new_value
     // where strct_id expands to
@@ -213,7 +183,7 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
   }
 
   public func check(
-    to: any Common.EvaluatableExpression, inScopes scopes: Common.TypeScopes
+    to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
   ) -> Common.Result<()> {
 
     if !self.type.value_type().eq(rhs: to.type()) {
@@ -249,8 +219,8 @@ extension FieldAccessExpression: EvaluatableExpression {
 
 extension FieldAccessExpression: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.ValueScopes, duringExecution execution: ProgramExecution
-  ) -> Common.Result<(Common.ValueScopes, P4Value)> {
+    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes, duringExecution execution: ProgramExecution
+  ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     // For purposes of documentation, assume the field access expression we are evaluating is
     // (strct_id).field_id = new_field_value
     // where strct_id expands to
@@ -282,7 +252,7 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
   }
 
   public func check(
-    to: any Common.EvaluatableExpression, inScopes scopes: Common.TypeScopes
+    to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
   ) -> Common.Result<()> {
 
     if !self.field.type.eq(rhs:to.type()) {

@@ -16,8 +16,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 open class ProgramExecution: CustomStringConvertible {
-  public var scopes: ValueScopes = ValueScopes()
-  let initialValues: ValueScopes?
+  public var scopes: VarValueScopes = VarValueScopes()
+  let initialValues: VarValueScopes?
   var error: Error?
   var debug: DebugLevel = DebugLevel.Error
 
@@ -25,7 +25,7 @@ open class ProgramExecution: CustomStringConvertible {
     initialValues = .none
   }
 
-  public init(withGlobalValues values: ValueScopes) {
+  public init(withGlobalValues values: VarValueScopes) {
     initialValues = values
   }
 
@@ -88,10 +88,13 @@ open class ProgramExecution: CustomStringConvertible {
     return new_pe
   }
 
-  public func initial_values() -> ValueScopes? {
+  public func initial_values() -> VarValueScopes? {
     return self.initialValues
   }
 }
 
-public typealias ValueScope = Scope<P4Value>
-public typealias ValueScopes = Scopes<P4Value>
+/// A scope that resolves variable identifiers to their values.
+public typealias VarValueScope = Scope<P4Value>
+
+/// Scopes that resolves variable identifiers to their values.
+public typealias VarValueScopes = Scopes<P4Value>

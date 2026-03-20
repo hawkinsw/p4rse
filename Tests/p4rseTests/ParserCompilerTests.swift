@@ -114,5 +114,5 @@ import P4Lang
     #RequireErrorResult<(EvaluatableStatement, CompilerContext)>(
       Error(withMessage: "{2, 154}: Did not find assignment statement"),
       ParserAssignmentStatement.Compile( // Note: Calling ParserAssignmentStatement compilation directly.
-        node: result.rootNode!, withContext: CompilerContext(withNames: LexicalScopes()))))
+        node: result.rootNode!, withContext: CompilerContext(withNames: VarTypeScopes()))))
 }

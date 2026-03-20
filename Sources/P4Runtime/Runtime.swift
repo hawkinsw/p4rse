@@ -22,14 +22,14 @@ import P4Lang
 public struct ParserRuntime: CustomStringConvertible {
   public var parser: Parser
 
-  let initialValues: ValueScopes?
+  let initialValues: VarValueScopes?
 
   init(parser: Parser) {
     self.parser = parser
     self.initialValues = .none
   }
 
-  init(parser: Parser, withInitialValues initial: ValueScopes?) {
+  init(parser: Parser, withInitialValues initial: VarValueScopes?) {
     self.parser = parser
     self.initialValues = initial
   }
@@ -40,7 +40,7 @@ public struct ParserRuntime: CustomStringConvertible {
   }
 
   public static func create(
-    program: P4Lang.Program, withInitialValues initial: ValueScopes?
+    program: P4Lang.Program, withInitialValues initial: VarValueScopes?
   ) -> Result<ParserRuntime> {
     return switch program.starting_parser() {
     case .Ok(let parser):

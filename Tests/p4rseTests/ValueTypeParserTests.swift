@@ -29,10 +29,20 @@ import TreeSitterP4
 
 @Test func test_invalid_types() async throws {
   for invalid_type_name in ["boo", "str", "in"] {
-    #expect(
-      #RequireErrorResult(
-        Error(withMessage: "Type name not recognized"),
-        Types.CompileBasicType(type: invalid_type_name)))
+    let simple_parser_declaration = """
+          parser main_parser() {
+            state start {
+              \(invalid_type_name) v = 1;
+              transition reject;
+            }
+          };
+      """;
+
+    let err = Program.Compile(simple_parser_declaration)
+    guard case Result.Error(let e) = err else {
+      assert(false, "Expected an error, but had success")
+    }
+    #expect(e.msg.contains("Failed to parse a statement element: Could not parse a P4 type from \(invalid_type_name)"))
   }
 }
 
@@ -242,7 +252,7 @@ import TreeSitterP4
         }
       };
     """
-  var test_types = LexicalScopes().enter()
+  var test_types = VarTypeScopes().enter()
   test_types = test_types.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Int()))
   #expect(
     #RequireErrorResult(
@@ -250,5 +260,5 @@ import TreeSitterP4
         withMessage:
           "{49, 22}: Failed to parse a statement element: Cannot initialize where_to (with type Boolean) from rvalue with type Int"
       ),
-      Program.Compile(simple_parser_declaration, withGlobalTypes: test_types)))
+      Program.Compile(simple_parser_declaration, withGlobalInstances: test_types)))
 }

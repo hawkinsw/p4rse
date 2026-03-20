@@ -15,5 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-public typealias TypeScope = Scope<P4Type>
-public typealias TypeScopes = Scopes<P4Type>
+/// A scope that resolves variable identifiers to their types.
+public typealias VarTypeScope = Scope<P4Type>
+
+/// Scopes that resolve variable identifiers to their types.
+public typealias VarTypeScopes = Scopes<P4Type>
+
+/// A scope that resolves type identifiers to their types.
+public typealias TypeTypeScope = Scope<P4Type>
+
+/// Scopes that resolve type identifiers to their types.
+public typealias TypeTypeScopes = Scopes<P4Type>
+
