@@ -88,17 +88,32 @@ export default grammar({
         parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression, $._semicolon),
 
         // Expressions
-        expression: $ => choice($.identifier, $.integer, $.booleanLiteralExpression, $.string_literal, $.binaryOperatorExpression, $.arrayAccessExpression, $.fieldAccessExpression), // Very limited.
+        expression: $ => choice($.grouped_expression, $.simple_expression),
+        grouped_expression: $ => seq('(', $.expression, ')'),
+        simple_expression: $ => choice($.identifier, $.integer, $.booleanLiteralExpression, $.string_literal, $.binaryOperatorExpression, $.arrayAccessExpression, $.fieldAccessExpression), // Very limited.
         booleanLiteralExpression: $ => choice($.true, $.false),
         selectExpression: $ => seq($.select, '(', $.expression, ')', '{', $.selectBody, '}'), // TODO: Should be expression list and not just a single expression
         transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
         keysetExpression: $ => $.expression,
-        binaryOperatorExpression: $ => choice($.binaryEqualOperatorExpression),
-        arrayAccessExpression: $=> seq($.expression, $.open_bracket, $.expression, $.close_bracket),
+        binaryOperatorExpression: $ => choice($.binaryEqualOperatorExpression,
+            $.binaryLessThanOperatorExpression,
+            $.binaryLessThanEqualOperatorExpression,
+            $.binaryGreaterThanOperatorExpression,
+            $.binaryGreaterThanEqualOperatorExpression,
+            $.binaryAndOperatorExpression,
+            $.binaryOrOperatorExpression,
+        ),
+        arrayAccessExpression: $ => seq($.expression, $.open_bracket, $.expression, $.close_bracket),
         fieldAccessExpression: $=> prec.left(2, seq($.expression, $.field_access, $.identifier)),
 
         // Binary Operations
         binaryEqualOperatorExpression: $ => prec.left(2, seq($.expression, $.double_equal, $.expression)),
+        binaryLessThanOperatorExpression: $ => prec.left(2, seq($.expression, $.less_than, $.expression)),
+        binaryLessThanEqualOperatorExpression: $ => prec.left(2, seq($.expression, $.less_than_equal, $.expression)),
+        binaryGreaterThanOperatorExpression: $ => prec.left(2, seq($.expression, $.greater_than, $.expression)),
+        binaryGreaterThanEqualOperatorExpression: $ => prec.left(2, seq($.expression, $.greater_than_equal, $.expression)),
+        binaryAndOperatorExpression: $ => prec.left(2, seq($.expression, $.and, $.expression)),
+        binaryOrOperatorExpression: $ => prec.left(2, seq($.expression, $.or, $.expression)),
 
         // Tokens
         _semicolon: $ => ";",
@@ -150,10 +165,19 @@ export default grammar({
         void: $ => "void",
         identifier: $ => /[A-Za-z_]+/,
         type_identifier: $ => /[A-Za-z_]+/,
-        string_literal: $ => /".*"/,
+        string_literal: $ => /"[^"]*"/,
         integer: $ => /[0-9]+/,
         annotation_literal: $ => /@[A-Za-z_]+/,
+
         double_equal: $=> '==',
+        less_than: $=> '<',
+        less_than_equal: $=> '<=',
+        greater_than: $=> '>',
+        greater_than_equal: $=> '>=',
+
+        and: $=> "&&",
+        or: $=> "||",
+
         open_bracket: $=> '[',
         close_bracket: $=> ']',
         field_access: $=> '.',

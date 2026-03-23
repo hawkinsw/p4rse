@@ -26,8 +26,10 @@ parser simple() {
        (conditionalStatement
         (if)
         (expression
-         (booleanLiteralExpression
-          (true)
+         (simple_expression
+          (booleanLiteralExpression
+           (true)
+          )
          )
         )
         (statement
@@ -77,8 +79,10 @@ parser simple() {
        (conditionalStatement
         (if)
         (expression
-         (booleanLiteralExpression
-          (true)
+         (simple_expression
+          (booleanLiteralExpression
+           (true)
+          )
          )
         )
         (statement
@@ -137,18 +141,24 @@ parser simple() {
         (identifier)
         (assignment)
         (expression
-         (string_literal)
+         (simple_expression
+          (string_literal)
+         )
         )
        )
       )
       (parserStatement
        (assignmentStatement
         (expression
-         (identifier)
+         (simple_expression
+          (identifier)
+         )
         )
         (assignment)
         (expression
-         (string_literal)
+         (simple_expression
+          (string_literal)
+         )
         )
        )
       )
@@ -201,8 +211,10 @@ parser simple() {
         (identifier)
         (assignment)
         (expression
-         (booleanLiteralExpression
-          (true)
+         (simple_expression
+          (booleanLiteralExpression
+           (true)
+          )
          )
         )
        )
@@ -211,7 +223,9 @@ parser simple() {
        (conditionalStatement
         (if)
         (expression
-         (identifier)
+         (simple_expression
+          (identifier)
+         )
         )
         (statement
          (blockStatement
@@ -219,12 +233,16 @@ parser simple() {
            (statement
             (assignmentStatement
              (expression
-              (identifier)
+              (simple_expression
+               (identifier)
+              )
              )
              (assignment)
              (expression
-              (booleanLiteralExpression
-               (false)
+              (simple_expression
+               (booleanLiteralExpression
+                (false)
+               )
               )
              )
             )
@@ -286,8 +304,10 @@ parser simple() {
         (identifier)
         (assignment)
         (expression
-         (booleanLiteralExpression
-          (true)
+         (simple_expression
+          (booleanLiteralExpression
+           (true)
+          )
          )
         )
        )
@@ -302,7 +322,9 @@ parser simple() {
         (identifier)
         (assignment)
         (expression
-         (integer)
+         (simple_expression
+          (integer)
+         )
         )
        )
       )
@@ -310,7 +332,9 @@ parser simple() {
        (conditionalStatement
         (if)
         (expression
-         (identifier)
+         (simple_expression
+          (identifier)
+         )
         )
         (statement
          (blockStatement
@@ -318,11 +342,15 @@ parser simple() {
            (statement
             (assignmentStatement
              (expression
-              (identifier)
+              (simple_expression
+               (identifier)
+              )
              )
              (assignment)
              (expression
-              (integer)
+              (simple_expression
+               (integer)
+              )
              )
             )
            )
@@ -336,11 +364,15 @@ parser simple() {
            (statement
             (assignmentStatement
              (expression
-              (identifier)
+              (simple_expression
+               (identifier)
+              )
              )
              (assignment)
              (expression
-              (integer)
+              (simple_expression
+               (integer)
+              )
              )
             )
            )

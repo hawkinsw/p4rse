@@ -26,17 +26,23 @@ parser simple() {
        (conditionalStatement
         (if)
         (expression
-         (binaryOperatorExpression
-          (binaryEqualOperatorExpression
-           (expression
-            (booleanLiteralExpression
-             (true)
+         (simple_expression
+          (binaryOperatorExpression
+           (binaryEqualOperatorExpression
+            (expression
+             (simple_expression
+              (booleanLiteralExpression
+               (true)
+              )
+             )
             )
-           )
-           (double_equal)
-           (expression
-            (booleanLiteralExpression
-             (false)
+            (double_equal)
+            (expression
+             (simple_expression
+              (booleanLiteralExpression
+               (false)
+              )
+             )
             )
            )
           )
@@ -88,14 +94,20 @@ parser simple() {
        (conditionalStatement
         (if)
         (expression
-         (binaryOperatorExpression
-          (binaryEqualOperatorExpression
-           (expression
-            (integer)
-           )
-           (double_equal)
-           (expression
-            (integer)
+         (simple_expression
+          (binaryOperatorExpression
+           (binaryEqualOperatorExpression
+            (expression
+             (simple_expression
+              (integer)
+             )
+            )
+            (double_equal)
+            (expression
+             (simple_expression
+              (integer)
+             )
+            )
            )
           )
          )
@@ -144,15 +156,21 @@ parser simple() {
       (parserStatement
        (expressionStatement
         (expression
-         (arrayAccessExpression
-          (expression
-           (identifier)
+         (simple_expression
+          (arrayAccessExpression
+           (expression
+            (simple_expression
+             (identifier)
+            )
+           )
+           (open_bracket)
+           (expression
+            (simple_expression
+             (integer)
+            )
+           )
+           (close_bracket)
           )
-          (open_bracket)
-          (expression
-           (integer)
-          )
-          (close_bracket)
          )
         )
        )
@@ -196,12 +214,16 @@ parser simple() {
       (parserStatement
        (expressionStatement
         (expression
-         (fieldAccessExpression
-          (expression
+         (simple_expression
+          (fieldAccessExpression
+           (expression
+            (simple_expression
+             (identifier)
+            )
+           )
+           (field_access)
            (identifier)
           )
-          (field_access)
-          (identifier)
          )
         )
        )
@@ -245,18 +267,24 @@ parser simple() {
       (parserStatement
        (expressionStatement
         (expression
-         (fieldAccessExpression
-          (expression
-           (fieldAccessExpression
-            (expression
-             (identifier)
+         (simple_expression
+          (fieldAccessExpression
+           (expression
+            (simple_expression
+             (fieldAccessExpression
+              (expression
+               (simple_expression
+                (identifier)
+               )
+              )
+              (field_access)
+              (identifier)
+             )
             )
-            (field_access)
-            (identifier)
            )
+           (field_access)
+           (identifier)
           )
-          (field_access)
-          (identifier)
          )
         )
        )

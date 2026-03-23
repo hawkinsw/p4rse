@@ -169,7 +169,9 @@ parser simple() {
         (identifier)
         (assignment)
         (expression
-         (string_literal)
+         (simple_expression
+          (string_literal)
+         )
         )
        )
       )

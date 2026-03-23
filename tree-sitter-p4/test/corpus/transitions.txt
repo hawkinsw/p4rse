@@ -60,14 +60,18 @@ parser simple() {
        (selectExpression
         (select)
         (expression
-         (identifier)
+         (simple_expression
+          (identifier)
+         )
         )
         (selectBody
          (selectCase
           (keysetExpression
            (expression
-            (booleanLiteralExpression
-             (true)
+            (simple_expression
+             (booleanLiteralExpression
+              (true)
+             )
             )
            )
           )
