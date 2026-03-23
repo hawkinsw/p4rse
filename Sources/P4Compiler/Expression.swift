@@ -133,7 +133,8 @@ struct Expression {
         node
       }
 
-    #RequireNodeType<Node, EvaluatableExpression>(node: expression_node, type: "expression", nice_type_name: "expression")
+    #RequireNodeType<Node, EvaluatableExpression>(
+      node: expression_node, type: "expression", nice_type_name: "expression")
 
     expression_node = expression_node.child(at: 0)!
     #RequireNodesType<Node, EvaluatableExpression>(
@@ -180,7 +181,8 @@ struct LValue {
         node
       }
 
-    #RequireNodeType<Node, EvaluatableExpression>(node: expression_node, type: "expression", nice_type_name: "expression")
+    #RequireNodeType<Node, EvaluatableExpression>(
+      node: expression_node, type: "expression", nice_type_name: "expression")
 
     expression_node = expression_node.child(at: 0)!
     #RequireNodesType<Node, EvaluatableExpression>(
@@ -381,21 +383,43 @@ extension BinaryOperatorExpression: CompilableExpression {
     }
 
     let evaluators = [
-      "binaryEqualOperatorExpression": ("Binary Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_equal_operator_evaluator),
-      "binaryLessThanOperatorExpression": ("Binary Less Than", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_lt_operator_evaluator),
-      "binaryLessThanEqualOperatorExpression": ("Binary Less Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_lte_operator_evaluator),
-      "binaryGreaterThanOperatorExpression": ("Binary Greater Than", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_gt_operator_evaluator),
-      "binaryGreaterThanEqualOperatorExpression": ("Binary Greater Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_gte_operator_evaluator),
-      "binaryAndOperatorExpression": ("Binary Or", P4Boolean(), binary_and_or_operator_checker, binary_and_operator_evaluator),
-      "binaryOrOperatorExpression": ("Binary And", P4Boolean(), binary_and_or_operator_checker, binary_or_operator_evaluator),
+      "binaryEqualOperatorExpression": (
+        "Binary Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        binary_equal_operator_evaluator
+      ),
+      "binaryLessThanOperatorExpression": (
+        "Binary Less Than", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        binary_lt_operator_evaluator
+      ),
+      "binaryLessThanEqualOperatorExpression": (
+        "Binary Less Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        binary_lte_operator_evaluator
+      ),
+      "binaryGreaterThanOperatorExpression": (
+        "Binary Greater Than", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        binary_gt_operator_evaluator
+      ),
+      "binaryGreaterThanEqualOperatorExpression": (
+        "Binary Greater Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        binary_gte_operator_evaluator
+      ),
+      "binaryAndOperatorExpression": (
+        "Binary Or", P4Boolean(), binary_and_or_operator_checker, binary_and_operator_evaluator
+      ),
+      "binaryOrOperatorExpression": (
+        "Binary And", P4Boolean(), binary_and_or_operator_checker, binary_or_operator_evaluator
+      ),
     ]
 
     guard let selected_evaluator = evaluators[binary_operator_expression_node.nodeType!] else {
-      return Result.Error(Error(withMessage: "No evaluator for \(binary_operator_expression_node.nodeType!)"))
+      return Result.Error(
+        Error(withMessage: "No evaluator for \(binary_operator_expression_node.nodeType!)"))
     }
 
-    if let checker = selected_evaluator.2, case .Error(let e) = checker(left_hand_side, right_hand_side) {
-        return Result.Error(e)
+    if let checker = selected_evaluator.2,
+      case .Error(let e) = checker(left_hand_side, right_hand_side)
+    {
+      return Result.Error(e)
     }
 
     return .Ok(

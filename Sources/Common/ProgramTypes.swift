@@ -175,7 +175,8 @@ public class P4StructValue: P4Value {
     return self.stype
   }
 
-  func bin_op_impl(lhs: P4StructValue, rhs: P4StructValue, op: (P4Value?, P4Value?) -> Bool) -> Bool {
+  func bin_op_impl(lhs: P4StructValue, rhs: P4StructValue, op: (P4Value?, P4Value?) -> Bool) -> Bool
+  {
     if lhs.stype.fields.count() != rhs.stype.fields.count() {
       // If there are a different number of fields, then we cannot
       // possibly be equal.
@@ -212,7 +213,7 @@ public class P4StructValue: P4Value {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
-    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in
       if ilhs == nil && irhs == nil {
         return true
       }
@@ -228,7 +229,7 @@ public class P4StructValue: P4Value {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
-    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in
       if ilhs == nil && irhs == nil {
         return true
       }
@@ -244,7 +245,7 @@ public class P4StructValue: P4Value {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
-    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in
       if ilhs == nil && irhs == nil {
         return true
       }
@@ -260,7 +261,7 @@ public class P4StructValue: P4Value {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
-    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in
       if ilhs == nil && irhs == nil {
         return true
       }
@@ -277,7 +278,7 @@ public class P4StructValue: P4Value {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
-    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in
       if ilhs == nil && irhs == nil {
         return true
       }
@@ -386,28 +387,28 @@ public class P4BooleanValue: P4Value {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
-    return (self.value ? 1 : 0 ) < (bool_rhs.value ? 1 : 0)
+    return (self.value ? 1 : 0) < (bool_rhs.value ? 1 : 0)
   }
 
   public func lte(rhs: P4Value) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
-    return (self.value ? 1 : 0 ) <= (bool_rhs.value ? 1 : 0)
+    return (self.value ? 1 : 0) <= (bool_rhs.value ? 1 : 0)
   }
 
   public func gt(rhs: P4Value) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
-    return (self.value ? 1 : 0 ) > (bool_rhs.value ? 1 : 0)
+    return (self.value ? 1 : 0) > (bool_rhs.value ? 1 : 0)
   }
 
   public func gte(rhs: P4Value) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
-    return (self.value ? 1 : 0 ) >= (bool_rhs.value ? 1 : 0)
+    return (self.value ? 1 : 0) >= (bool_rhs.value ? 1 : 0)
   }
 
   public var description: String {

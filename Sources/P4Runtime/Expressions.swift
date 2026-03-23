@@ -123,9 +123,13 @@ public func binary_gte_operator_evaluator(left: P4Value, right: P4Value) -> P4Va
   }
 }
 
-public typealias BinaryOperatorChecker = (EvaluatableExpression, EvaluatableExpression) -> Result<()>
+public typealias BinaryOperatorChecker = (EvaluatableExpression, EvaluatableExpression) -> Result<
+  ()
+>
 
-public func binary_and_or_operator_checker(left: EvaluatableExpression, right: EvaluatableExpression) -> Result<()> {
+public func binary_and_or_operator_checker(
+  left: EvaluatableExpression, right: EvaluatableExpression
+) -> Result<()> {
   // Check that both are Boolean-typed things!
   if !(left.type().eq(rhs: P4Boolean()) && right.type().eq(rhs: P4Boolean())) {
     return .Error(Error(withMessage: "And/Or on operands with non-bool type is not allowed"))
