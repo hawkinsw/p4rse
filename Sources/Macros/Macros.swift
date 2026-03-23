@@ -20,7 +20,8 @@ import SwiftSyntax
 @_spi(ExperimentalLanguageFeature) import SwiftSyntaxMacros
 
 public func remove_embedded_quotes(_ from: String) -> String {
-  return from.replacing("\"", with: [])
+  let result = from.replacing("\"", with: [])
+  return result
 }
 
 struct MacroError: Error, CustomStringConvertible {

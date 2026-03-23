@@ -133,6 +133,10 @@ extension Result: CustomStringConvertible {
   }
 }
 
+public func Map<T, U>(input: T, block: (T) -> U) -> U {
+  return block(input)
+}
+
 @freestanding(expression) public macro RequireOkResult<T>(_: Result<T>) -> Bool =
   #externalMacro(module: "Macros", type: "RequireResult")
 @freestanding(expression) public macro RequireErrorResult<T>(_: Error, _: Result<T>) -> Bool =

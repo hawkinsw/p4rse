@@ -40,6 +40,10 @@ public protocol P4Type: CustomStringConvertible {
 public protocol P4Value: EvaluatableExpression, CustomStringConvertible {
   func type() -> any P4Type
   func eq(rhs: P4Value) -> Bool
+  func lt(rhs: P4Value) -> Bool
+  func lte(rhs: P4Value) -> Bool
+  func gt(rhs: P4Value) -> Bool
+  func gte(rhs: P4Value) -> Bool
 }
 
 extension P4Value {

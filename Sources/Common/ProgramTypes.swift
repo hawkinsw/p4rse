@@ -16,7 +16,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// A P4 identifier
-public class Identifier: CustomStringConvertible, Equatable, Hashable {
+public class Identifier: CustomStringConvertible, Comparable, Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.name)
   }
@@ -37,6 +37,10 @@ public class Identifier: CustomStringConvertible, Equatable, Hashable {
 
   public static func == (lhs: Identifier, rhs: Identifier) -> Bool {
     return lhs.name == rhs.name
+  }
+
+  public static func < (lhs: Identifier, rhs: Identifier) -> Bool {
+    return lhs.name < rhs.name
   }
 }
 
@@ -171,8 +175,119 @@ public class P4StructValue: P4Value {
     return self.stype
   }
 
-  public func eq(rhs: any P4Value) -> Bool {
+  func bin_op_impl(lhs: P4StructValue, rhs: P4StructValue, op: (P4Value?, P4Value?) -> Bool) -> Bool {
+    if lhs.stype.fields.count() != rhs.stype.fields.count() {
+      // If there are a different number of fields, then we cannot
+      // possibly be equal.
+      return false
+    }
+
+    // Note: Because the number of values _always_ matches the number of fields, there
+    // is no need to check there!
+
+    for xx in zip(zip(lhs.stype.fields, lhs.values), zip(rhs.stype.fields, rhs.values)) {
+      let left = xx.0
+      let right = xx.1
+
+      let left_field = left.0
+      let left_value = left.1
+
+      let right_field = right.0
+      let right_value = right.1
+
+      // If the field names do not match, then there is a problem.
+      if left_field != right_field {
+        return false
+      }
+
+      // Now that we know that the field names match, do the values match?
+      if !op(left_value, right_value) {
+        return false
+      }
+    }
     return true
+  }
+
+  public func eq(rhs: any P4Value) -> Bool {
+    guard let rrhs = rhs as? P4StructValue else {
+      return false
+    }
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+      if ilhs == nil && irhs == nil {
+        return true
+      }
+      guard let llhs = ilhs,
+        let rrhs = irhs
+      else {
+        return false
+      }
+      return llhs.eq(rhs: rrhs)
+    }
+  }
+  public func lt(rhs: any P4Value) -> Bool {
+    guard let rrhs = rhs as? P4StructValue else {
+      return false
+    }
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+      if ilhs == nil && irhs == nil {
+        return true
+      }
+      guard let llhs = ilhs,
+        let rrhs = irhs
+      else {
+        return false
+      }
+      return llhs.lt(rhs: rrhs)
+    }
+  }
+  public func lte(rhs: any P4Value) -> Bool {
+    guard let rrhs = rhs as? P4StructValue else {
+      return false
+    }
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+      if ilhs == nil && irhs == nil {
+        return true
+      }
+      guard let llhs = ilhs,
+        let rrhs = irhs
+      else {
+        return false
+      }
+      return llhs.lte(rhs: rrhs)
+    }
+  }
+  public func gt(rhs: any P4Value) -> Bool {
+    guard let rrhs = rhs as? P4StructValue else {
+      return false
+    }
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+      if ilhs == nil && irhs == nil {
+        return true
+      }
+      guard let llhs = ilhs,
+        let rrhs = irhs
+      else {
+        return false
+      }
+      return llhs.gt(rhs: rrhs)
+    }
+  }
+
+  public func gte(rhs: any P4Value) -> Bool {
+    guard let rrhs = rhs as? P4StructValue else {
+      return false
+    }
+    return bin_op_impl(lhs: self, rhs: rrhs) { ilhs, irhs in 
+      if ilhs == nil && irhs == nil {
+        return true
+      }
+      guard let llhs = ilhs,
+        let rrhs = irhs
+      else {
+        return false
+      }
+      return llhs.gte(rhs: rrhs)
+    }
   }
 
   public var description: String {
@@ -253,6 +368,10 @@ public class P4BooleanValue: P4Value {
 
   let value: Bool
 
+  public func access() -> Bool {
+    return self.value
+  }
+
   public init(withValue value: Bool) {
     self.value = value
   }
@@ -261,6 +380,34 @@ public class P4BooleanValue: P4Value {
       return false
     }
     return self.value == bool_rhs.value
+  }
+
+  public func lt(rhs: P4Value) -> Bool {
+    guard let bool_rhs = rhs as? P4BooleanValue else {
+      return false
+    }
+    return (self.value ? 1 : 0 ) < (bool_rhs.value ? 1 : 0)
+  }
+
+  public func lte(rhs: P4Value) -> Bool {
+    guard let bool_rhs = rhs as? P4BooleanValue else {
+      return false
+    }
+    return (self.value ? 1 : 0 ) <= (bool_rhs.value ? 1 : 0)
+  }
+
+  public func gt(rhs: P4Value) -> Bool {
+    guard let bool_rhs = rhs as? P4BooleanValue else {
+      return false
+    }
+    return (self.value ? 1 : 0 ) > (bool_rhs.value ? 1 : 0)
+  }
+
+  public func gte(rhs: P4Value) -> Bool {
+    guard let bool_rhs = rhs as? P4BooleanValue else {
+      return false
+    }
+    return (self.value ? 1 : 0 ) >= (bool_rhs.value ? 1 : 0)
   }
 
   public var description: String {
@@ -307,6 +454,35 @@ public class P4IntValue: P4Value {
     }
     return self.value == int_rhs.value
   }
+
+  public func lt(rhs: P4Value) -> Bool {
+    guard let int_rhs = rhs as? P4IntValue else {
+      return false
+    }
+    return self.value < int_rhs.value
+  }
+
+  public func lte(rhs: P4Value) -> Bool {
+    guard let int_rhs = rhs as? P4IntValue else {
+      return false
+    }
+    return self.value <= int_rhs.value
+  }
+
+  public func gt(rhs: P4Value) -> Bool {
+    guard let int_rhs = rhs as? P4IntValue else {
+      return false
+    }
+    return self.value > int_rhs.value
+  }
+
+  public func gte(rhs: P4Value) -> Bool {
+    guard let int_rhs = rhs as? P4IntValue else {
+      return false
+    }
+    return self.value >= int_rhs.value
+  }
+
   public var description: String {
     "\(self.value) of \(self.type()) type"
   }
@@ -343,6 +519,34 @@ public class P4StringValue: P4Value {
       return false
     }
     return self.value == string_rhs.value
+  }
+
+  public func lt(rhs: P4Value) -> Bool {
+    guard let string_rhs = rhs as? P4StringValue else {
+      return false
+    }
+    return self.value < string_rhs.value
+  }
+
+  public func lte(rhs: P4Value) -> Bool {
+    guard let string_rhs = rhs as? P4StringValue else {
+      return false
+    }
+    return self.value <= string_rhs.value
+  }
+
+  public func gt(rhs: P4Value) -> Bool {
+    guard let string_rhs = rhs as? P4StringValue else {
+      return false
+    }
+    return self.value > string_rhs.value
+  }
+
+  public func gte(rhs: P4Value) -> Bool {
+    guard let string_rhs = rhs as? P4StringValue else {
+      return false
+    }
+    return self.value >= string_rhs.value
   }
 
   public var description: String {
@@ -408,6 +612,38 @@ public class P4ArrayValue: P4Value {
   }
 
   public func eq(rhs: P4Value) -> Bool {
+    guard rhs as? P4ArrayValue != nil else {
+      return false
+    }
+    // TODO!!
+    return true
+  }
+
+  public func lt(rhs: P4Value) -> Bool {
+    guard rhs as? P4ArrayValue != nil else {
+      return false
+    }
+    // TODO!!
+    return true
+  }
+
+  public func lte(rhs: P4Value) -> Bool {
+    guard rhs as? P4ArrayValue != nil else {
+      return false
+    }
+    // TODO!!
+    return true
+  }
+
+  public func gt(rhs: P4Value) -> Bool {
+    guard rhs as? P4ArrayValue != nil else {
+      return false
+    }
+    // TODO!!
+    return true
+  }
+
+  public func gte(rhs: P4Value) -> Bool {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }

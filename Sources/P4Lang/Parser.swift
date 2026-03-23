@@ -63,6 +63,34 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
     }
   }
 
+  public func lt(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as ParserState: self.state < other.state
+    default: false
+    }
+  }
+
+  public func lte(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as ParserState: self.state <= other.state
+    default: false
+    }
+  }
+
+  public func gt(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as ParserState: self.state > other.state
+    default: false
+    }
+  }
+
+  public func gte(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as ParserState: self.state >= other.state
+    default: false
+    }
+  }
+
   public private(set) var state: Identifier
   public private(set) var statements: [EvaluatableStatement]
 
@@ -184,7 +212,35 @@ public struct Parser: P4Type, P4Value {
 
   public func eq(rhs: any Common.P4Type) -> Bool {
     return switch rhs {
-    case is Parser: true
+    case let parser_rhs as Parser: self.name == parser_rhs.name
+    default: false
+    }
+  }
+
+  public func lt(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let parser_rhs as Parser: self.name < parser_rhs.name
+    default: false
+    }
+  }
+
+  public func lte(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let parser_rhs as Parser: self.name <= parser_rhs.name
+    default: false
+    }
+  }
+
+  public func gt(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let parser_rhs as Parser: self.name > parser_rhs.name
+    default: false
+    }
+  }
+
+  public func gte(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let parser_rhs as Parser: self.name >= parser_rhs.name
     default: false
     }
   }

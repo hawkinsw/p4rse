@@ -121,18 +121,29 @@ struct Expression {
   public static func Compile(
     node: Node, withContext: CompilerContext
   ) -> Result<EvaluatableExpression> {
-
     #RequireNodesType<Node, EvaluatableExpression>(
       nodes: node, type: ["expression", "keysetExpression"],
       nice_type_names: ["expression", "keyset expression"])
 
     // If the node is a keyset expression, then dig out the expression:
-    let node =
+    var expression_node =
       if node.nodeType == "keysetExpression" {
         node.child(at: 0)!
       } else {
         node
       }
+
+    #RequireNodeType<Node, EvaluatableExpression>(node: expression_node, type: "expression", nice_type_name: "expression")
+
+    expression_node = expression_node.child(at: 0)!
+    #RequireNodesType<Node, EvaluatableExpression>(
+      nodes: expression_node, type: ["grouped_expression", "simple_expression"],
+      nice_type_names: ["grouped expression", "simple expression"])
+
+    // If this is a grouped expression, recurse!
+    if expression_node.nodeType == "grouped_expression" {
+      return Expression.Compile(node: expression_node.child(at: 1)!, withContext: withContext)
+    }
 
     let localElementsParsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
@@ -141,7 +152,7 @@ struct Expression {
 
     for le_parser in localElementsParsers {
       switch le_parser.compile(
-        node: node, withContext: withContext)
+        node: expression_node, withContext: withContext)
       {
       case .Ok(.some(let parsed)): return .Ok(parsed)
       case .Error(let e): return .Error(e)
@@ -157,8 +168,29 @@ struct LValue {
   public static func Compile(
     node: Node, withContext: CompilerContext
   ) -> Result<EvaluatableLValueExpression> {
+    #RequireNodesType<Node, EvaluatableExpression>(
+      nodes: node, type: ["expression", "keysetExpression"],
+      nice_type_names: ["expression", "keyset expression"])
 
-    // Try to compile all the expressions that are LValuable!
+    // If the node is a keyset expression, then dig out the expression:
+    var expression_node =
+      if node.nodeType == "keysetExpression" {
+        node.child(at: 0)!
+      } else {
+        node
+      }
+
+    #RequireNodeType<Node, EvaluatableExpression>(node: expression_node, type: "expression", nice_type_name: "expression")
+
+    expression_node = expression_node.child(at: 0)!
+    #RequireNodesType<Node, EvaluatableExpression>(
+      nodes: expression_node, type: ["grouped_expression", "simple_expression"],
+      nice_type_names: ["grouped expression", "simple expression"])
+
+    // If this is a grouped expression, recurse!
+    if expression_node.nodeType == "grouped_expression" {
+      return LValue.Compile(node: expression_node.child(at: 1)!, withContext: withContext)
+    }
 
     let lvalueParsers: [CompilableLValueExpression.Type] = [
       TypedIdentifier.self, FieldAccessExpression.self, ArrayAccessExpression.self,
@@ -166,7 +198,7 @@ struct LValue {
 
     for lvalue_parser in lvalueParsers {
       switch lvalue_parser.compile_as_lvalue(
-        node: node, withContext: withContext)
+        node: expression_node, withContext: withContext)
       {
       case .Ok(.some(let parsed)): return .Ok(parsed)
       case .Error(let e): return .Error(e)
@@ -304,9 +336,13 @@ extension BinaryOperatorExpression: CompilableExpression {
     currentChild = expression.child(at: currentChildIdx)
 
     let binary_operator_expression_node = currentChild!
+
+    // TODO: This macro cannot handle new lines in the arrays
+    // swift-format-ignore
     #RequireNodesType<Node, EvaluatableExpression?>(
-      nodes: binary_operator_expression_node, type: ["binaryEqualOperatorExpression"],
-      nice_type_names: ["binary equal operator"])
+      nodes: binary_operator_expression_node,
+      type: ["binaryEqualOperatorExpression", "binaryLessThanOperatorExpression", "binaryLessThanEqualOperatorExpression", "binaryGreaterThanOperatorExpression", "binaryGreaterThanEqualOperatorExpression", "binaryAndOperatorExpression", "binaryOrOperatorExpression"],
+      nice_type_names: [ "binary equal operator", "binary less than operator", "binary less than or equal to operator", "binary greater than operator", "binary greater than or equal to operator", "binary and operator", "binary or operator"])
 
     if binary_operator_expression_node.childCount < currentChildIdxSafe {
       return Result.Error(
@@ -344,9 +380,27 @@ extension BinaryOperatorExpression: CompilableExpression {
       return Result.Error(maybe_right_hand_side.error()!)
     }
 
+    let evaluators = [
+      "binaryEqualOperatorExpression": ("Binary Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_equal_operator_evaluator),
+      "binaryLessThanOperatorExpression": ("Binary Less Than", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_lt_operator_evaluator),
+      "binaryLessThanEqualOperatorExpression": ("Binary Less Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_lte_operator_evaluator),
+      "binaryGreaterThanOperatorExpression": ("Binary Greater Than", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_gt_operator_evaluator),
+      "binaryGreaterThanEqualOperatorExpression": ("Binary Greater Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none, binary_gte_operator_evaluator),
+      "binaryAndOperatorExpression": ("Binary Or", P4Boolean(), binary_and_or_operator_checker, binary_and_operator_evaluator),
+      "binaryOrOperatorExpression": ("Binary And", P4Boolean(), binary_and_or_operator_checker, binary_or_operator_evaluator),
+    ]
+
+    guard let selected_evaluator = evaluators[binary_operator_expression_node.nodeType!] else {
+      return Result.Error(Error(withMessage: "No evaluator for \(binary_operator_expression_node.nodeType!)"))
+    }
+
+    if let checker = selected_evaluator.2, case .Error(let e) = checker(left_hand_side, right_hand_side) {
+        return Result.Error(e)
+    }
+
     return .Ok(
       BinaryOperatorExpression(
-        withEvaluator: ("Binary Equal", P4Boolean(), binary_equal_operator_evaluator),
+        withEvaluator: (selected_evaluator.0, selected_evaluator.1, selected_evaluator.3),
         withLhs: left_hand_side, withRhs: right_hand_side))
   }
 }
@@ -522,6 +576,7 @@ extension FieldAccessExpression: CompilableLValueExpression {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableLValueExpression?> {
     let expression = node.child(at: 0)!
+    print("expression: \(expression)")
     #SkipUnlessNodeType<Node, EvaluatableExpression?>(
       node: expression, type: "fieldAccessExpression")
 

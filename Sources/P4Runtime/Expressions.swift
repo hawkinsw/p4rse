@@ -94,10 +94,59 @@ extension TypedIdentifier: EvaluatableLValueExpression {
 }
 
 public func binary_equal_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  if left.eq(rhs: right) {
-    return P4BooleanValue(withValue: true)
+  return Map(input: left.eq(rhs: right)) { input in
+    P4BooleanValue(withValue: input)
   }
-  return P4BooleanValue(withValue: false)
+}
+
+public func binary_lt_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  return Map(input: left.lt(rhs: right)) { input in
+    P4BooleanValue(withValue: input)
+  }
+}
+
+public func binary_lte_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  return Map(input: left.lte(rhs: right)) { input in
+    P4BooleanValue(withValue: input)
+  }
+}
+
+public func binary_gt_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  return Map(input: left.gt(rhs: right)) { input in
+    P4BooleanValue(withValue: input)
+  }
+}
+
+public func binary_gte_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  return Map(input: left.gte(rhs: right)) { input in
+    P4BooleanValue(withValue: input)
+  }
+}
+
+public typealias BinaryOperatorChecker = (EvaluatableExpression, EvaluatableExpression) -> Result<()>
+
+public func binary_and_or_operator_checker(left: EvaluatableExpression, right: EvaluatableExpression) -> Result<()> {
+  // Check that both are Boolean-typed things!
+  if !(left.type().eq(rhs: P4Boolean()) && right.type().eq(rhs: P4Boolean())) {
+    return .Error(Error(withMessage: "And/Or on operands with non-bool type is not allowed"))
+  }
+  return .Ok(())
+}
+
+public func binary_and_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  let bleft = left as! P4BooleanValue
+  let bright = right as! P4BooleanValue
+  return Map(input: bleft.access() && bright.access()) { input in
+    P4BooleanValue(withValue: input)
+  }
+}
+
+public func binary_or_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  let bleft = left as! P4BooleanValue
+  let bright = right as! P4BooleanValue
+  return Map(input: bleft.access() || bright.access()) { input in
+    P4BooleanValue(withValue: input)
+  }
 }
 
 extension BinaryOperatorExpression: EvaluatableExpression {
