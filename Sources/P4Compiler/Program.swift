@@ -54,13 +54,14 @@ public struct Program {
     var program = P4Lang.Program()
 
     // Set up a context for parsing.
-    var compilation_context = CompilerContext(withNames: VarTypeScopes().enter())
+    var compilation_context = CompilerContext(
+      withInstances: VarTypeScopes().enter(), withTypes: TypeTypeScopes().enter())
 
     var errors: [Error] = Array()
 
     // If the caller gave any global instances, add them here.
     if let globalInstances = globalInstances {
-      compilation_context = compilation_context.update(newNames: globalInstances)
+      compilation_context = compilation_context.update(newInstances: globalInstances)
     }
 
     // If the caller gave any global types, add them here.
@@ -68,135 +69,36 @@ public struct Program {
       compilation_context = compilation_context.update(newTypes: globalTypes)
     }
 
-    result?.rootNode?.enumerateNamedChildren { declaration_node in
-      if declaration_node.nodeType != "declaration" {
-        return
-      }
+    // Try to parse all top-level declarations.
+    result?.rootNode?.enumerateNamedChildren { (declaration_node: Node) in
+      let specific_declaration_node = declaration_node.child(at: 0)!
 
-      let parser_node = declaration_node.child(at: 0)!
-      if parser_node.nodeType != "parserDeclaration" {
-        return
-      }
+      let declaration_parsers: [CompilableDeclaration.Type] = [
+        Declaration.self, P4Lang.Parser.self,
+      ]
+      var found_parser = false
 
-      var currentChildIdx = 0
-      var currentChildIdxSafe = 1
-      var currentChild: Node? = .none
-
-      if parser_node.childCount < currentChildIdxSafe {
-        errors.append(
-          ErrorOnNode(node: parser_node, withError: "Missing elements of parser declaration"))
-        return
-      }
-      currentChild = parser_node.child(at: currentChildIdx)
-      if currentChild!.nodeType != "parserType" {
-        errors.append(
-          ErrorOnNode(node: currentChild!, withError: "Missing type for parser declaration"))
-        return
-      }
-
-      let type_node = currentChild
-      var parser_name: Common.Identifier? = .none
-
-      do {
-        // Parse the parser type (type_node)
-        var currentChildIdx = 0
-        var currentChildIdxSafe = 1
-
-        if type_node!.childCount < currentChildIdxSafe {
-          errors.append(
-            ErrorOnNode(
-              node: parser_node, withError: "Missing elements of parser type in parser declaration")
-          )
-          return
-        }
-
-        var currentChild = type_node!.child(at: currentChildIdx)
-        if currentChild!.nodeType == "annotations" {
-          errors.append(
-            ErrorOnNode(
-              node: currentChild!, withError: "Annotations in parser type are not yet handled."))
-          return
-
-          // Will increment indexes here.
-        }
-
-        // Skip the parser keyword
-        currentChildIdx += 1
-        currentChildIdxSafe += 1
-        if type_node!.childCount < currentChildIdxSafe {
-          errors.append(
-            ErrorOnNode(node: type_node!, withError: "Missing name in parser type declaration"))
-          return
-        }
-        currentChild = type_node?.child(at: currentChildIdx)
-
-        switch Identifier.Compile(node: currentChild!, withContext: compilation_context) {
-        case .Ok(let id): parser_name = id
+      for parser in declaration_parsers {
+        switch parser.Compile(node: specific_declaration_node, withContext: compilation_context) {
+        case .Ok(.none): {}()
+        case .Ok(.some((_, let updated_context))):
+          found_parser = true
+          compilation_context = updated_context
+          break
         case .Error(let e):
+          found_parser = true
           errors.append(e)
-          return
+          break
         }
       }
 
-      // It's an error if there is no parser name.
-      if parser_name == .none {
-        return
-      }
-
-      currentChildIdx += 1
-      currentChildIdxSafe += 1
-      if parser_node.childCount < currentChildIdxSafe {
+      // If none of the declaration parsers chose to parse, that's an error, too!
+      if !found_parser {
         errors.append(
-          ErrorOnNode(node: parser_node, withError: "Constructor parameters are not yet handled."))
-        return
+          ErrorOnNode(
+            node: specific_declaration_node, withError: "Could not find parser for declaration node"
+          ))
       }
-
-      if currentChild!.nodeType == "constructorParameters" {
-        errors.append(
-          ErrorOnNode(node: currentChild!, withError: "Constructor parameters are not yet handled.")
-        )
-        return
-
-        // Will increment indexes here.
-      }
-
-      // Skip the '{'
-      currentChildIdx += 1
-      currentChildIdxSafe += 1
-      if parser_node.childCount < currentChildIdxSafe {
-        errors.append(Error(withMessage: "Missing body of parser declaration"))
-        return
-      }
-      currentChild = parser_node.child(at: currentChildIdx)
-
-      if currentChild!.nodeType == "parserLocalElements" {
-        errors.append(
-          ErrorOnNode(node: currentChild!, withError: "Parser Local Elements are not yet handled."))
-        return
-        // Will increment indexes here.
-      }
-
-      if parser_node.childCount < currentChildIdxSafe {
-        errors.append(Error(withMessage: "Missing body of parser declaration"))
-        return
-      }
-
-      if currentChild!.nodeType != "parserStates" {
-        errors.append(Error(withMessage: "Missing parser states in parser declaration"))
-        return
-      }
-
-      switch Parser.Compile(
-        withName: parser_name!, node: currentChild!, withContext: compilation_context)
-      {
-      case Result.Ok((let parser, let updated_context)):
-        // Create a new context with the name of the parser that was just compiled in scope.
-        compilation_context = compilation_context.update(
-          newNames: updated_context.names.declare(identifier: parser.name, withValue: parser))
-      case Result.Error(let error): errors.append(error)
-      }
-
-      // Assume that there is only '}' after -- the parser guaranteed that for us!
     }
 
     if !errors.isEmpty {
@@ -207,9 +109,15 @@ public struct Program {
           }.joined(separator: ";")))
     }
 
+    // Any of the instances that are in the top-level scope should go into the program!
+    program.instances = Array(
+      compilation_context.instances.map { (_, v) in
+        v
+      })
+
     // Any of the types that are in the top-level scope should go into the program!
     program.types = Array(
-      compilation_context.names.map { (_, v) in
+      compilation_context.types.map { (_, v) in
         v
       })
     return Result.Ok(program)

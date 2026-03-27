@@ -16,30 +16,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import Common
-import P4Lang
-import P4Runtime
-import SwiftTreeSitter
-import TreeSitterExtensions
-import TreeSitterP4
 
-public protocol CompilableStatement {
-  static func Compile(
-    node: Node, withContext context: CompilerContext
-  ) -> Result<(EvaluatableStatement, CompilerContext)>
-}
-
-public protocol CompilableValue {
-  static func CompileValue(withValue value: String) -> Result<P4Value>
-}
-
-public protocol CompilableType {
-  static func CompileType(
-    type: SwiftTreeSitter.Node, withContext: CompilerContext
-  ) -> Result<P4Type?>
-}
-
-public protocol CompilableDeclaration {
-  static func Compile(
-    node: Node, withContext context: CompilerContext
-  ) -> Result<(P4Type, CompilerContext)?>
-}
+public struct Declaration {}

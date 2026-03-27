@@ -284,7 +284,8 @@ public struct Parser {
 
       // Parse a state in a nested scope.
       switch Parser.State.Compile(
-        node: parser_state, withContext: context.update(newNames: current_context.names.enter()))
+        node: parser_state,
+        withContext: context.update(newInstances: current_context.instances.enter()))
       {
       case Result.Ok(let (state, updated_context)):
         parser.states = parser.states.append(state: state)

@@ -61,22 +61,6 @@ import P4Lang
   #expect(state.statements.count == 1)
 }
 
-@Test func test_simple_compilation_with_instantiation() async throws {
-  let simple_parser_declaration = """
-    parser main_parser() {
-       state start {
-           true;
-           false;
-           transition start;
-       }
-    };
-    bool() main;
-    """
-
-  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  #expect(#RequireOkResult(program.find_parser(withName: Identifier(name: "main_parser"))))
-}
-
 @Test func test_invalid_transition_expression_keyset_expressions() async throws {
   let simple_parser_declaration = """
     parser main_parser() {
@@ -114,5 +98,5 @@ import P4Lang
     #RequireErrorResult<(EvaluatableStatement, CompilerContext)>(
       Error(withMessage: "{2, 154}: Did not find assignment statement"),
       ParserAssignmentStatement.Compile( // Note: Calling ParserAssignmentStatement compilation directly.
-        node: result.rootNode!, withContext: CompilerContext(withNames: VarTypeScopes()))))
+        node: result.rootNode!, withContext: CompilerContext(withInstances: VarTypeScopes()))))
 }

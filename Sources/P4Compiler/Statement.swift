@@ -230,7 +230,7 @@ extension VariableDeclarationStatement: CompilableStatement {
           identifier: parsed_variablename, withInitializer: initializer),
         // Context with updated names to include the newly declared name.
         context.update(
-          newNames: context.names.declare(
+          newInstances: context.instances.declare(
             identifier: parsed_variablename, withValue: declaration_p4_type))
       ))
   }
@@ -282,7 +282,7 @@ extension ParserAssignmentStatement: CompilableStatement {
       return Result.Error(maybe_parsed_lvalue.error()!)
     }
 
-    let check_result = lvalue_identifier.check(to: rvalue, inScopes: context.names)
+    let check_result = lvalue_identifier.check(to: rvalue, inScopes: context.instances)
     guard case .Ok(_) = check_result else {
       return Result.Error(
         ErrorOnNode(

@@ -42,16 +42,16 @@ public func ErrorOnNode(node: Node, withError error: String) -> Error {
 
 /// Context for compilation.
 public struct CompilerContext {
-  let names: VarTypeScopes
+  let instances: VarTypeScopes
   let types: TypeTypeScopes
 
-  public init(withNames _names: VarTypeScopes) {
-    names = _names
+  public init(withInstances _instances: VarTypeScopes) {
+    instances = _instances
     types = TypeTypeScopes()
   }
 
-  public init(withNames _names: VarTypeScopes, withTypes _types: TypeTypeScopes) {
-    names = _names
+  public init(withInstances _instances: VarTypeScopes, withTypes _types: TypeTypeScopes) {
+    instances = _instances
     types = _types
   }
 
@@ -61,8 +61,8 @@ public struct CompilerContext {
   ///
   /// - Parameter names: a ``TypeScopes`` with the updated names for the newly created compiler context.
   /// - Returns: A new compiler context based on the current with the same types and new names.
-  public func update(newNames names: VarTypeScopes) -> CompilerContext {
-    return CompilerContext(withNames: names, withTypes: self.types)
+  public func update(newInstances instances: VarTypeScopes) -> CompilerContext {
+    return CompilerContext(withInstances: instances, withTypes: self.types)
   }
 
   /// Update a compiler context
@@ -72,7 +72,7 @@ public struct CompilerContext {
   /// - Parameter types: a ``TypeScopes`` with the updated types for the newly created compiler context.
   /// - Returns: A new compiler context based on the current with the same names and new types.
   public func update(newTypes types: TypeTypeScopes) -> CompilerContext {
-    return CompilerContext(withNames: self.names, withTypes: types)
+    return CompilerContext(withInstances: self.instances, withTypes: types)
   }
 
 }

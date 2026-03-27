@@ -43,7 +43,7 @@ extension TypedIdentifier: CompilableExpression {
       node: node, type: "identifier")
 
     guard
-      case Result.Ok(let type) = context.names.lookup(
+      case Result.Ok(let type) = context.instances.lookup(
         identifier: Common.Identifier(name: node.text!))
     else {
       return .Error(ErrorOnNode(node: node, withError: "Cannot find \(node.text!) in scope"))

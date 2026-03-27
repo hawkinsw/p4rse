@@ -232,3 +232,31 @@ parser simple() {
  )
 )
 
+=========================
+Simple Struct Type Declaration
+=========================
+struct Testing {
+  string fieldA;
+};
+---
+(p4program
+ (declaration
+  (type_declaration
+   (struct_declaration
+    (struct)
+    (identifier)
+    (struct_declaration_fields
+     (variableDeclaration
+      (typeRef
+       (baseType
+        (string)
+       )
+      )
+      (identifier)
+     )
+    )
+   )
+  )
+ )
+)
+

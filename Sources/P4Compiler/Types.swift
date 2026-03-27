@@ -50,10 +50,14 @@ extension P4Struct: CompilableType {
   public static func CompileType(
     type: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(any Common.P4Type)?> {
+
     let maybe_parsed_type_id = Identifier.Compile(node: type, withContext: context)
     guard case .Ok(let parsed_type_id) = maybe_parsed_type_id else {
       return .Error(maybe_parsed_type_id.error()!)
     }
+
+    print("Looking up \(parsed_type_id) in \(context.types)")
+
     if case .Ok(let found_type) = context.types.lookup(identifier: parsed_type_id),
       let found_struct_type = found_type as? P4Struct
     {

@@ -23,6 +23,7 @@ public struct ExpressionStatement {
 
 public struct Program {
   public var types: [P4Type] = Array()
+  public var instances: [P4Type] = Array()
 
   /// Find the program's main parser
   ///
@@ -32,8 +33,8 @@ public struct Program {
   }
 
   public func find_parser(withName name: Identifier) -> Result<Parser> {
-    for type in self.types {
-      guard let parser = type as? Parser else {
+    for instances in self.instances {
+      guard let parser = instances as? Parser else {
         continue
       }
       if parser.name == name {
