@@ -656,3 +656,119 @@ public class P4ArrayValue: P4Value {
     "\(self.value) of \(self.type()) type"
   }
 }
+
+/// A P4 set type
+public struct P4Set: P4Type {
+  public init(withSetType stype: P4Type) {
+    self.stype = stype
+  }
+
+  let stype: P4Type
+
+  public func set_type() -> P4Type {
+    return self.stype
+  }
+
+  public var description: String {
+    return "P4Set"
+  }
+
+  public func eq(rhs: any P4Type) -> Bool {
+    return switch rhs {
+    // If rhs is a set type, then they are the same if the types in the set are the same.
+    case let srhs as P4Set: srhs.eq(rhs: self.stype)
+    default: false
+    }
+  }
+
+  public func def() -> P4Value {
+    return P4ArrayValue(withType: self, withValue: [])
+  }
+}
+
+/// An instance of a P4 set
+public class P4SetValue: P4Value {
+  public func type() -> any P4Type {
+    return P4Set(withSetType: self.stype)
+  }
+
+  let value: P4Value
+  let stype: P4Type
+
+  public init(withType type: P4Type, withValue value: P4Value) {
+    self.stype = type
+    self.value = value
+  }
+
+  public func access() -> P4Value {
+    return self.value
+  }
+
+  public func eq(rhs: P4Value) -> Bool {
+    guard let rrhs = rhs as? P4SetValue else {
+      return false
+    }
+    return rrhs.access().eq(rhs: self.value)
+  }
+  public func lt(rhs: P4Value) -> Bool {
+    guard let rrhs = rhs as? P4SetValue else {
+      return false
+    }
+    return rrhs.access().lt(rhs: self.value)
+  }
+  public func lte(rhs: P4Value) -> Bool {
+    guard let rrhs = rhs as? P4SetValue else {
+      return false
+    }
+    return rrhs.access().lte(rhs: self.value)
+  }
+  public func gt(rhs: P4Value) -> Bool {
+    guard let rrhs = rhs as? P4SetValue else {
+      return false
+    }
+    return rrhs.access().gt(rhs: self.value)
+  }
+  public func gte(rhs: P4Value) -> Bool {
+    guard let rrhs = rhs as? P4SetValue else {
+      return false
+    }
+    return rrhs.access().gte(rhs: self.value)
+  }
+
+  public var description: String {
+    "P4Set with \(self.value) of \(self.type()) type"
+  }
+}
+
+public class P4SetDefaultValue: P4Value {
+  public func type() -> any P4Type {
+    return P4Set(withSetType: self.stype)
+  }
+
+  let stype: P4Type
+
+  public init(withType type: P4Type) {
+    self.stype = type
+  }
+
+  // Snarf up everything!
+  public func eq(rhs: P4Value) -> Bool {
+    return true
+  }
+  public func lt(rhs: P4Value) -> Bool {
+    return true
+  }
+  public func lte(rhs: P4Value) -> Bool {
+    return true
+  }
+  public func gt(rhs: P4Value) -> Bool {
+    return true
+  }
+  public func gte(rhs: P4Value) -> Bool {
+    return true
+  }
+
+  public var description: String {
+    "Default of P4Set of \(self.type()) type"
+  }
+}

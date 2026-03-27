@@ -18,7 +18,7 @@
 import Common
 import P4Lang
 
-extension KeysetExpression: EvaluatableExpression {
+extension SelectCaseExpression: EvaluatableExpression {
   public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
     return execution.scopes.lookup(identifier: next_state_identifier)
   }
@@ -33,7 +33,7 @@ extension SelectExpression: EvaluatableExpression {
   public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
     switch self.selector.evaluate(execution: execution) {
     case .Ok(let selector_value):
-      for kse in self.keyset_expressions {
+      for kse in self.select_expressions {
         if case .Ok(let kse_key) = kse.key.evaluate(execution: execution),
           kse_key.eq(rhs: selector_value)
         {
@@ -372,5 +372,15 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
             "Cannot assign value of type \(to.type()) to field with type \(self.field.type)"))
     }
     return .Ok(())
+  }
+}
+
+extension KeysetExpression: EvaluatableExpression {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+    return self.kse_evaluate(execution: execution)
+  }
+
+  public func type() -> any Common.P4Type {
+    return self.kse_type()
   }
 }

@@ -117,26 +117,40 @@ extension P4StringValue: CompilableExpression {
   }
 }
 
+extension KeysetExpression: CompilableExpression {
+  static func compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(any Common.EvaluatableExpression)?> {
+    let keyset_expression_node = node.child(at: 0)!
+
+    #RequireNodesType<Node, EvaluatableExpression>(
+      nodes: keyset_expression_node, type: ["expression", "default_keyset"],
+      nice_type_names: ["expression", "default keyset"])
+
+    // If there is a default keyset, that's easy!
+    if keyset_expression_node.nodeType == "default_keyset" {
+      return .Ok(PlaceholderDefaultKeysetExpression())
+    }
+
+    // Compile the expression:
+    let maybe_compiled_set_expression = Expression.Compile(
+      node: keyset_expression_node, withContext: context)
+    guard case .Ok(let compiled_expression) = maybe_compiled_set_expression else {
+      return .Error(maybe_compiled_set_expression.error()!)
+    }
+
+    return .Ok(NonDefaultKeysetExpression(compiled_expression))
+  }
+}
+
 struct Expression {
   public static func Compile(
     node: Node, withContext: CompilerContext
   ) -> Result<EvaluatableExpression> {
-    #RequireNodesType<Node, EvaluatableExpression>(
-      nodes: node, type: ["expression", "keysetExpression"],
-      nice_type_names: ["expression", "keyset expression"])
-
-    // If the node is a keyset expression, then dig out the expression:
-    var expression_node =
-      if node.nodeType == "keysetExpression" {
-        node.child(at: 0)!
-      } else {
-        node
-      }
-
     #RequireNodeType<Node, EvaluatableExpression>(
-      node: expression_node, type: "expression", nice_type_name: "expression")
+      node: node, type: "expression", nice_type_name: "expression")
 
-    expression_node = expression_node.child(at: 0)!
+    let expression_node = node.child(at: 0)!
     #RequireNodesType<Node, EvaluatableExpression>(
       nodes: expression_node, type: ["grouped_expression", "simple_expression"],
       nice_type_names: ["grouped expression", "simple expression"])
@@ -169,22 +183,10 @@ struct LValue {
   public static func Compile(
     node: Node, withContext: CompilerContext
   ) -> Result<EvaluatableLValueExpression> {
-    #RequireNodesType<Node, EvaluatableExpression>(
-      nodes: node, type: ["expression", "keysetExpression"],
-      nice_type_names: ["expression", "keyset expression"])
-
-    // If the node is a keyset expression, then dig out the expression:
-    var expression_node =
-      if node.nodeType == "keysetExpression" {
-        node.child(at: 0)!
-      } else {
-        node
-      }
-
     #RequireNodeType<Node, EvaluatableExpression>(
-      node: expression_node, type: "expression", nice_type_name: "expression")
+      node: node, type: "expression", nice_type_name: "expression")
 
-    expression_node = expression_node.child(at: 0)!
+    let expression_node = node.child(at: 0)!
     #RequireNodesType<Node, EvaluatableExpression>(
       nodes: expression_node, type: ["grouped_expression", "simple_expression"],
       nice_type_names: ["grouped expression", "simple expression"])
@@ -253,14 +255,18 @@ extension SelectExpression: CompilableExpression {
         ))
     }
 
-    var kses: [KeysetExpression] = Array()
+    var kses: [SelectCaseExpression] = Array()
     var kses_errors: [Error] = Array()
 
     select_body_node.enumerateNamedChildren { current_node in
-      let maybe_parsed_kse = KeysetExpression.compile(
+      let maybe_parsed_kse = SelectCaseExpression.compile(
         node: current_node, withContext: context)
       if case .Ok(let parsed_kse) = maybe_parsed_kse {
-        kses.append(parsed_kse as! KeysetExpression)
+        let parsed_cse = parsed_kse as! SelectCaseExpression
+        switch parsed_cse.update_type(to: selector.type()) {
+        case .Ok(let updated_cse): kses.append(updated_cse)
+        case .Error(let e): kses_errors.append(ErrorOnNode(node: current_node, withError: e.msg))
+        }
       } else {
         kses_errors.append(Error(withMessage: "\(maybe_parsed_kse.error()!)"))
       }
@@ -272,15 +278,15 @@ extension SelectExpression: CompilableExpression {
           withMessage: "Error(s) parsing select cases: "
             + (kses_errors.map { error in
               return "\(error.msg)"
-            }.joined(separator: ";\n"))))
+            }.joined(separator: ";"))))
     }
     return .Ok(
-      SelectExpression(withSelector: selector, withKeysetExpressions: kses),
+      SelectExpression(withSelector: selector, withSelectCaseExpressions: kses),
     )
   }
 }
 
-extension KeysetExpression: CompilableExpression {
+extension SelectCaseExpression: CompilableExpression {
   static func compile(
     node: Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
@@ -300,7 +306,7 @@ extension KeysetExpression: CompilableExpression {
       return Result.Error(Error(withMessage: "Missing target state in select case"))
     }
 
-    let maybe_parsed_keysetexpression = Expression.Compile(
+    let maybe_parsed_keysetexpression = KeysetExpression.compile(
       node: keysetexpression_node, withContext: context)
     guard case Result.Ok(let keysetexpression) = maybe_parsed_keysetexpression else {
       return Result.Error(maybe_parsed_keysetexpression.error()!)
@@ -313,8 +319,8 @@ extension KeysetExpression: CompilableExpression {
     }
 
     return .Ok(
-      KeysetExpression(
-        withKey: keysetexpression, withNextState: targetstate)
+      SelectCaseExpression(
+        withKey: keysetexpression as! KeysetExpression, withNextState: targetstate)
     )
   }
 }

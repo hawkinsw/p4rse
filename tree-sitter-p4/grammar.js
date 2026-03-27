@@ -94,7 +94,7 @@ export default grammar({
         booleanLiteralExpression: $ => choice($.true, $.false),
         selectExpression: $ => seq($.select, '(', $.expression, ')', '{', $.selectBody, '}'), // TODO: Should be expression list and not just a single expression
         transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
-        keysetExpression: $ => $.expression,
+        keysetExpression: $ => choice($.expression, $.default_keyset),
         binaryOperatorExpression: $ => choice($.binaryEqualOperatorExpression,
             $.binaryLessThanOperatorExpression,
             $.binaryLessThanEqualOperatorExpression,
@@ -177,6 +177,7 @@ export default grammar({
         string_literal: $ => /"[^"]*"/,
         integer: $ => /[0-9]+/,
         annotation_literal: $ => /@[A-Za-z_]+/,
+        default_keyset: $=> '_',
 
         double_equal: $=> '==',
         less_than: $=> '<',

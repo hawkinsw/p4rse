@@ -87,3 +87,54 @@ parser simple() {
   )
  )
 )
+
+=========================
+Simple Transition Statement (To Select Expression With Default)
+=========================
+parser simple() {
+  state start {
+    transition select (se) {
+      _: next_state;
+    };
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (selectExpression
+        (select)
+        (expression
+         (simple_expression
+          (identifier)
+         )
+        )
+        (selectBody
+         (selectCase
+          (keysetExpression
+           (default_keyset)
+          )
+          (colon)
+          (identifier)
+         )
+        )
+       )
+      )
+     )
+    )
+   )
+  )
+ )
+)
