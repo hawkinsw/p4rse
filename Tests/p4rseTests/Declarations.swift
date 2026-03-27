@@ -51,3 +51,98 @@ import TreeSitterP4
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(state_result == P4Lang.accept)
 }
+
+@Test func test_struct_declaration_and_field_write_field_read() async throws {
+  let simple_parser_declaration = """
+      struct Testing {
+        bool yesno;
+        int count;
+      };
+      parser main_parser() {
+        state start {
+          Testing ts;
+          ts.yesno = true;
+          ts.count = 5;
+          transition select (ts.count == 5) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_struct_declaration_and_field_read_defaults() async throws {
+  let simple_parser_declaration = """
+      struct Testing {
+        bool yesno;
+        int count;
+      };
+      parser main_parser() {
+        state start {
+          Testing ts;
+          transition select (ts.count == 0) {
+            true: accept;
+            false: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_struct_declaration_and_field_read_defaults_sc() async throws {
+  let simple_parser_declaration = """
+      struct Testing {
+        bool yesno;
+        int count;
+      };
+      parser main_parser() {
+        state start {
+          Testing ts;
+          transition select (ts.count) {
+            0: accept;
+            _: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_struct_declaration_and_field_read_defaults_sc2() async throws {
+  let simple_parser_declaration = """
+      struct Testing {
+        bool yesno;
+        int count;
+      };
+      parser main_parser() {
+        state start {
+          Testing ts;
+          ts.count = 1;
+          transition select (ts.count) {
+            0: accept;
+            _: reject;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(
+    Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+  #expect(state_result == P4Lang.reject)
+}

@@ -145,10 +145,10 @@ public struct SelectExpression {
 
   public init(
     withSelector selector: EvaluatableExpression,
-    withSelectCaseExpressions kses: [SelectCaseExpression]
+    withSelectCaseExpressions sces: [SelectCaseExpression]
   ) {
     self.selector = selector
-    self.select_expressions = kses
+    self.select_expressions = sces
   }
 
   public func append_checked_sce(sce: SelectCaseExpression) -> SelectExpression {

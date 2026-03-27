@@ -255,33 +255,33 @@ extension SelectExpression: CompilableExpression {
         ))
     }
 
-    var kses: [SelectCaseExpression] = Array()
-    var kses_errors: [Error] = Array()
+    var sces: [SelectCaseExpression] = Array()
+    var sces_errors: [Error] = Array()
 
     select_body_node.enumerateNamedChildren { current_node in
-      let maybe_parsed_kse = SelectCaseExpression.compile(
+      let maybe_parsed_cse = SelectCaseExpression.compile(
         node: current_node, withContext: context)
-      if case .Ok(let parsed_kse) = maybe_parsed_kse {
-        let parsed_cse = parsed_kse as! SelectCaseExpression
+      if case .Ok(let parsed_cse) = maybe_parsed_cse {
+        let parsed_cse = parsed_cse as! SelectCaseExpression
         switch parsed_cse.update_type(to: selector.type()) {
-        case .Ok(let updated_cse): kses.append(updated_cse)
-        case .Error(let e): kses_errors.append(ErrorOnNode(node: current_node, withError: e.msg))
+        case .Ok(let updated_cse): sces.append(updated_cse)
+        case .Error(let e): sces_errors.append(ErrorOnNode(node: current_node, withError: e.msg))
         }
       } else {
-        kses_errors.append(Error(withMessage: "\(maybe_parsed_kse.error()!)"))
+        sces_errors.append(Error(withMessage: "\(maybe_parsed_cse.error()!)"))
       }
     }
 
-    if !kses_errors.isEmpty {
+    if !sces_errors.isEmpty {
       return .Error(
         Error(
           withMessage: "Error(s) parsing select cases: "
-            + (kses_errors.map { error in
+            + (sces_errors.map { error in
               return "\(error.msg)"
             }.joined(separator: ";"))))
     }
     return .Ok(
-      SelectExpression(withSelector: selector, withSelectCaseExpressions: kses),
+      SelectExpression(withSelector: selector, withSelectCaseExpressions: sces),
     )
   }
 }

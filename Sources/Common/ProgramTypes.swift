@@ -186,23 +186,25 @@ public class P4StructValue: P4Value {
     // Note: Because the number of values _always_ matches the number of fields, there
     // is no need to check there!
 
-    for xx in zip(zip(lhs.stype.fields, lhs.values), zip(rhs.stype.fields, rhs.values)) {
-      let left = xx.0
-      let right = xx.1
+    for fields_to_compare in zip(
+      zip(lhs.stype.fields, lhs.values), zip(rhs.stype.fields, rhs.values))
+    {
+      let left_field_and_value = fields_to_compare.0
+      let right_field_and_value = fields_to_compare.1
 
-      let left_field = left.0
-      let left_value = left.1
+      let left_field_name = left_field_and_value.0
+      let left_field_value = left_field_and_value.1
 
-      let right_field = right.0
-      let right_value = right.1
+      let right_field_name = right_field_and_value.0
+      let right_field_value = right_field_and_value.1
 
       // If the field names do not match, then there is a problem.
-      if left_field != right_field {
+      if left_field_name != right_field_name {
         return false
       }
 
       // Now that we know that the field names match, do the values match?
-      if !op(left_value, right_value) {
+      if !op(left_field_value, right_field_value) {
         return false
       }
     }
@@ -296,17 +298,21 @@ public class P4StructValue: P4Value {
   }
 
   public let stype: P4Struct
-  public let values: [P4Value?]
+  public let values: [P4Value]
 
   public convenience init(withType type: P4Struct) {
     self.init(withType: type, andInitializers: [])
   }
 
   public init(withType type: P4Struct, andInitializers initializers: [P4Value?]) {
-    var values: [P4Value?] = Array(repeating: .none, count: type.fields.count())
-
-    for i in 0..<initializers.count {
-      values[i] = initializers[i]
+    let values = zip(0..<type.fields.count(), type.fields.fields).map { (index, field) in
+      // If there is an initializer for the field, then use it.
+      if index < initializers.count, let initializer = initializers[index] {
+        initializer
+      } else {
+        // Otherwise, set a default!
+        field.type.def()
+      }
     }
 
     self.values = values

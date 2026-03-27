@@ -33,11 +33,11 @@ extension SelectExpression: EvaluatableExpression {
   public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
     switch self.selector.evaluate(execution: execution) {
     case .Ok(let selector_value):
-      for kse in self.select_expressions {
-        if case .Ok(let kse_key) = kse.key.evaluate(execution: execution),
-          kse_key.eq(rhs: selector_value)
+      for sce in self.select_expressions {
+        if case .Ok(let kse) = sce.key.evaluate(execution: execution),
+          kse.eq(rhs: selector_value)
         {
-          let result = kse.evaluate(execution: execution)
+          let result = sce.evaluate(execution: execution)
           return result
         }
       }

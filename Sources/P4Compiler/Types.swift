@@ -56,8 +56,6 @@ extension P4Struct: CompilableType {
       return .Error(maybe_parsed_type_id.error()!)
     }
 
-    print("Looking up \(parsed_type_id) in \(context.types)")
-
     if case .Ok(let found_type) = context.types.lookup(identifier: parsed_type_id),
       let found_struct_type = found_type as? P4Struct
     {

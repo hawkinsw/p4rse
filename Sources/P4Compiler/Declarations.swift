@@ -106,7 +106,6 @@ struct StructDeclaration {
 
     if currentChild!.nodeType == "struct_declaration_fields" {
       currentChild!.enumerateNamedChildren { declaration_field in
-        print("declaration field: \(declaration_field)")
         switch VariableDeclarationStatement.Compile(
           node: declaration_field, withContext: current_context)
         {
