@@ -145,7 +145,7 @@ extension KeysetExpression: CompilableExpression {
 
 struct Expression {
   public static func Compile(
-    node: Node, withContext: CompilerContext
+    node: Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression> {
     #RequireNodeType<Node, EvaluatableExpression>(
       node: node, type: "expression", nice_type_name: "expression")
@@ -157,17 +157,17 @@ struct Expression {
 
     // If this is a grouped expression, recurse!
     if expression_node.nodeType == "grouped_expression" {
-      return Expression.Compile(node: expression_node.child(at: 1)!, withContext: withContext)
+      return Expression.Compile(node: expression_node.child(at: 1)!, withContext: context)
     }
 
-    let localElementsParsers: [CompilableExpression.Type] = [
+    let expression_parsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
       BinaryOperatorExpression.self, ArrayAccessExpression.self, FieldAccessExpression.self,
     ]
 
-    for le_parser in localElementsParsers {
-      switch le_parser.compile(
-        node: expression_node, withContext: withContext)
+    for candidate_expression_parser in expression_parsers {
+      switch candidate_expression_parser.compile(
+        node: expression_node, withContext: context)
       {
       case .Ok(.some(let parsed)): return .Ok(parsed)
       case .Error(let e): return .Error(e)
@@ -181,7 +181,7 @@ struct Expression {
 
 struct LValue {
   public static func Compile(
-    node: Node, withContext: CompilerContext
+    node: Node, withContext context: CompilerContext
   ) -> Result<EvaluatableLValueExpression> {
     #RequireNodeType<Node, EvaluatableExpression>(
       node: node, type: "expression", nice_type_name: "expression")
@@ -193,16 +193,16 @@ struct LValue {
 
     // If this is a grouped expression, recurse!
     if expression_node.nodeType == "grouped_expression" {
-      return LValue.Compile(node: expression_node.child(at: 1)!, withContext: withContext)
+      return LValue.Compile(node: expression_node.child(at: 1)!, withContext: context)
     }
 
-    let lvalueParsers: [CompilableLValueExpression.Type] = [
+    let lvalue_parsers: [CompilableLValueExpression.Type] = [
       TypedIdentifier.self, FieldAccessExpression.self, ArrayAccessExpression.self,
     ]
 
-    for lvalue_parser in lvalueParsers {
-      switch lvalue_parser.compile_as_lvalue(
-        node: expression_node, withContext: withContext)
+    for candidate_lvalue_parser in lvalue_parsers {
+      switch candidate_lvalue_parser.compile_as_lvalue(
+        node: expression_node, withContext: context)
       {
       case .Ok(.some(let parsed)): return .Ok(parsed)
       case .Error(let e): return .Error(e)

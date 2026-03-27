@@ -51,6 +51,18 @@ With that caveat noted, building can be done with `swift build`:
 $ swift build
 ```
 
+### Contributing
+
+We would _love_ your help! Contributions are very welcome!
+
+#### Coding Style
+
+Here are the style guidelines that we are _trying_ to maintain:
+- variables are in `snake_case`.
+- types are in `CamelCase`.
+
+Of course, we want to follow the formatter, too: see [below](#checking-format).
+
 #### Testing
 
 To run the P4RSE tests:
