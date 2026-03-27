@@ -12,27 +12,21 @@ Very, very alpha:
 As an example of what can be parsed and evaluated, here is a fairly complex P4 program from our unit tests:
 
 ```P4
+struct Testing {
+  bool yesno;
+  int count;
+};
 parser main_parser() {
-    state start {
-        bool where_to = ts.yesno;
-        string where_from = "here";
-        string where_where = "here";
-        if (where_to) {
-            bool where_from = true;
-            if (where_from) {
-                where_to = false;
-            }
-        }
-        where_from = "there";
-        transition select (where_to) {
-            false: reject;
-            true: accept;
-        };
-    }
+  state start {
+    Testing ts;
+    ts.count = 1;
+    transition select (ts.count) {
+      0: accept;
+      _: reject;
+    };
+  }
 };
 ```
-
-(assuming hat `ts` is an instance of a `struct` with the boolean-typed field `yesno`)
 
 Please check back often!
 
