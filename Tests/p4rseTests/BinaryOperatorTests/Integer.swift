@@ -294,3 +294,342 @@ import TreeSitterP4
 
   #expect(state_result == P4Lang.reject)
 }
+
+
+// Add Integers
+
+@Test func test_simple_parser_binary_operator_add_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (5 + 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_simple_parser_binary_operator_add_non_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (true + 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 16}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_add_non_integer2() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (5 + false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 17}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_add_non_integer3() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (false + false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 21}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+// Subtract Integers
+
+@Test func test_simple_parser_binary_operator_subtract_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (0 == (5 - 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_simple_parser_binary_operator_subtract_non_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (true - 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 16}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_subtract_non_integer2() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (5 - false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 17}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_subtract_non_integer3() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (false - false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 21}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+
+// Multiply Integers
+
+@Test func test_simple_parser_binary_operator_multiply_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (25 == (5 * 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_simple_parser_binary_operator_multiply_non_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (true * 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 16}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_multiply_non_integer2() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (5 * false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 17}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_multiply_non_integer3() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (false * false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 21}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+// Divide Integers
+
+@Test func test_simple_parser_binary_operator_divide_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (1 == (5 / 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  let program = try #UseOkResult(Program.Compile(simple))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(state_result == P4Lang.accept)
+}
+
+@Test func test_simple_parser_binary_operator_divide_non_integer() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (true / 5)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 16}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_divide_non_integer2() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (5 / false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 17}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+
+@Test func test_simple_parser_binary_operator_divide_non_integer3() async throws {
+  let simple = """
+    parser main_parser() {
+       state start {
+           transition select (10 == (false / false)) {
+              true: accept;
+              false: reject;
+           };
+       }
+    };
+  """
+
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{72, 21}: Could not parse transition select expression selector expression: Mathematical operation on operands with non-int type is not allowed"
+      ),
+      Program.Compile(simple)))
+}
+

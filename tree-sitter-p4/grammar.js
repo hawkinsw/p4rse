@@ -102,6 +102,10 @@ export default grammar({
             $.binaryGreaterThanEqualOperatorExpression,
             $.binaryAndOperatorExpression,
             $.binaryOrOperatorExpression,
+            $.binaryAddOperatorExpression,
+            $.binarySubtractOperatorExpression,
+            $.binaryMultiplyOperatorExpression,
+            $.binaryDivideOperatorExpression,
         ),
         arrayAccessExpression: $ => seq($.expression, $.open_bracket, $.expression, $.close_bracket),
         fieldAccessExpression: $=> prec.left(2, seq($.expression, $.field_access, $.identifier)),
@@ -114,6 +118,11 @@ export default grammar({
         binaryGreaterThanEqualOperatorExpression: $ => prec.left(2, seq($.expression, $.greater_than_equal, $.expression)),
         binaryAndOperatorExpression: $ => prec.left(2, seq($.expression, $.and, $.expression)),
         binaryOrOperatorExpression: $ => prec.left(2, seq($.expression, $.or, $.expression)),
+
+        binaryAddOperatorExpression: $ => prec.left(2, seq($.expression, $.add, $.expression)),
+        binarySubtractOperatorExpression: $ => prec.left(2, seq($.expression, $.subtract, $.expression)),
+        binaryMultiplyOperatorExpression: $ => prec.left(2, seq($.expression, $.multiply, $.expression)),
+        binaryDivideOperatorExpression: $ => prec.left(2, seq($.expression, $.divide, $.expression)),
 
         // Tokens
         _semicolon: $ => ";",
@@ -177,6 +186,11 @@ export default grammar({
 
         and: $=> "&&",
         or: $=> "||",
+
+        add: $=> '+',
+        subtract: $=> '-',
+        multiply: $=> '*',
+        divide: $=> '/',
 
         open_bracket: $=> '[',
         close_bracket: $=> ']',

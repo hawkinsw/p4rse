@@ -246,8 +246,9 @@ extension SelectExpression: CompilableExpression {
     let maybe_selector = Expression.Compile(node: selector_node, withContext: context)
     guard case .Ok(let selector) = maybe_selector else {
       return .Error(
-        Error(
-          withMessage:
+        ErrorOnNode(
+          node: selector_node,
+          withError:
             "Could not parse transition select expression selector expression: \(maybe_selector.error()!)"
         ))
     }
@@ -343,8 +344,8 @@ extension BinaryOperatorExpression: CompilableExpression {
     // swift-format-ignore
     #RequireNodesType<Node, EvaluatableExpression?>(
       nodes: binary_operator_expression_node,
-      type: ["binaryEqualOperatorExpression", "binaryLessThanOperatorExpression", "binaryLessThanEqualOperatorExpression", "binaryGreaterThanOperatorExpression", "binaryGreaterThanEqualOperatorExpression", "binaryAndOperatorExpression", "binaryOrOperatorExpression"],
-      nice_type_names: [ "binary equal operator", "binary less than operator", "binary less than or equal to operator", "binary greater than operator", "binary greater than or equal to operator", "binary and operator", "binary or operator"])
+      type: ["binaryEqualOperatorExpression", "binaryLessThanOperatorExpression", "binaryLessThanEqualOperatorExpression", "binaryGreaterThanOperatorExpression", "binaryGreaterThanEqualOperatorExpression", "binaryAndOperatorExpression", "binaryOrOperatorExpression", "binaryAddOperatorExpression", "binarySubtractOperatorExpression", "binaryMultiplyOperatorExpression", "binaryDivideOperatorExpression"],
+      nice_type_names: [ "binary equal operator", "binary less than operator", "binary less than or equal to operator", "binary greater than operator", "binary greater than or equal to operator", "binary and operator", "binary or operator", "binary add operator", "binary subtract operator", "binary multiply operator", "binary divide operator"])
 
     if binary_operator_expression_node.childCount < currentChildIdxSafe {
       return Result.Error(
@@ -382,7 +383,7 @@ extension BinaryOperatorExpression: CompilableExpression {
       return Result.Error(maybe_right_hand_side.error()!)
     }
 
-    let evaluators = [
+    let evaluators: [String: (String, P4Type, BinaryOperatorChecker?, BinaryOperatorEvaluator)] = [
       "binaryEqualOperatorExpression": (
         "Binary Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none,
         binary_equal_operator_evaluator
@@ -408,6 +409,20 @@ extension BinaryOperatorExpression: CompilableExpression {
       ),
       "binaryOrOperatorExpression": (
         "Binary And", P4Boolean(), binary_and_or_operator_checker, binary_or_operator_evaluator
+      ),
+      "binaryAddOperatorExpression": (
+        "Binary Add", P4Int(), binary_int_math_operator_checker, binary_add_operator_evaluator
+      ),
+      "binarySubtractOperatorExpression": (
+        "Binary Subtract", P4Int(), binary_int_math_operator_checker,
+        binary_subtract_operator_evaluator
+      ),
+      "binaryMultiplyOperatorExpression": (
+        "Binary Multiply", P4Int(), binary_int_math_operator_checker,
+        binary_multiply_operator_evaluator
+      ),
+      "binaryDivideOperatorExpression": (
+        "Binary Divide", P4Int(), binary_int_math_operator_checker, binary_divide_operator_evaluator
       ),
     ]
 
@@ -600,7 +615,6 @@ extension FieldAccessExpression: CompilableLValueExpression {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableLValueExpression?> {
     let expression = node.child(at: 0)!
-    print("expression: \(expression)")
     #SkipUnlessNodeType<Node, EvaluatableExpression?>(
       node: expression, type: "fieldAccessExpression")
 

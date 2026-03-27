@@ -123,20 +123,6 @@ public func binary_gte_operator_evaluator(left: P4Value, right: P4Value) -> P4Va
   }
 }
 
-public typealias BinaryOperatorChecker = (EvaluatableExpression, EvaluatableExpression) -> Result<
-  ()
->
-
-public func binary_and_or_operator_checker(
-  left: EvaluatableExpression, right: EvaluatableExpression
-) -> Result<()> {
-  // Check that both are Boolean-typed things!
-  if !(left.type().eq(rhs: P4Boolean()) && right.type().eq(rhs: P4Boolean())) {
-    return .Error(Error(withMessage: "And/Or on operands with non-bool type is not allowed"))
-  }
-  return .Ok(())
-}
-
 public func binary_and_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
   let bleft = left as! P4BooleanValue
   let bright = right as! P4BooleanValue
@@ -151,6 +137,62 @@ public func binary_or_operator_evaluator(left: P4Value, right: P4Value) -> P4Val
   return Map(input: bleft.access() || bright.access()) { input in
     P4BooleanValue(withValue: input)
   }
+}
+
+public func binary_add_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  let ileft = left as! P4IntValue
+  let iright = right as! P4IntValue
+  return Map(input: ileft.access() + iright.access()) { input in
+    P4IntValue(withValue: input)
+  }
+}
+
+public func binary_subtract_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  let ileft = left as! P4IntValue
+  let iright = right as! P4IntValue
+  return Map(input: ileft.access() - iright.access()) { input in
+    P4IntValue(withValue: input)
+  }
+}
+
+public func binary_multiply_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  let ileft = left as! P4IntValue
+  let iright = right as! P4IntValue
+  return Map(input: ileft.access() * iright.access()) { input in
+    P4IntValue(withValue: input)
+  }
+}
+
+public func binary_divide_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
+  let ileft = left as! P4IntValue
+  let iright = right as! P4IntValue
+  return Map(input: ileft.access() / iright.access()) { input in
+    P4IntValue(withValue: input)
+  }
+}
+
+// swift-format-ignore
+public typealias BinaryOperatorChecker = (EvaluatableExpression, EvaluatableExpression) -> Result<()>
+
+public func binary_and_or_operator_checker(
+  left: EvaluatableExpression, right: EvaluatableExpression
+) -> Result<()> {
+  // Check that both are Boolean-typed things!
+  if !(left.type().eq(rhs: P4Boolean()) && right.type().eq(rhs: P4Boolean())) {
+    return .Error(Error(withMessage: "And/Or on operands with non-bool type is not allowed"))
+  }
+  return .Ok(())
+}
+
+public func binary_int_math_operator_checker(
+  left: EvaluatableExpression, right: EvaluatableExpression
+) -> Result<()> {
+  // Check that both are int-typed things!
+  if !(left.type().eq(rhs: P4Int()) && right.type().eq(rhs: P4Int())) {
+    return .Error(
+      Error(withMessage: "Mathematical operation on operands with non-int type is not allowed"))
+  }
+  return .Ok(())
 }
 
 extension BinaryOperatorExpression: EvaluatableExpression {

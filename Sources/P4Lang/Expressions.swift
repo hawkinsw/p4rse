@@ -58,6 +58,7 @@ public struct SelectExpression {
 }
 
 public typealias NamedBinaryOperatorEvaluator = (String, P4Type, (P4Value, P4Value) -> P4Value)
+public typealias BinaryOperatorEvaluator = (P4Value, P4Value) -> P4Value
 public struct BinaryOperatorExpression {
   public let evaluator: NamedBinaryOperatorEvaluator
   public let left: EvaluatableExpression
