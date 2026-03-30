@@ -121,8 +121,10 @@ extension Parser: ParserExecution {
   public func execute(execution: ProgramExecution) -> (InstantiatedParserState, ProgramExecution) {
     var execution = execution.enter_scope()
 
-    execution = execution.declare(identifier: AsInstantiatedParserState(accept.state()).state, withValue: accept)
-    execution = execution.declare(identifier: AsInstantiatedParserState(reject.state()).state, withValue: reject)
+    execution = execution.declare(
+      identifier: AsInstantiatedParserState(accept.state()).state, withValue: accept)
+    execution = execution.declare(
+      identifier: AsInstantiatedParserState(reject.state()).state, withValue: reject)
 
     // Add initial values to the global scope
     if let initial = execution.initial_values() {

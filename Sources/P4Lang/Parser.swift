@@ -107,7 +107,7 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
 }
 
 /// Instantiated Parser State
-/// 
+///
 /// A parser state is both a type and a value. The Instantiated
 /// Parser State is the base class for parser states that act more
 /// as a value than a type.
