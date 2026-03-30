@@ -266,11 +266,11 @@ public struct Parser {
   }
 
   static func Compile(
-    withName name: Common.Identifier, node: Node,
+    withName name: Common.Identifier, withParameters parameters: ParameterList, node: Node,
     withContext context: CompilerContext
   ) -> Result<(P4Lang.Parser, CompilerContext)> {
 
-    var parser = P4Lang.Parser(withName: name)
+    var parser = P4Lang.Parser(withName: name, withParameters: parameters)
 
     // Build a state from each one listed.
     var error: Error? = .none

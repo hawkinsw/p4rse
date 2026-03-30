@@ -100,3 +100,72 @@ import P4Lang
       ParserAssignmentStatement.Compile( // Note: Calling ParserAssignmentStatement compilation directly.
         node: result.rootNode!, withContext: CompilerContext(withInstances: VarTypeScopes()))))
 }
+
+@Test func test_simple_compiler_parser_with_parameters() async throws {
+  let simple = """
+    parser main_parser(bool pmtr) {
+       state start {
+           transition accept;
+       }
+    };
+  """
+
+  let program = try! #UseOkResult(Program.Compile(simple))
+  let parser = try! #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let parameters = try! #require(parser.parameters)
+
+  // Check that the parameters match.
+  #expect(parameters.parameters.count == 1)
+
+  #expect(parameters.parameters[0].name == Identifier(name: "pmtr"))
+  #expect(parameters.parameters[0].type.eq(rhs: P4Boolean()))
+}
+
+@Test func test_simple_compiler_parser_with_multiple_parameters() async throws {
+  let simple = """
+    parser main_parser(bool pmtr, string smtr) {
+       state start {
+           transition accept;
+       }
+    };
+  """
+
+  let program = try! #UseOkResult(Program.Compile(simple))
+  let parser = try! #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let parameters = try! #require(parser.parameters)
+
+  // Check that the parameters match.
+  #expect(parameters.parameters.count == 2)
+
+  #expect(parameters.parameters[0].name == Identifier(name: "pmtr"))
+  #expect(parameters.parameters[0].type.eq(rhs: P4Boolean()))
+
+  #expect(parameters.parameters[1].name == Identifier(name: "smtr"))
+  #expect(parameters.parameters[1].type.eq(rhs: P4String()))
+}
+
+@Test func test_simple_compiler_parser_with_multiple_parameters2() async throws {
+  let simple = """
+    parser main_parser(bool pmtr, string smtr, int imtr) {
+       state start {
+           transition accept;
+       }
+    };
+  """
+
+  let program = try! #UseOkResult(Program.Compile(simple))
+  let parser = try! #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let parameters = try! #require(parser.parameters)
+
+  // Check that the parameters match.
+  #expect(parameters.parameters.count == 3)
+
+  #expect(parameters.parameters[0].name == Identifier(name: "pmtr"))
+  #expect(parameters.parameters[0].type.eq(rhs: P4Boolean()))
+
+  #expect(parameters.parameters[1].name == Identifier(name: "smtr"))
+  #expect(parameters.parameters[1].type.eq(rhs: P4String()))
+
+  #expect(parameters.parameters[2].name == Identifier(name: "imtr"))
+  #expect(parameters.parameters[2].type.eq(rhs: P4Int()))
+}

@@ -146,11 +146,11 @@ extension P4Lang.Parser: CompilableDeclaration {
   public static func Compile(
     node: Node, withContext context: CompilerContext
   ) -> Result<(P4Type, CompilerContext)?> {
-
     let parser_node = node
-    if parser_node.nodeType != "parserDeclaration" {
-      return .Ok(.none)
-    }
+    #SkipUnlessNodeType<Node, (P4Type, CompilerContext)?>(
+      node: parser_node, type: "parserDeclaration")
+
+    var current_context = context
 
     var currentChildIdx = 0
     var currentChildIdxSafe = 1
@@ -169,6 +169,9 @@ extension P4Lang.Parser: CompilableDeclaration {
 
     let type_node = currentChild
     var parser_name: Common.Identifier? = .none
+
+    // Assume that the parameter list is empty!
+    var parameter_list: ParameterList = ParameterList([])
 
     do {
       // Parse the parser type (type_node)
@@ -198,10 +201,36 @@ extension P4Lang.Parser: CompilableDeclaration {
       }
       currentChild = type_node?.child(at: currentChildIdx)
 
-      switch Identifier.Compile(node: currentChild!, withContext: context) {
+      switch Identifier.Compile(node: currentChild!, withContext: current_context) {
       case .Ok(let id): parser_name = id
       case .Error(let e):
         return .Error(e)
+      }
+
+      // Now, see if there are any parameters
+      currentChildIdx += 1
+      currentChildIdxSafe += 1
+      if currentChildIdxSafe < type_node!.childCount {
+
+        // There is something that _should_ be parameters!
+
+        // skip the '('
+        currentChildIdx += 1
+        currentChildIdxSafe += 1
+        if type_node!.childCount < currentChildIdxSafe {
+          return .Error(
+            ErrorOnNode(node: currentChild!, withError: "Missing ( before parameter list"))
+        }
+
+        currentChild = type_node?.child(at: currentChildIdx)
+
+        switch ParameterList.Compile(node: currentChild!, withContext: current_context) {
+        case .Ok(let (parsed_parameter_list, updated_context)):
+          parameter_list = parsed_parameter_list
+          current_context = updated_context
+        case .Error(let e):
+          return .Error(e)
+        }
       }
     }
 
@@ -209,14 +238,7 @@ extension P4Lang.Parser: CompilableDeclaration {
     currentChildIdxSafe += 1
     if parser_node.childCount < currentChildIdxSafe {
       return .Error(
-        ErrorOnNode(node: parser_node, withError: "Missing elements of parser declaration"))
-    }
-
-    if currentChild!.nodeType == "constructorParameters" {
-      return .Error(
-        ErrorOnNode(node: currentChild!, withError: "Constructor parameters are not yet handled.")
-      )
-      // Will increment indexes here.
+        ErrorOnNode(node: parser_node, withError: "Missing parser declaration component"))
     }
 
     // Skip the '{'
@@ -242,7 +264,8 @@ extension P4Lang.Parser: CompilableDeclaration {
     }
 
     switch Parser.Compile(
-      withName: parser_name!, node: currentChild!, withContext: context)
+      withName: parser_name!, withParameters: parameter_list, node: currentChild!,
+      withContext: current_context)
     {
     case Result.Ok((let parser, let updated_context)):
       // Create a new context with the name of the parser that was just compiled in scope.
@@ -255,7 +278,156 @@ extension P4Lang.Parser: CompilableDeclaration {
         ))
     case Result.Error(let error): return .Error(error)
     }
+  }
+}
 
-    // Assume that there is only '}' after -- the parser guaranteed that for us!
+extension ParameterList: Compilable {
+  public typealias T = ParameterList
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(ParameterList, CompilerContext)> {
+
+    if node.text == ")" {
+      // There are no parameters!
+      return .Ok((ParameterList([]), context))
+    }
+
+    #RequireNodeType<Node, (ParameterList, CompilerContext)>(
+      node: node, type: "parameter_list", nice_type_name: "Parameter List")
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+    var parameters: ParameterList = ParameterList([])
+
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing parameter list component"))
+    }
+
+    currentChild = node.child(at: currentChildIdx)
+    if currentChild?.nodeType == "parameter_list" {
+      switch ParameterList.Compile(node: currentChild!, withContext: context) {
+      case .Ok(let (ps, _)):
+        parameters = ps
+      case .Error(let e): return .Error(e)
+      }
+
+      print("Back here!")
+      currentChildIdx += 1
+      currentChildIdxSafe += 1
+    }
+
+    // We may have moved nodes, check/reset currentChild.
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing parameter list component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    // If this is a ')', we are done.
+    if currentChild?.text == ")" {
+      return .Ok((parameters, context))
+    }
+
+    // If this is a comma, we skip it!
+    if currentChild?.text == "," {
+      currentChildIdx += 1
+      currentChildIdxSafe += 1
+    }
+
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing parameter list component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    // Otherwise, there should be one parameter left!
+    switch Parameter.Compile(node: currentChild!, withContext: context) {
+    case .Ok(let (vds, updated_context)):
+      return .Ok((parameters.addParameter(vds), updated_context))
+    case .Error(let e): return .Error(e)
+    }
+  }
+}
+
+extension Parameter: Compilable {
+  public typealias T = Parameter
+  public static func Compile(
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(Parameter, CompilerContext)> {
+
+    #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
+      node: node, type: "parameter", nice_type_name: "parameter")
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing parameter declaration component"))
+    }
+
+    currentChild = node.child(at: currentChildIdx)
+
+    // Annotation?
+    if currentChild!.nodeType == "annotations" {
+      return .Error(
+        ErrorOnNode(
+          node: currentChild!,
+          withError: "Annotations in parameter declarations are not yet handled"))
+      // Will increment indexes here.
+    }
+
+    // Direction?
+    if currentChild!.nodeType == "direction" {
+      return .Error(
+        ErrorOnNode(
+          node: currentChild!, withError: "Direction in parameter declarations are not yet handled"
+        ))
+      // Will increment indexes here.
+    }
+
+    if currentChild!.nodeType != "typeRef" {
+      return Result.Error(
+        ErrorOnNode(
+          node: node, withError: "Did not find type name for parameter declaration"))
+    }
+
+    guard
+      case .Ok(let parameter_type) = Types.CompileType(type: currentChild!, withContext: context)
+    else {
+      return Result.Error(
+        Error(withMessage: "Could not parse a P4 type from \(currentChild!.text!)"))
+    }
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing parameter declaration component"))
+    }
+
+    currentChild = node.child(at: currentChildIdx)
+    if currentChild!.nodeType != "identifier" {
+      return Result.Error(
+        ErrorOnNode(
+          node: node, withError: "Did not find identifier for parameter statement"))
+    }
+
+    guard
+      case .Ok(let parameter_name) = Identifier.Compile(node: currentChild!, withContext: context)
+    else {
+      return Result.Error(
+        Error(withMessage: "Could not parse a parameter name from \(currentChild!.text!)"))
+    }
+
+    return Result.Ok(
+      (
+        Parameter(
+          identifier: parameter_name, withType: parameter_type),
+        context
+      ))
   }
 }

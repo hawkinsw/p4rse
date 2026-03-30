@@ -48,7 +48,7 @@ parser imple(bool pname) {
    (parserType
     (parser)
     (identifier)
-    (parameterList
+    (parameter_list
      (parameter
       (typeRef
        (baseType

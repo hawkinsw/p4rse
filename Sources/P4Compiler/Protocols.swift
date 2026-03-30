@@ -43,3 +43,10 @@ public protocol CompilableDeclaration {
     node: Node, withContext context: CompilerContext
   ) -> Result<(P4Type, CompilerContext)?>
 }
+
+public protocol Compilable<T> {
+  associatedtype T
+  static func Compile(
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(T, CompilerContext)>
+}

@@ -29,17 +29,17 @@ export default grammar({
         // Common - Parameters
         typeParameters: $ => seq('<', $.typeParameterList, '>'),
         typeParameterList: $ => choice("[a-z]+", seq($.typeParameterList, ',', "[a-z]+")),
-        parameterList: $ => choice($.parameter, seq($.parameterList, ',', $.parameter)),
+        parameter_list: $ => choice($.parameter, seq($.parameter_list, ',', $.parameter)),
         parameter: $ => choice(seq(optional($.annotations), optional($.direction), $.typeRef, $.identifier), seq(optional($.annotations), optional($.direction), $.typeRef, $.identifier, '=', $.expression)),
         direction: $ => choice($.in, $.out, $.inout),
 
         // Common - Types
         typeRef: $ => choice($.baseType, $.type_identifier),
         baseType: $ => choice($.bool, $.error, $.string, $.int, $.bit /* omitting "templated" types" */),
-        constructorParameters: $ => seq('(', optional($.parameterList), ')'),
+        constructor_parameters: $ => seq('(', optional($.parameter_list), ')'),
 
         // Common - Parsers
-        parserType: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
+        parserType: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameter_list), ')'),
 
         // Mark with higher precedence so that the local states are preferred when parsing!
         // TODO: Test!
@@ -60,7 +60,7 @@ export default grammar({
 
 
         // Instantiation
-        instantiation: $ => seq($.typeRef, '(', optional($.parameterList), ')', $.identifier),
+        instantiation: $ => seq($.typeRef, '(', optional($.parameter_list), ')', $.identifier),
 
         // Declarations
         declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration, $.type_declaration)),
@@ -70,8 +70,8 @@ export default grammar({
         struct_declaration_fields: $=> repeat1(seq($.variableDeclaration)),
 
         // Make separate productions for the parser type and the parser type declaration because the latter can have type parameters.
-        parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameterList), ')'),
-        parserDeclaration: $ => seq($.parserType, optional($.constructorParameters), '{', optional($.parserLocalElements), $.parserStates, '}'),
+        parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), '(', optional($.parameter_list), ')'),
+        parserDeclaration: $ => seq($.parserType, '{', optional($.parserLocalElements), $.parserStates, '}'),
 
         variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq($.assignment, $.expression)), $._semicolon),
 

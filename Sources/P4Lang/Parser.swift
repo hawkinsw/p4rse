@@ -319,9 +319,16 @@ public struct Parser: P4Type, P4Value {
   public var states: ParserStates
 
   public var name: Identifier
+  public var parameters: ParameterList?
 
   public init(withName name: Identifier) {
     self.states = ParserStates()
+    self.name = name
+  }
+
+  public init(withName name: Identifier, withParameters parameters: ParameterList) {
+    self.states = ParserStates()
+    self.parameters = parameters
     self.name = name
   }
 
@@ -342,7 +349,8 @@ public struct Parser: P4Type, P4Value {
   }
 
   public var description: String {
-    return "Parser"
+    let parameters = self.parameters?.description ?? "N/A"
+    return "Parser \(self.name) with parameters: \(parameters) and states: \(self.states)"
   }
 
   public func def() -> any P4Value {
