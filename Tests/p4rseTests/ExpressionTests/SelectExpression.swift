@@ -137,3 +137,26 @@ import TreeSitterP4
       ),
       Program.Compile(simple_parser_declaration)))
 }
+
+@Test func test_select_expression_selection_order() async throws {
+  let simple_parser_declaration = """
+      parser main_parser() {
+        state start {
+          transition select (5) {
+            5: reject;
+            5: accept;
+            _: accept;
+          };
+        }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(parser.states.count() == 1)
+
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
+
+}
