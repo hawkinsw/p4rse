@@ -56,7 +56,7 @@ import P4Lang
 
   #expect(parser.states.count() == 1)
 
-  let state = try! #require(parser.states.find(withIdentifier: Identifier(name: "start")))
+  let state = AsInstantiatedParserState((try! #require(parser.states.find(withIdentifier: Identifier(name: "start")))))
   #expect(state.state == Identifier(name: "start"))
   #expect(state.statements.count == 1)
 }

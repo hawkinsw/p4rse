@@ -52,7 +52,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_array_access_invalid_type() async throws {
@@ -103,7 +103,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_array_access3() async throws {
@@ -130,7 +130,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_array_access4() async throws {
@@ -157,7 +157,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_array_access_nested() async throws {
@@ -189,7 +189,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_array_set() async throws {
@@ -218,7 +218,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_array_set_nested() async throws {
@@ -251,5 +251,5 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }

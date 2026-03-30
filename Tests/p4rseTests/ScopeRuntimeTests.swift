@@ -46,7 +46,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_scope() async throws {
@@ -72,7 +72,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 
 }
 
@@ -100,7 +100,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_assignment() async throws {
@@ -124,7 +124,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 
 }
 
@@ -155,5 +155,5 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }

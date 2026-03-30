@@ -45,7 +45,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_binary_operator_equal_not_equal_bool() async throws {
@@ -64,7 +64,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_parser_binary_operator_less_than_bool() async throws {
@@ -83,7 +83,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_binary_operator_less_than_equal_bool() async throws {
@@ -102,7 +102,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_binary_operator_less_than_equal_bool2() async throws {
@@ -121,7 +121,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_binary_operator_greater_than_bool() async throws {
@@ -140,7 +140,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_binary_operator_greater_than_equal_bool() async throws {
@@ -159,7 +159,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_binary_operator_greater_than_equal_bool2() async throws {
@@ -178,7 +178,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_binary_operator_less_than_bool_not() async throws {
@@ -197,7 +197,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_parser_binary_operator_less_than_bool_not2() async throws {
@@ -216,7 +216,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_parser_binary_operator_less_than_equal_bool_not() async throws {
@@ -235,7 +235,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_parser_binary_operator_greater_than_bool_not() async throws {
@@ -254,7 +254,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_parser_binary_operator_greater_than_bool_not2() async throws {
@@ -273,7 +273,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_parser_binary_operator_greater_than_equal_bool_not() async throws {
@@ -292,5 +292,5 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }

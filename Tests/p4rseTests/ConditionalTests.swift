@@ -49,7 +49,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_parser_with_conditional_statement_and_else() async throws {
@@ -77,6 +77,6 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 
 }

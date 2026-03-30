@@ -42,7 +42,7 @@ import TreeSitterP4
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // We should be in the accept state.
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_runtime_to_accept() async throws {
@@ -59,7 +59,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   // We should be in the accept state.
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_simple_runtime_no_start_state() async throws {

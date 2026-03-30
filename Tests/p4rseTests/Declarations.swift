@@ -49,7 +49,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_struct_declaration_and_field_write_field_read() async throws {
@@ -74,7 +74,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_struct_declaration_and_field_read_defaults() async throws {
@@ -97,7 +97,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_struct_declaration_and_field_read_defaults_sc() async throws {
@@ -120,7 +120,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_struct_declaration_and_field_read_defaults_sc2() async throws {
@@ -144,5 +144,5 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }

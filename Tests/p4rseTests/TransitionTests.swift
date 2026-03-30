@@ -46,7 +46,7 @@ import TreeSitterP4
 
   #expect(parser.states.count() == 1)
 
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_simple_parser_with_transition_select_expression_to_reject() async throws {
@@ -67,7 +67,7 @@ import TreeSitterP4
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_no_matching_key_transition() async throws {

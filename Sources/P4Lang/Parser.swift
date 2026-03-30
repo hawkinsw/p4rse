@@ -40,9 +40,11 @@ public struct ParserAssignmentStatement {
 /// A P4 Parser State
 ///
 /// Note: A P4 Parser State is both a type and a value.
+/// This "bare" parser state represents the state more as a type than a value.
 public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
   public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
-    return lhs.state == rhs.state
+    // Two "bare" parser states are always equal.
+    return true
   }
 
   public func eq(rhs: any Common.P4Type) -> Bool {
@@ -56,37 +58,106 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
     return self
   }
 
+  // Any operation between two "bare" parser states is always true.
   public func eq(rhs: any Common.P4Value) -> Bool {
     return switch rhs {
-    case let other as ParserState: self.state == other.state
+    case is ParserState: true
     default: false
     }
   }
 
   public func lt(rhs: any Common.P4Value) -> Bool {
     return switch rhs {
-    case let other as ParserState: self.state < other.state
+    case is ParserState: true
     default: false
     }
   }
 
   public func lte(rhs: any Common.P4Value) -> Bool {
     return switch rhs {
-    case let other as ParserState: self.state <= other.state
+    case is ParserState: true
     default: false
     }
   }
 
   public func gt(rhs: any Common.P4Value) -> Bool {
     return switch rhs {
-    case let other as ParserState: self.state > other.state
+    case is ParserState: true
     default: false
     }
   }
 
   public func gte(rhs: any Common.P4Value) -> Bool {
     return switch rhs {
-    case let other as ParserState: self.state >= other.state
+    case is ParserState: true
+    default: false
+    }
+  }
+
+  public var description: String {
+    return "Bare Parser State"
+  }
+
+  /// Construct a ParserState
+  public init() {}
+
+  public func def() -> any P4Value {
+    return ParserState()
+  }
+}
+
+/// Instantiated Parser State
+/// 
+/// A parser state is both a type and a value. The Instantiated
+/// Parser State is the base class for parser states that act more
+/// as a value than a type.
+public class InstantiatedParserState: ParserState {
+  public static func == (lhs: InstantiatedParserState, rhs: InstantiatedParserState) -> Bool {
+    return lhs.state == rhs.state
+  }
+
+  public override func eq(rhs: any Common.P4Type) -> Bool {
+    return switch rhs {
+    case is ParserState: true
+    default: false
+    }
+  }
+
+  public override func type() -> any Common.P4Type {
+    return self
+  }
+
+  public override func eq(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as InstantiatedParserState: self.state == other.state
+    default: false
+    }
+  }
+
+  public override func lt(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as InstantiatedParserState: self.state < other.state
+    default: false
+    }
+  }
+
+  public override func lte(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as InstantiatedParserState: self.state <= other.state
+    default: false
+    }
+  }
+
+  public override func gt(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as InstantiatedParserState: self.state > other.state
+    default: false
+    }
+  }
+
+  public override func gte(rhs: any Common.P4Value) -> Bool {
+    return switch rhs {
+    case let other as InstantiatedParserState: self.state >= other.state
     default: false
     }
   }
@@ -94,7 +165,7 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
   public private(set) var state: Identifier
   public private(set) var statements: [EvaluatableStatement]
 
-  public var description: String {
+  public override var description: String {
     return "Name: \(state)"
   }
 
@@ -114,12 +185,12 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
     statements = Array()
   }
 
-  public func def() -> any P4Value {
-    return ParserState(name: Identifier(name: ""))
+  public override func def() -> any P4Value {
+    return InstantiatedParserState(name: Identifier(name: ""))
   }
 }
 
-public class ParserStateDirectTransition: ParserState {
+public class ParserStateDirectTransition: InstantiatedParserState {
 
   private let next_state: Identifier
 
@@ -140,7 +211,7 @@ public class ParserStateDirectTransition: ParserState {
   }
 }
 
-public class ParserStateNoTransition: ParserState {
+public class ParserStateNoTransition: InstantiatedParserState {
   public override init(name: Identifier, withStatements stmts: [any EvaluatableStatement]) {
     super.init(name: name, withStatements: stmts)
   }
@@ -149,7 +220,7 @@ public class ParserStateNoTransition: ParserState {
   }
 }
 
-public class ParserStateSelectTransition: ParserState {
+public class ParserStateSelectTransition: InstantiatedParserState {
 
   public let selectExpression: SelectExpression
 
@@ -172,7 +243,7 @@ nonisolated(unsafe) public let reject = ParserStateNoTransition(
   name: Identifier(name: "reject"), withStatements: [])
 
 public struct ParserStates {
-  public var states: [ParserState] = Array()
+  public var states: [InstantiatedParserState] = Array()
 
   public func count() -> Int {
     return states.count
@@ -191,11 +262,11 @@ public struct ParserStates {
     self.states = Array()
   }
 
-  private init(withStates states: [ParserState]) {
+  private init(withStates states: [InstantiatedParserState]) {
     self.states = states
   }
 
-  public func append(state: ParserState) -> ParserStates {
+  public func append(state: InstantiatedParserState) -> ParserStates {
     var new_states = self.states
     new_states.append(state)
     return ParserStates(withStates: new_states)
@@ -277,4 +348,9 @@ public struct Parser: P4Type, P4Value {
   public func def() -> any P4Value {
     return Parser(withName: Identifier(name: ""))
   }
+}
+
+/// Launder a parser state into an instantiated parser state.
+public func AsInstantiatedParserState(_ state: ParserState) -> InstantiatedParserState {
+  return state as! InstantiatedParserState
 }

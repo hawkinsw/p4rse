@@ -24,8 +24,7 @@ extension SelectCaseExpression: EvaluatableExpression {
   }
 
   public func type() -> any Common.P4Type {
-    // TODO
-    return reject
+    return ParserState()
   }
 }
 
@@ -46,9 +45,8 @@ extension SelectExpression: EvaluatableExpression {
     }
   }
 
-  // TODO
   public func type() -> any Common.P4Type {
-    return reject
+    return ParserState()
   }
 }
 

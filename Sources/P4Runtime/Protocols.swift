@@ -35,5 +35,5 @@ public protocol EvaluatableParserState: P4Value {
 }
 
 public protocol ParserExecution {
-  func execute(execution: ProgramExecution) -> (ParserState, ProgramExecution)
+  func execute(execution: ProgramExecution) -> (InstantiatedParserState, ProgramExecution)
 }

@@ -118,11 +118,11 @@ extension ParserStateSelectTransition: EvaluatableParserState {
 }
 
 extension Parser: ParserExecution {
-  public func execute(execution: ProgramExecution) -> (ParserState, ProgramExecution) {
+  public func execute(execution: ProgramExecution) -> (InstantiatedParserState, ProgramExecution) {
     var execution = execution.enter_scope()
 
-    execution = execution.declare(identifier: accept.state().state, withValue: accept)
-    execution = execution.declare(identifier: reject.state().state, withValue: reject)
+    execution = execution.declare(identifier: AsInstantiatedParserState(accept.state()).state, withValue: accept)
+    execution = execution.declare(identifier: AsInstantiatedParserState(reject.state()).state, withValue: reject)
 
     // Add initial values to the global scope
     if let initial = execution.initial_values() {
@@ -148,6 +148,6 @@ extension Parser: ParserExecution {
     while !current_state.done() && !execution.hasError() {
       (current_state, execution) = current_state.execute(program: execution)
     }
-    return (current_state.state(), execution)
+    return (AsInstantiatedParserState(current_state.state()), execution)
   }
 }

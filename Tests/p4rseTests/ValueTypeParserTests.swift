@@ -147,7 +147,7 @@ import TreeSitterP4
   // 5 == 5 == true
   // true == true
   // true
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_expression_in_declaration_initializer2() async throws {
@@ -169,7 +169,7 @@ import TreeSitterP4
   // 5 == 5 == true
   // true == false
   // false
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_expression_in_declaration_initializer_false() async throws {
@@ -191,7 +191,7 @@ import TreeSitterP4
   // 6 == 5 == true
   // false == true
   // false
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_expression_in_declaration_initializer_false2() async throws {
@@ -213,7 +213,7 @@ import TreeSitterP4
   // 6 == 5 == false
   // false == false
   // true
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_expression_in_declaration_initializer_invalid_types() async throws {
@@ -237,7 +237,7 @@ import TreeSitterP4
   // false == 5 == true
   // false == true
   // false
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_expression_in_declaration_initializer_invalid_types2() async throws {

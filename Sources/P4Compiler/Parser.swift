@@ -84,7 +84,7 @@ public struct Parser {
     static func Compile(
       node: Node, forState state_identifier: Common.Identifier,
       withStatements stmts: [EvaluatableStatement], withContext context: CompilerContext
-    ) -> Result<(ParserState, CompilerContext)> {
+    ) -> Result<(InstantiatedParserState, CompilerContext)> {
 
       #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
         node: node, type: "parserTransitionStatement", nice_type_name: "parser transition statement"
@@ -177,7 +177,7 @@ public struct Parser {
   public struct State {
     static func Compile(
       node: Node, withContext context: CompilerContext
-    ) -> Result<(ParserState, CompilerContext)> {
+    ) -> Result<(InstantiatedParserState, CompilerContext)> {
 
       var currentChildIdx = 0
       var currentChildIdxSafe = 1

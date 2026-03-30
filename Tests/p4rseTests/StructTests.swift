@@ -59,7 +59,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_access_declared() async throws {
@@ -88,7 +88,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: .none, withGlobalTypes: test_types))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_access_declared2() async throws {
@@ -118,7 +118,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: .none, withGlobalTypes: test_types))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_access_opp() async throws {
@@ -153,7 +153,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 
@@ -188,7 +188,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_access2_opp() async throws {
@@ -222,7 +222,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.reject)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
 @Test func test_field_access_nested() async throws {
@@ -268,7 +268,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_write() async throws {
@@ -304,7 +304,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_write_invalid_type() async throws {
@@ -377,7 +377,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_write_nested2() async throws {
@@ -425,7 +425,7 @@ import TreeSitterP4
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
-  #expect(state_result == P4Lang.accept)
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 }
 
 @Test func test_field_write_nested_invalid_type() async throws {
