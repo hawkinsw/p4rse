@@ -146,3 +146,23 @@ import TreeSitterP4
   let (state_result, _) = try! #UseOkResult(runtime.run())
   #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
+
+@Test func test_function_declaration() async throws {
+  let simple_parser_declaration = """
+      bool functionb() {
+        int count;
+      };
+   """
+  #expect(#RequireOkResult(Program.Compile(simple_parser_declaration)))
+}
+
+
+@Test func test_function_declaration_with_parameters() async throws {
+  let simple_parser_declaration = """
+      bool functionb(bool x) {
+        x = true;
+      };
+   """
+  #expect(#RequireOkResult(Program.Compile(simple_parser_declaration)))
+}
+

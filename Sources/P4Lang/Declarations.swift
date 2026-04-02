@@ -19,7 +19,11 @@ import Common
 
 public struct Declaration {}
 
-public struct Parameter: CustomStringConvertible {
+public struct Parameter: CustomStringConvertible, Equatable {
+  public static func == (lhs: Parameter, rhs: Parameter) -> Bool {
+    return lhs.name == rhs.name && lhs.type.eq(rhs: rhs.type)
+  }
+
   public var name: Identifier
   public var type: P4Type
 
@@ -35,7 +39,18 @@ public struct Parameter: CustomStringConvertible {
   }
 }
 
-public struct ParameterList: CustomStringConvertible {
+public struct ParameterList: CustomStringConvertible, Equatable {
+  public static func == (lhs: ParameterList, rhs: ParameterList) -> Bool {
+    if lhs.parameters.count != rhs.parameters.count {
+      return false
+    }
+
+    return 0
+      == zip(lhs.parameters, rhs.parameters).count { (lparam, rparam) in
+        return lparam != rparam
+      }
+  }
+
   public var parameters: [Parameter]
 
   public init() {
@@ -55,5 +70,80 @@ public struct ParameterList: CustomStringConvertible {
       parameter.description
     }.joined(separator: ";")
     return "Parameter list: \(parameters)"
+  }
+}
+
+public struct FunctionDeclaration: P4Type, P4Value {
+  public func type() -> any Common.P4Type {
+    return self
+  }
+
+  public func eq(rhs: any Common.P4Type) -> Bool {
+    switch rhs {
+    case let frhs as FunctionDeclaration:
+      return frhs.tipe.eq(rhs: self.tipe) && frhs.params == self.params
+    default: return false
+    }
+  }
+
+  public func eq(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let frhs as FunctionDeclaration: return self.eq(rhs: frhs as P4Type)
+    default: return false
+    }
+  }
+
+  public func lt(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let frhs as FunctionDeclaration: return self.name < frhs.name
+    default: return false
+    }
+  }
+
+  public func lte(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let frhs as FunctionDeclaration: return self.name <= frhs.name
+    default: return false
+    }
+
+  }
+
+  public func gt(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let frhs as FunctionDeclaration: return self.name > frhs.name
+    default: return false
+    }
+  }
+
+  public func gte(rhs: any Common.P4Value) -> Bool {
+    switch rhs {
+    case let frhs as FunctionDeclaration: return self.name >= frhs.name
+    default: return false
+    }
+  }
+
+  public func def() -> any Common.P4Value {
+    return FunctionDeclaration(
+      named: Identifier(name: ""), ofType: P4Boolean(), withParameters: ParameterList([]),
+      withBody: .none)
+  }
+
+  public var description: String {
+    return "Function named \(self.name) that returns \(self.tipe) with parameters \(self.params)"
+  }
+
+  public var body: EvaluatableStatement?
+  public var params: ParameterList
+  public var name: Identifier
+  public var tipe: P4Type
+
+  public init(
+    named name: Identifier, ofType type: P4Type, withParameters parameters: ParameterList,
+    withBody body: EvaluatableStatement?
+  ) {
+    self.name = name
+    self.tipe = type
+    self.params = parameters
+    self.body = body
   }
 }

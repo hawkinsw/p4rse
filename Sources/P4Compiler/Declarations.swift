@@ -27,49 +27,148 @@ extension Declaration: CompilableDeclaration {
     node: Node, withContext context: CompilerContext
   ) -> Result<(P4Type, CompilerContext)?> {
 
-    guard let node_type = node.nodeType,
-      node_type == "type_declaration"
-    else {
+    let declaration_compilers: [String: CompilableDeclaration.Type] = [
+      "function_declaration": FunctionDeclaration.self,
+      "type_declaration": StructDeclaration.self,  // Assume that type declarations are struct declarations.
+    ]
+
+    guard let declaration_compiler = declaration_compilers[node.nodeType!] else {
       return .Ok(.none)
     }
 
-    // Assume that it is a struct declaration
-    return StructDeclaration.Compile(node: node.child(at: 0)!, withContext: context)
+    return declaration_compiler.Compile(node: node, withContext: context)
   }
 }
 
-struct StructDeclaration {
+extension FunctionDeclaration: CompilableDeclaration {
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(any Common.P4Type, CompilerContext)?> {
+    let function_declaration_node = node
+    #RequireNodeType<Node, (ParameterList, CompilerContext)>(
+      node: function_declaration_node, type: "function_declaration",
+      nice_type_name: "Function Declaration")
+
+    var context = context
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+    if function_declaration_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(
+          node: function_declaration_node, withError: "Missing function declaration component"))
+    }
+    currentChild = function_declaration_node.child(at: currentChildIdx)
+
+    let maybe_function_type = Types.CompileType(type: currentChild!, withContext: context)
+    guard case .Ok(let function_type) = maybe_function_type else {
+      return .Error(maybe_function_type.error()!)
+    }
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if function_declaration_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(
+          node: function_declaration_node, withError: "Missing function declaration component"))
+    }
+    currentChild = function_declaration_node.child(at: currentChildIdx)
+
+    let maybe_function_name = Identifier.Compile(node: currentChild!, withContext: context)
+    guard case .Ok(let function_name) = maybe_function_name else {
+      return .Error(maybe_function_name.error()!)
+    }
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if function_declaration_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(
+          node: function_declaration_node, withError: "Missing function declaration component"))
+    }
+    currentChild = function_declaration_node.child(at: currentChildIdx)
+
+    let maybe_function_parameters = ParameterList.Compile(node: currentChild!, withContext: context)
+    guard case .Ok((let function_parameters, let updated_context)) = maybe_function_parameters
+    else {
+      return .Error(maybe_function_parameters.error()!)
+    }
+    context = updated_context
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if function_declaration_node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(
+          node: function_declaration_node, withError: "Missing function declaration component"))
+    }
+    currentChild = function_declaration_node.child(at: currentChildIdx)
+
+    // Add the parameters into scope.
+    var function_scope = context.instances.enter()
+    for parameter in function_parameters.parameters {
+      function_scope = function_scope.declare(identifier: parameter.name, withValue: parameter.type)
+    }
+
+    let maybe_function_body = Parser.Statement.Compile(
+      node: currentChild!, withContext: context.update(newInstances: function_scope))
+    guard case .Ok((let function_body, _)) = maybe_function_body else {
+      return .Error(maybe_function_body.error()!)
+    }
+
+    let function_declaration = FunctionDeclaration(
+      named: function_name, ofType: function_type, withParameters: function_parameters,
+      withBody: function_body)
+
+    // Do not use the updated context returned by parsing the body
+    // and do not use the function_scope, either.
+    return .Ok(
+      (
+        function_declaration,
+        context.update(
+          newTypes: context.types.declare(
+            identifier: function_name, withValue: function_declaration))
+      ))
+  }
+}
+
+struct StructDeclaration {}
+
+extension StructDeclaration: CompilableDeclaration {
   static func Compile(
     node: Node, withContext context: CompilerContext
   ) -> Result<(P4Type, CompilerContext)?> {
 
+    let struct_declaration_node = node.child(at: 0)!
     var currentChildIdx = 0
     var currentChildIdxSafe = 1
 
     var currentChild: Node? = .none
 
-    guard let node_type = node.nodeType,
+    guard let node_type = struct_declaration_node.nodeType,
       node_type == "struct_declaration"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find a struct declaration"))
+        ErrorOnNode(node: struct_declaration_node, withError: "Did not find a struct declaration"))
     }
 
-    if node.childCount < currentChildIdxSafe {
+    if struct_declaration_node.childCount < currentChildIdxSafe {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing elements in struct declaration"))
+        ErrorOnNode(
+          node: struct_declaration_node, withError: "Missing elements in struct declaration"))
     }
 
     // Skip the keyword struct
     currentChildIdx += 1
     currentChildIdxSafe += 1
-    if node.childCount < currentChildIdxSafe {
+    if struct_declaration_node.childCount < currentChildIdxSafe {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing elements in struct declaration"))
+        ErrorOnNode(
+          node: struct_declaration_node, withError: "Missing elements in struct declaration"))
     }
 
     // The name of the struct type.
-    currentChild = node.child(at: currentChildIdx)
+    currentChild = struct_declaration_node.child(at: currentChildIdx)
     let maybe_struct_identifier = Identifier.Compile(
       node: currentChild!, withContext: context)
     guard case Result.Ok(let struct_identifier) = maybe_struct_identifier else {
@@ -82,12 +181,13 @@ struct StructDeclaration {
     // Skip the '{'
     currentChildIdx += 1
     currentChildIdxSafe += 1
-    if node.childCount < currentChildIdxSafe {
+    if struct_declaration_node.childCount < currentChildIdxSafe {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing element of struct declaration"))
+        ErrorOnNode(
+          node: struct_declaration_node, withError: "Missing element of struct declaration"))
     }
 
-    currentChild = node.child(at: currentChildIdx)
+    currentChild = struct_declaration_node.child(at: currentChildIdx)
 
     // If there are no fields, it will be a "}"
     if currentChild!.nodeType == "}" {
