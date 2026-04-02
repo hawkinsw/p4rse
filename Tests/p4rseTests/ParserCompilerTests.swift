@@ -112,7 +112,7 @@ import P4Lang
 
   let program = try! #UseOkResult(Program.Compile(simple))
   let parser = try! #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let parameters = try! #require(parser.parameters)
+  let parameters = parser.parameters
 
   // Check that the parameters match.
   #expect(parameters.parameters.count == 1)
@@ -132,7 +132,7 @@ import P4Lang
 
   let program = try! #UseOkResult(Program.Compile(simple))
   let parser = try! #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let parameters = try! #require(parser.parameters)
+  let parameters = parser.parameters
 
   // Check that the parameters match.
   #expect(parameters.parameters.count == 2)
@@ -155,7 +155,7 @@ import P4Lang
 
   let program = try! #UseOkResult(Program.Compile(simple))
   let parser = try! #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let parameters = try! #require(parser.parameters)
+  let parameters = parser.parameters
 
   // Check that the parameters match.
   #expect(parameters.parameters.count == 3)
