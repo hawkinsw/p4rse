@@ -15,6 +15,7 @@ parser simple() {
    (parserType
     (parser)
     (identifier)
+    (parameters)
    )
    (parserStates
     (parserState
@@ -61,6 +62,7 @@ parser simple() {
    (parserType
     (parser)
     (identifier)
+    (parameters)
    )
    (parserStates
     (parserState
@@ -107,6 +109,7 @@ parser simple() {
    (parserType
     (parser)
     (identifier)
+    (parameters)
    )
    (parserStates
     (parserState
@@ -153,6 +156,7 @@ parser simple() {
    (parserType
     (parser)
     (identifier)
+    (parameters)
    )
    (parserStates
     (parserState
@@ -205,6 +209,7 @@ parser simple() {
    (parserType
     (parser)
     (identifier)
+    (parameters)
    )
    (parserStates
     (parserState
