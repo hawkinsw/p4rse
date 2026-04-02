@@ -169,3 +169,16 @@ import P4Lang
   #expect(parameters.parameters[2].name == Identifier(name: "imtr"))
   #expect(parameters.parameters[2].type.eq(rhs: P4Int()))
 }
+
+@Test func test_simple_compiler_parser_use_parameters() async throws {
+  let simple = """
+    parser main_parser(bool pmtr, string smtr, int imtr) {
+       state start {
+           pmtr = true;
+           transition accept;
+       }
+    };
+  """
+
+  #expect(#RequireOkResult(Program.Compile(simple)))
+}

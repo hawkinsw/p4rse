@@ -171,7 +171,7 @@ extension P4Lang.Parser: CompilableDeclaration {
     var parser_name: Common.Identifier? = .none
 
     // Assume that the parameter list is empty!
-    var parameter_list: ParameterList = ParameterList([])
+    var parameter_list = ParameterList()
 
     do {
       // Parse the parser type (type_node)
@@ -207,31 +207,28 @@ extension P4Lang.Parser: CompilableDeclaration {
         return .Error(e)
       }
 
-      // Now, see if there are any parameters
       currentChildIdx += 1
       currentChildIdxSafe += 1
-      if currentChildIdxSafe < type_node!.childCount {
-
-        // There is something that _should_ be parameters!
-
-        // skip the '('
-        currentChildIdx += 1
-        currentChildIdxSafe += 1
-        if type_node!.childCount < currentChildIdxSafe {
-          return .Error(
-            ErrorOnNode(node: currentChild!, withError: "Missing ( before parameter list"))
-        }
-
-        currentChild = type_node?.child(at: currentChildIdx)
-
-        switch ParameterList.Compile(node: currentChild!, withContext: current_context) {
-        case .Ok(let (parsed_parameter_list, updated_context)):
-          parameter_list = parsed_parameter_list
-          current_context = updated_context
-        case .Error(let e):
-          return .Error(e)
-        }
+      if type_node!.childCount < currentChildIdxSafe {
+        return .Error(
+          ErrorOnNode(node: type_node!, withError: "Missing parser parameters"))
       }
+
+      currentChild = type_node?.child(at: currentChildIdx)
+      switch ParameterList.Compile(node: currentChild!, withContext: current_context) {
+      case .Ok(let (parsed_parameter_list, updated_context)):
+        parameter_list = parsed_parameter_list
+        current_context = updated_context
+      case .Error(let e):
+        return .Error(e)
+      }
+    }
+
+    // Now, let's put the parameters into scope.
+    for parameter in parameter_list.parameters {
+      current_context = current_context.update(
+        newInstances: current_context.instances.declare(
+          identifier: parameter.name, withValue: parameter.type))
     }
 
     currentChildIdx += 1
@@ -281,73 +278,101 @@ extension P4Lang.Parser: CompilableDeclaration {
   }
 }
 
+func parameter_list_compiler(
+  node: SwiftTreeSitter.Node, withContext context: CompilerContext
+) -> Common.Result<(ParameterList, CompilerContext)> {
+
+  var currentChildIdx = 0
+  var currentChildIdxSafe = 1
+  var currentChild: Node? = .none
+
+  if node.text == ")" {
+    // There are no parameters!
+    return Result.Ok((ParameterList([]), context))
+  }
+
+  #RequireNodeType<Node, (ParameterList, CompilerContext)>(
+    node: node, type: "parameter_list", nice_type_name: "Parameter List")
+
+  var parameters: ParameterList = ParameterList([])
+
+  if node.childCount < currentChildIdxSafe {
+    return Result.Error(
+      ErrorOnNode(node: node, withError: "Missing parameter list component"))
+  }
+
+  currentChild = node.child(at: currentChildIdx)
+  if currentChild?.nodeType == "parameter_list" {
+    switch parameter_list_compiler(node: currentChild!, withContext: context) {
+    case .Ok(let (ps, _)):
+      parameters = ps
+    case .Error(let e): return Result.Error(e)
+    }
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+  }
+
+  // We may have moved nodes, check/reset currentChild.
+  if node.childCount < currentChildIdxSafe {
+    return Result.Error(
+      ErrorOnNode(node: node, withError: "Missing parameter list component"))
+  }
+  currentChild = node.child(at: currentChildIdx)
+
+  // If this is a ')', we are done.
+  if currentChild?.text == ")" {
+    return Result.Ok((parameters, context))
+  }
+
+  // If this is a comma, we skip it!
+  if currentChild?.text == "," {
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+  }
+
+  if node.childCount < currentChildIdxSafe {
+    return Result.Error(
+      ErrorOnNode(node: node, withError: "Missing parameter list component"))
+  }
+  currentChild = node.child(at: currentChildIdx)
+
+  // Otherwise, there should be one parameter left!
+  switch Parameter.Compile(node: currentChild!, withContext: context) {
+  case .Ok(let (vds, updated_context)):
+    return Result.Ok((parameters.addParameter(vds), updated_context))
+  case .Error(let e): return Result.Error(e)
+  }
+}
+
 extension ParameterList: Compilable {
   public typealias T = ParameterList
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(ParameterList, CompilerContext)> {
 
-    if node.text == ")" {
-      // There are no parameters!
-      return .Ok((ParameterList([]), context))
-    }
-
+    let parameter_node = node
     #RequireNodeType<Node, (ParameterList, CompilerContext)>(
-      node: node, type: "parameter_list", nice_type_name: "Parameter List")
+      node: parameter_node, type: "parameters", nice_type_name: "Parameters")
 
     var currentChildIdx = 0
     var currentChildIdxSafe = 1
-    var currentChild: Node? = .none
-    var parameters: ParameterList = ParameterList([])
 
-    if node.childCount < currentChildIdxSafe {
+    // Let's eat the '(' before we start ...
+    if parameter_node.childCount < currentChildIdxSafe {
       return .Error(
-        ErrorOnNode(node: node, withError: "Missing parameter list component"))
+        ErrorOnNode(node: parameter_node, withError: "Missing '(' in parameter list component"))
     }
 
-    currentChild = node.child(at: currentChildIdx)
-    if currentChild?.nodeType == "parameter_list" {
-      switch ParameterList.Compile(node: currentChild!, withContext: context) {
-      case .Ok(let (ps, _)):
-        parameters = ps
-      case .Error(let e): return .Error(e)
-      }
-
-      print("Back here!")
-      currentChildIdx += 1
-      currentChildIdxSafe += 1
-    }
-
-    // We may have moved nodes, check/reset currentChild.
-    if node.childCount < currentChildIdxSafe {
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if parameter_node.childCount < currentChildIdxSafe {
       return .Error(
-        ErrorOnNode(node: node, withError: "Missing parameter list component"))
+        ErrorOnNode(node: parameter_node, withError: "Missing parameter list component"))
     }
-    currentChild = node.child(at: currentChildIdx)
+    let currentChild = parameter_node.child(at: currentChildIdx)
 
-    // If this is a ')', we are done.
-    if currentChild?.text == ")" {
-      return .Ok((parameters, context))
-    }
-
-    // If this is a comma, we skip it!
-    if currentChild?.text == "," {
-      currentChildIdx += 1
-      currentChildIdxSafe += 1
-    }
-
-    if node.childCount < currentChildIdxSafe {
-      return .Error(
-        ErrorOnNode(node: node, withError: "Missing parameter list component"))
-    }
-    currentChild = node.child(at: currentChildIdx)
-
-    // Otherwise, there should be one parameter left!
-    switch Parameter.Compile(node: currentChild!, withContext: context) {
-    case .Ok(let (vds, updated_context)):
-      return .Ok((parameters.addParameter(vds), updated_context))
-    case .Error(let e): return .Error(e)
-    }
+    return parameter_list_compiler(node: currentChild!, withContext: context)
   }
 }
 

@@ -262,3 +262,20 @@ import TreeSitterP4
       ),
       Program.Compile(simple_parser_declaration, withGlobalInstances: test_types)))
 }
+
+@Test func test_simple_compiler_parser_parameters_invalid_types() async throws {
+  let simple_parser_declaration = """
+    parser main_parser(bool pmtr, string smtr, int imtr) {
+       state start {
+           pmtr = 1;
+           transition accept;
+       }
+    };
+  """
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage: "{85, 9}: Failed to parse a statement element: {85, 4}: Cannot assign value with type Int to identifier pmtr with type Boolean"
+      ),
+      Program.Compile(simple_parser_declaration)))
+}

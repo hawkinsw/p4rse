@@ -319,10 +319,11 @@ public struct Parser: P4Type, P4Value {
   public var states: ParserStates
 
   public var name: Identifier
-  public var parameters: ParameterList?
+  public var parameters: ParameterList
 
   public init(withName name: Identifier) {
     self.states = ParserStates()
+    self.parameters = ParameterList()
     self.name = name
   }
 
@@ -349,7 +350,6 @@ public struct Parser: P4Type, P4Value {
   }
 
   public var description: String {
-    let parameters = self.parameters?.description ?? "N/A"
     return "Parser \(self.name) with parameters: \(parameters) and states: \(self.states)"
   }
 

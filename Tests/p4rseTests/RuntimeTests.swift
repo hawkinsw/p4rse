@@ -80,3 +80,94 @@ import TreeSitterP4
       Error(withMessage: "Could not find the start state"),
       runtime.run()))
 }
+
+@Test func test_simple_runtime_parser_with_parameters() async throws {
+  let simple_parser_declaration = """
+      parser main_parser(bool pmtr, string smtr, int imtr) {
+         state start {
+            transition select (pmtr) {
+              true: accept;
+              false: reject;
+            };
+         }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+
+  let args = ArgumentList([
+    P4BooleanValue(withValue: true), P4StringValue(withValue: "Testing"), P4IntValue(withValue: 5),
+  ])
+  let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: args))
+  // We should be in the accept state.
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
+}
+
+@Test func test_simple_runtime_parser_with_mismatched_parameter_types() async throws {
+  let simple_parser_declaration = """
+      parser main_parser(bool pmtr, string smtr, int imtr) {
+         state start {
+            transition select (pmtr) {
+              true: accept;
+              false: reject;
+            };
+         }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+
+  let args = ArgumentList([
+    P4BooleanValue(withValue: true), P4BooleanValue(withValue: false), P4IntValue(withValue: 5),
+  ])
+
+  #expect(
+    #RequireErrorResult<(ParserState, ProgramExecution)>(
+      Error(withMessage: "Cannot call parser: Argument 2's type (Boolean) is incompatible with the parameter type (String)"),
+      runtime.run(withArguments: args)))
+}
+
+@Test func test_simple_runtime_parser_with_mismatched_parameter_types2() async throws {
+  let simple_parser_declaration = """
+      parser main_parser(bool pmtr, string smtr, int imtr) {
+         state start {
+            transition select (pmtr) {
+              true: accept;
+              false: reject;
+            };
+         }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+
+  let args = ArgumentList([
+    P4IntValue(withValue: 5), P4StringValue(withValue: "Testing"), P4IntValue(withValue: 5),
+  ])
+
+  #expect(
+    #RequireErrorResult<(ParserState, ProgramExecution)>(
+      Error(withMessage: "Cannot call parser: Argument 1's type (Int) is incompatible with the parameter type (Boolean)"),
+      runtime.run(withArguments: args)))
+}
+
+@Test func test_simple_runtime_parser_with_mismatched_parameter_counts() async throws {
+  let simple_parser_declaration = """
+      parser main_parser(bool pmtr, string smtr, int imtr) {
+         state start {
+            transition select (pmtr) {
+              true: accept;
+              false: reject;
+            };
+         }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let args = ArgumentList([P4BooleanValue(withValue: true)])
+
+  #expect(
+    #RequireErrorResult<(ParserState, ProgramExecution)>(
+      Error(withMessage: "Cannot call parser: 1 arguments found but 3 required"),
+      runtime.run(withArguments: args)))
+}

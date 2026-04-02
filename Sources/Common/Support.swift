@@ -96,6 +96,12 @@ public enum Result<OKT>: Equatable {
     }
   }
 
+  public func ok() -> Bool {
+    switch self {
+    case .Ok(_): true
+    case .Error(_): false
+    }
+  }
   public func error() -> Error? {
     if case Result.Error(let e) = self {
       return e

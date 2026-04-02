@@ -38,6 +38,10 @@ public struct Parameter: CustomStringConvertible {
 public struct ParameterList: CustomStringConvertible {
   public var parameters: [Parameter]
 
+  public init() {
+    self.parameters = Array()
+  }
+
   public init(_ parameters: [Parameter]) {
     self.parameters = parameters
   }

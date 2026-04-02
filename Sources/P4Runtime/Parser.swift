@@ -117,8 +117,11 @@ extension ParserStateSelectTransition: EvaluatableParserState {
   }
 }
 
-extension Parser: ParserExecution {
-  public func execute(execution: ProgramExecution) -> (InstantiatedParserState, ProgramExecution) {
+extension Parser: CallableExecution {
+  public typealias T = InstantiatedParserState
+  public func call(
+    execution: Common.ProgramExecution, arguments: P4Lang.ArgumentList
+  ) -> (P4Lang.InstantiatedParserState, Common.ProgramExecution) {
     var execution = execution.enter_scope()
 
     execution = execution.declare(
@@ -146,10 +149,34 @@ extension Parser: ParserExecution {
       )
     }
 
+    // Now that we are assured that there is a start state,
+    // let's set the arguments.
+
+    if case .Error(let e) = arguments.compatible(self.parameters) {
+      return (
+        reject, execution.setError(error: Error(withMessage: "Cannot call parser: \(e)"))
+      )
+    }
+
+    for (parameter, argument) in zip(self.parameters.parameters, arguments.arguments) {
+      let arg_idx = argument.0
+      let arg_value = argument.1
+      let maybe_argument_value = arg_value.evaluate(execution: execution)
+      guard case .Ok(let argument_value) = maybe_argument_value else {
+        return (
+          reject,
+          execution.setError(
+            error: Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)"))
+        )
+      }
+      execution = execution.declare(identifier: parameter.name, withValue: argument_value)
+    }
+
     // Evaluate until the state is either accept or reject.
     while !current_state.done() && !execution.hasError() {
       (current_state, execution) = current_state.execute(program: execution)
     }
-    return (AsInstantiatedParserState(current_state.state()), execution)
+
+    return (AsInstantiatedParserState(current_state.state()), execution.exit_scope())
   }
 }

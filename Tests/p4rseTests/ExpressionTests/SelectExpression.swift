@@ -160,3 +160,45 @@ import TreeSitterP4
   #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 
 }
+
+@Test func test_select_expression_from_parser_parameters() async throws {
+  let simple_parser_declaration = """
+      parser main_parser(bool pmtr, string smtr, int imtr) {
+         state start {
+            transition select (pmtr) {
+              true: accept;
+              false: reject;
+            };
+         }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+
+  let args = ArgumentList([
+    P4BooleanValue(withValue: false), P4StringValue(withValue: "Testing"), P4IntValue(withValue: 5),
+  ])
+  let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: args))
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
+}
+
+@Test func test_select_expression_from_parser_parameters2() async throws {
+  let simple_parser_declaration = """
+      parser main_parser(bool pmtr, string smtr, int imtr) {
+         state start {
+            transition select (imtr == 5) {
+              true: accept;
+              false: reject;
+            };
+         }
+      };
+    """
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+
+  let args = ArgumentList([
+    P4BooleanValue(withValue: false), P4StringValue(withValue: "Testing"), P4IntValue(withValue: 5),
+  ])
+  let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: args))
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
+}
