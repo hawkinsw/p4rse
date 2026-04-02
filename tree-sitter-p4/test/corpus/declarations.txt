@@ -265,3 +265,40 @@ struct Testing {
  )
 )
 
+=========================
+Simple Function Declaration
+=========================
+bool functionb() {
+  string fieldA;
+};
+---
+(p4program
+ (declaration
+  (function_declaration
+   (typeRef
+    (baseType
+     (bool)
+    )
+   )
+   (identifier)
+   (parameters
+   )
+   (statement
+    (blockStatement
+     (statements
+      (statement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (string)
+         )
+        )
+       (identifier)
+       )
+      )
+     )
+    )
+   )
+  )
+ )
+)
