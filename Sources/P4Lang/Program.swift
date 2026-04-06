@@ -25,6 +25,55 @@ public struct Program {
   public var types: [P4Type] = Array()
   public var instances: [P4Type] = Array()
 
+  /// Type of closure for filtering results from ``Program/InstancesWithTypes(_:)`` and ``Program/TypesWithTypes(_:)``
+  public typealias TypeFilter = (P4Type) -> Bool
+
+  /// Retrieve global instances in the compiled P4 program.
+  public func InstancesWithTypes() -> [P4Type] {
+    return self.instances
+  }
+
+  /// Retrieve global instances in the compiled P4 program.
+  /// 
+  /// Use the given filter to select which of the global instances
+  /// from the compiled P4 program to retrieve.
+  /// 
+  /// If the compiled P4 program (from the source in the
+  /// string `p4_program_with_control_decl`) has two Control
+  /// instances and  you only want to select the one named simple,
+  /// you could use a filter like
+  ///
+  /// @Snippet(path: "use-program-instanceswithtypes", slice: "include") 
+  /// 
+  public func InstancesWithTypes(_ filter: TypeFilter) -> [P4Type] {
+    return self.instances.filter() { instance in
+      filter(instance)
+    }
+  }
+
+  /// Retrieve global types in the compiled P4 program.
+  public func TypesWithTypes() -> [P4Type] {
+    return self.types
+  }
+
+  /// Retrieve global types declared in the compiled P4 program.
+  /// 
+  /// Use the given filter to select which of the global types
+  /// declared in the compiled P4 program to retrieve.
+  /// 
+  /// If the compiled P4 program (from the source in the
+  /// string `p4_program_with_struct_decl`) has two structs declared and
+  /// you only want to select the one named `agg`, you could
+  /// use a filter like
+  /// 
+  /// @Snippet(path: "use-program-typeswithtypes", slice: "include") 
+  ///
+  public func TypesWithTypes(_ filter: TypeFilter) -> [P4Type] {
+    return self.types.filter() { instance in
+      filter(instance)
+    }
+  }
+
   /// Find the program's main parser
   ///
   /// Note: For now, the main parser is expected to be named main_parser.
