@@ -665,7 +665,8 @@ extension Control: CompilableDeclaration {
       // TODO: Make this error message better.
       // IDEA: Add a "compilation context" for the error message into the `CompilationContext`
       // that can be retrieved to make the error messages nicer.
-      return .Error(ErrorOnNode(node: node, withError: "More than one table in control declaration"))
+      return .Error(
+        ErrorOnNode(node: node, withError: "More than one table in control declaration"))
     }
 
     let declared_control =
@@ -760,10 +761,13 @@ extension Action: Compilable {
 }
 
 extension TableKeyEntry: Compilable {
-    public typealias T = TableKeyEntry
-    public static func Compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(P4Lang.TableKeyEntry, CompilerContext)> {
+  public typealias T = TableKeyEntry
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(P4Lang.TableKeyEntry, CompilerContext)> {
 
-    #RequireNodeType<Node, (P4Type, CompilerContext)>(node: node, type: "table_key_entry", nice_type_name: "Table Key Entry")
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+      node: node, type: "table_key_entry", nice_type_name: "Table Key Entry")
 
     var currentChildIdx = 0
     var currentChildIdxSafe = 1
@@ -777,7 +781,8 @@ extension TableKeyEntry: Compilable {
     }
     currentChild = node.child(at: currentChildIdx)
 
-    let maybe_keyset_expression = KeysetExpression.compile(node: currentChild!, withContext: current_context)
+    let maybe_keyset_expression = KeysetExpression.compile(
+      node: currentChild!, withContext: current_context)
     guard case .Ok(let keyset_expression) = maybe_keyset_expression else {
       return Result.Error(maybe_keyset_expression.error()!)
     }
@@ -791,7 +796,8 @@ extension TableKeyEntry: Compilable {
     }
     currentChild = node.child(at: currentChildIdx)
 
-    let maybe_match_type = TableKeyMatchType.Compile(node: currentChild!, withContext: current_context)
+    let maybe_match_type = TableKeyMatchType.Compile(
+      node: currentChild!, withContext: current_context)
     guard case .Ok((let match_type, _)) = maybe_match_type else {
       return .Error(maybe_match_type.error()!)
     }
@@ -801,23 +807,29 @@ extension TableKeyEntry: Compilable {
 }
 
 extension TableKeyMatchType: Compilable {
-    public typealias T = TableKeyMatchType
-    public static func Compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(P4Lang.TableKeyMatchType, CompilerContext)> {
-      #RequireNodeType<Node, (TableKeyMatchType, CompilerContext)>(node: node, type: "table_key_match_type", nice_type_name: "Table Key Match Type")
+  public typealias T = TableKeyMatchType
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(P4Lang.TableKeyMatchType, CompilerContext)> {
+    #RequireNodeType<Node, (TableKeyMatchType, CompilerContext)>(
+      node: node, type: "table_key_match_type", nice_type_name: "Table Key Match Type")
 
-      if node.text! == "exact" {
-        return .Ok((TableKeyMatchType.Exact, context))
-      }
-      return .Error(ErrorOnNode(node: node, withError: "\(node.text!) is not a valid match type)"))
+    if node.text! == "exact" {
+      return .Ok((TableKeyMatchType.Exact, context))
     }
+    return .Error(ErrorOnNode(node: node, withError: "\(node.text!) is not a valid match type)"))
+  }
 }
 
 extension TableKeys: Compilable {
-    public typealias T = TableKeys
-    public static func Compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(P4Lang.TableKeys, CompilerContext)> {
-      #RequireNodeType<Node, (TableKeyMatchType, CompilerContext)>(node: node, type: "table_keys", nice_type_name: "Table Keys")
+  public typealias T = TableKeys
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(P4Lang.TableKeys, CompilerContext)> {
+    #RequireNodeType<Node, (TableKeyMatchType, CompilerContext)>(
+      node: node, type: "table_keys", nice_type_name: "Table Keys")
 
-    // Skip the 
+    // Skip the
     // keys = {
     // 0    1 2
     let currentChildIdx = 3
@@ -827,14 +839,15 @@ extension TableKeys: Compilable {
 
     if node.childCount < currentChildIdxSafe {
       return .Error(
-        ErrorOnNode(node: node, withError: "Missing table keys declaration component in control declaration"))
+        ErrorOnNode(
+          node: node, withError: "Missing table keys declaration component in control declaration"))
     }
     currentChild = node.child(at: currentChildIdx)
 
     var entries: [TableKeyEntry] = Array()
     var errors: [Error] = Array()
 
-    currentChild!.enumerateNamedChildren() { entry in
+    currentChild!.enumerateNamedChildren { entry in
       switch TableKeyEntry.Compile(node: currentChild!, withContext: current_context) {
       case .Ok((let keyset_expression, let updated_context)):
         entries.append(keyset_expression)
@@ -857,7 +870,7 @@ extension TableKeys: Compilable {
 }
 
 extension TablePropertyList: Compilable {
-    public typealias T = TablePropertyList
+  public typealias T = TablePropertyList
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.TablePropertyList, CompilerContext)> {
@@ -871,7 +884,7 @@ extension TablePropertyList: Compilable {
     var _: [Action] = Array()  // Actions are not yet supported
     var errors: [Error] = Array()
 
-    node.enumerateNamedChildren() { child in
+    node.enumerateNamedChildren { child in
       if child.nodeType == "table_keys" {
         switch TableKeys.Compile(node: child, withContext: current_context) {
         case .Ok((let table_key, let updated_context)):
@@ -911,7 +924,7 @@ extension TablePropertyList: Compilable {
 }
 
 extension Table: Compilable {
-    public typealias T = Table
+  public typealias T = Table
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.Table, CompilerContext)> {
@@ -955,6 +968,7 @@ extension Table: Compilable {
       return Result.Error(maybe_table_property_list.error()!)
     }
 
-    return .Ok((Table(withName: table_name, withPropertyList: table_property_list), current_context))
+    return .Ok(
+      (Table(withName: table_name, withPropertyList: table_property_list), current_context))
   }
 }

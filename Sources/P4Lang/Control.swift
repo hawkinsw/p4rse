@@ -19,7 +19,8 @@ import Common
 
 public struct Action: CustomStringConvertible {
   public var description: String {
-    return "Action: " + "\(self.name) with parameters \(self.params) and body \(String(describing: self.body))"
+    return "Action: "
+      + "\(self.name) with parameters \(self.params) and body \(String(describing: self.body))"
   }
 
   public var body: EvaluatableStatement?
@@ -44,9 +45,10 @@ public struct Actions: CustomStringConvertible {
   }
 
   public var description: String {
-    return "Actions: " + actions.map() {action in 
-      return "\(action)"
-    }.joined(separator: ";")
+    return "Actions: "
+      + actions.map { action in
+        return "\(action)"
+      }.joined(separator: ";")
   }
 }
 
@@ -54,7 +56,7 @@ public enum TableKeyMatchType {
   case Exact
 }
 
-public struct TableKeyEntry: CustomStringConvertible  {
+public struct TableKeyEntry: CustomStringConvertible {
   let key: KeysetExpression
   let match_type: TableKeyMatchType
 
@@ -68,7 +70,7 @@ public struct TableKeyEntry: CustomStringConvertible  {
   }
 }
 
-public struct TableKeys: CustomStringConvertible  {
+public struct TableKeys: CustomStringConvertible {
   let entries: [TableKeyEntry]
 
   public init(withEntries entries: [TableKeyEntry]) {
@@ -79,9 +81,10 @@ public struct TableKeys: CustomStringConvertible  {
   }
 
   public var description: String {
-    return "Table Keys: " + self.entries.map() { entry in 
-      return "\(entry)"
-    }.joined(separator: ";")
+    return "Table Keys: "
+      + self.entries.map { entry in
+        return "\(entry)"
+      }.joined(separator: ";")
   }
 }
 
@@ -90,7 +93,7 @@ public struct TableActions {
   public init() {}
 }
 
-public struct TablePropertyList: CustomStringConvertible  {
+public struct TablePropertyList: CustomStringConvertible {
   let actions: TableActions
   let keys: TableKeys
   public init(withActions actions: TableActions, withKeys keys: TableKeys) {
@@ -103,7 +106,7 @@ public struct TablePropertyList: CustomStringConvertible  {
   }
 }
 
-public struct Table: CustomStringConvertible  {
+public struct Table: CustomStringConvertible {
   let properties: TablePropertyList
   let name: Identifier
 
@@ -180,18 +183,17 @@ public struct Control: P4Type, P4Value, Equatable, CustomStringConvertible {
   let _name: Identifier
 
   public var parameters: ParameterList {
-    get {
-      _parameters
-    }
+    _parameters
   }
 
   public var name: Identifier {
-    get {
-      _name
-    }
+    _name
   }
 
-  public init(named: Identifier, withParameters parameters: ParameterList, withTable table: Table, withActions actions: Actions) {
+  public init(
+    named: Identifier, withParameters parameters: ParameterList, withTable table: Table,
+    withActions actions: Actions
+  ) {
     self._name = named
     self._parameters = parameters
     self.actions = actions
