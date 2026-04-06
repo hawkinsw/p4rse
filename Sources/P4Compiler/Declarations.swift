@@ -29,6 +29,7 @@ extension Declaration: CompilableDeclaration {
 
     let declaration_compilers: [String: CompilableDeclaration.Type] = [
       "function_declaration": FunctionDeclaration.self,
+      "control_declaration": Control.self,
       "type_declaration": StructDeclaration.self,  // Assume that type declarations are struct declarations.
     ]
 
@@ -554,5 +555,406 @@ extension Parameter: Compilable {
           identifier: parameter_name, withType: parameter_type),
         context
       ))
+  }
+}
+
+extension Control: CompilableDeclaration {
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(any Common.P4Type, CompilerContext)?> {
+
+    #SkipUnlessNodeType<Node, (P4Type, CompilerContext)?>(
+      node: node, type: "control_declaration")
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+
+    var local_context = context
+
+    // Skip control keyword
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing control declaration component"))
+    }
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing control declaration component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    guard
+      case .Ok(let control_name) = Identifier.Compile(
+        node: currentChild!, withContext: local_context)
+    else {
+      return Result.Error(
+        Error(withMessage: "Could not parse a parameter name from \(currentChild!.text!)"))
+    }
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing control declaration component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    let maybe_control_parameters = ParameterList.Compile(
+      node: currentChild!, withContext: local_context)
+    guard case .Ok((let control_parameters, let updated_context)) = maybe_control_parameters
+    else {
+      return .Error(maybe_control_parameters.error()!)
+    }
+    local_context = updated_context
+
+    // Before continuing, make sure to put the parameters into context.
+    var control_scope = local_context.instances.enter()
+    for parameter in control_parameters.parameters {
+      control_scope = control_scope.declare(identifier: parameter.name, withValue: parameter.type)
+    }
+    local_context = local_context.update(newInstances: control_scope)
+
+    // Skip the '{'
+    currentChildIdx += 2
+    currentChildIdxSafe += 2
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing control declaration component"))
+    }
+
+    var actions: [Action] = Array()
+    var tables: [Table] = Array()
+
+    //                                                       Because the final child
+    //                                                       is the '}'.
+    //                                                        \/\/
+    for currentChildIdx in currentChildIdx..<(node.childCount - 1) {
+      let currentChild = node.child(at: currentChildIdx)!
+      if currentChild.nodeType == "action_declaration" {
+        let maybe_action_declaration = Action.Compile(
+          node: currentChild, withContext: local_context)
+        guard
+          case .Ok((let action_declaration, let updated_context)) = maybe_action_declaration
+        else {
+          return .Error(maybe_action_declaration.error()!)
+        }
+        actions.append(action_declaration)
+        local_context = updated_context
+      } else if currentChild.nodeType == "table_declaration" {
+        let maybe_table_declaration = Table.Compile(
+          node: currentChild, withContext: local_context)
+        guard
+          case .Ok((let table_declaration, let updated_context)) = maybe_table_declaration
+        else {
+          return .Error(maybe_table_declaration.error()!)
+        }
+        tables.append(table_declaration)
+        local_context = updated_context
+      } else {
+        return .Error(
+          ErrorOnNode(node: currentChild, withError: "Uknown node type in control declaration"))
+      }
+    }
+
+    // There should only be a single table!
+    // TODO: Check the semantics here.
+    if tables.count > 1 {
+      // TODO: Make this error message better.
+      // IDEA: Add a "compilation context" for the error message into the `CompilationContext`
+      // that can be retrieved to make the error messages nicer.
+      return .Error(ErrorOnNode(node: node, withError: "More than one table in control declaration"))
+    }
+
+    let declared_control =
+      (Control(
+        named: control_name, withParameters: control_parameters, withTable: tables[0],
+        withActions: Actions(withActions: actions))
+        as P4Type)
+
+    // Don't forget to add the newly declared Control to the instance that we were given
+    // (and not the one that we entered to do the parsing of this Control).
+    return .Ok(
+      (
+        declared_control,
+        context.update(
+          newInstances: context.instances.declare(
+            identifier: control_name, withValue: declared_control))
+      ))
+  }
+}
+
+extension Action: Compilable {
+  public typealias T = Action
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(P4Lang.Action, CompilerContext)> {
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+      node: node, type: "action_declaration", nice_type_name: "Action Declaration")
+
+    var currentChildIdx = 1
+    var currentChildIdxSafe = 2
+    var currentChild: Node? = .none
+    var current_context = context
+
+    // Skip action keyword
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing action declaration component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    guard
+      case .Ok(let action_name) = Identifier.Compile(
+        node: currentChild!, withContext: current_context)
+    else {
+      return Result.Error(
+        Error(withMessage: "Could not parse an action name from \(currentChild!.text!)"))
+    }
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing action declaration component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    let maybe_action_parameters = ParameterList.Compile(
+      node: currentChild!, withContext: current_context)
+    guard case .Ok((let action_parameters, let updated_context)) = maybe_action_parameters
+    else {
+      return .Error(maybe_action_parameters.error()!)
+    }
+    current_context = updated_context
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if node.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing action declaration component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    // Add the parameters into scope.
+    var function_scope = context.instances.enter()
+    for parameter in action_parameters.parameters {
+      function_scope = function_scope.declare(identifier: parameter.name, withValue: parameter.type)
+    }
+
+    let maybe_action_body = Parser.Statement.Compile(
+      node: currentChild!, withContext: context.update(newInstances: function_scope))
+    guard case .Ok((let action_body, _)) = maybe_action_body else {
+      return .Error(maybe_action_body.error()!)
+    }
+
+    return .Ok(
+      (
+        Action(named: action_name, withParameters: action_parameters, withBody: action_body),
+        current_context
+      ))
+  }
+}
+
+extension TableKeyEntry: Compilable {
+    public typealias T = TableKeyEntry
+    public static func Compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(P4Lang.TableKeyEntry, CompilerContext)> {
+
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(node: node, type: "table_key_entry", nice_type_name: "Table Key Entry")
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+
+    let current_context = context
+
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing table key entry declaration component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    let maybe_keyset_expression = KeysetExpression.compile(node: currentChild!, withContext: current_context)
+    guard case .Ok(let keyset_expression) = maybe_keyset_expression else {
+      return Result.Error(maybe_keyset_expression.error()!)
+    }
+
+    // Skip the ':'
+    currentChildIdx += 2
+    currentChildIdxSafe += 2
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing table key entry declaration component"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    let maybe_match_type = TableKeyMatchType.Compile(node: currentChild!, withContext: current_context)
+    guard case .Ok((let match_type, _)) = maybe_match_type else {
+      return .Error(maybe_match_type.error()!)
+    }
+
+    return .Ok((TableKeyEntry(keyset_expression as! KeysetExpression, match_type), current_context))
+  }
+}
+
+extension TableKeyMatchType: Compilable {
+    public typealias T = TableKeyMatchType
+    public static func Compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(P4Lang.TableKeyMatchType, CompilerContext)> {
+      #RequireNodeType<Node, (TableKeyMatchType, CompilerContext)>(node: node, type: "table_key_match_type", nice_type_name: "Table Key Match Type")
+
+      if node.text! == "exact" {
+        return .Ok((TableKeyMatchType.Exact, context))
+      }
+      return .Error(ErrorOnNode(node: node, withError: "\(node.text!) is not a valid match type)"))
+    }
+}
+
+extension TableKeys: Compilable {
+    public typealias T = TableKeys
+    public static func Compile(node: SwiftTreeSitter.Node, withContext context: CompilerContext) -> Common.Result<(P4Lang.TableKeys, CompilerContext)> {
+      #RequireNodeType<Node, (TableKeyMatchType, CompilerContext)>(node: node, type: "table_keys", nice_type_name: "Table Keys")
+
+    // Skip the 
+    // keys = {
+    // 0    1 2
+    let currentChildIdx = 3
+    let currentChildIdxSafe = 4
+    var currentChild: Node? = .none
+    var current_context = context
+
+    if node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing table keys declaration component in control declaration"))
+    }
+    currentChild = node.child(at: currentChildIdx)
+
+    var entries: [TableKeyEntry] = Array()
+    var errors: [Error] = Array()
+
+    currentChild!.enumerateNamedChildren() { entry in
+      switch TableKeyEntry.Compile(node: currentChild!, withContext: current_context) {
+      case .Ok((let keyset_expression, let updated_context)):
+        entries.append(keyset_expression)
+        current_context = updated_context
+      case .Error(let e): errors.append(e)
+      }
+    }
+
+    if !errors.isEmpty {
+      return .Error(
+        Error(
+          withMessage: "Error(s) parsing table key: "
+            + (errors.map { error in
+              return "\(error.msg)"
+            }.joined(separator: ";"))))
+    }
+
+    return .Ok((TableKeys(withEntries: entries), current_context))
+  }
+}
+
+extension TablePropertyList: Compilable {
+    public typealias T = TablePropertyList
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(P4Lang.TablePropertyList, CompilerContext)> {
+
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+      node: node, type: "table_property_list", nice_type_name: "Table Property List")
+
+    var current_context = context
+
+    var keys: [TableKeys] = Array()
+    var _: [Action] = Array()  // Actions are not yet supported
+    var errors: [Error] = Array()
+
+    node.enumerateNamedChildren() { child in
+      if child.nodeType == "table_keys" {
+        switch TableKeys.Compile(node: child, withContext: current_context) {
+        case .Ok((let table_key, let updated_context)):
+          current_context = updated_context
+          keys.append(table_key)
+        case .Error(let e): errors.append(e)
+        }
+      } else if child.nodeType == "table_actions" {
+        errors.append(
+          ErrorOnNode(
+            node: child, withError: "Actions in table property lists are not yet supported"))
+      } else {
+        errors.append(
+          ErrorOnNode(node: child, withError: "Uknown node type in control declaration"))
+      }
+    }
+
+    if !errors.isEmpty {
+      return .Error(
+        Error(
+          withMessage: "Error(s) parsing property list: "
+            + (errors.map { error in
+              return "\(error.msg)"
+            }.joined(separator: ";"))))
+    }
+
+    // There should be only one table keys!
+    if keys.count > 1 {
+      // Todo: Make this error message better.
+      return .Error(
+        ErrorOnNode(node: node, withError: "More than one key set in table property list"))
+    }
+
+    return .Ok((TablePropertyList(withActions: TableActions(), withKeys: keys[0]), current_context))
+
+  }
+}
+
+extension Table: Compilable {
+    public typealias T = Table
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(P4Lang.Table, CompilerContext)> {
+
+    let table_declaration_node = node
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+      node: table_declaration_node, type: "table_declaration", nice_type_name: "Table Declaration")
+
+    var currentChildIdx = 1
+    var currentChildIdxSafe = 2
+    var currentChild: Node? = .none
+
+    let current_context = context
+
+    if table_declaration_node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: table_declaration_node, withError: "Missing table declaration component"))
+    }
+    currentChild = table_declaration_node.child(at: currentChildIdx)
+
+    guard
+      case .Ok(let table_name) = Identifier.Compile(
+        node: currentChild!, withContext: current_context)
+    else {
+      return Result.Error(
+        Error(withMessage: "Could not parse a table name from \(currentChild!.text!)"))
+    }
+
+    // Skip the '{'
+    currentChildIdx += 2
+    currentChildIdxSafe += 2
+    if table_declaration_node.childCount < currentChildIdxSafe {
+      return .Error(
+        ErrorOnNode(node: table_declaration_node, withError: "Missing table declaration component"))
+    }
+    currentChild = table_declaration_node.child(at: currentChildIdx)
+
+    let maybe_table_property_list = TablePropertyList.Compile(
+      node: currentChild!, withContext: current_context)
+    guard case .Ok((let table_property_list, _)) = maybe_table_property_list else {
+      return Result.Error(maybe_table_property_list.error()!)
+    }
+
+    return .Ok((Table(withName: table_name, withPropertyList: table_property_list), current_context))
   }
 }

@@ -1,0 +1,53 @@
+=========================
+Simple Control Declaration
+=========================
+control simple() {
+  action a() {
+  }
+  table t {
+    key = {
+      x: exact;
+    }
+  }
+};
+
+---
+(p4program
+ (declaration
+  (control_declaration
+   (control)
+   (identifier)
+   (parameters)
+   (action_declaration
+    (action)
+    (identifier)
+    (parameters)
+    (statement
+     (blockStatement)
+    )
+   )
+   (table_declaration
+    (table)
+    (identifier)
+    (table_property_list
+     (table_keys
+      (key)
+      (table_key_entry
+       (keysetExpression
+        (expression
+         (simple_expression
+          (identifier)
+         )
+        )
+       )
+       (table_key_match_type
+        (exact) 
+       )
+      )  
+     )
+    )
+   )
+  )
+ )
+)
+

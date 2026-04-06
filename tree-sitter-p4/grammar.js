@@ -64,7 +64,7 @@ export default grammar({
         instantiation: $ => seq($.typeRef, '(', optional($.parameter_list), ')', $.identifier),
 
         // Declarations
-        declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration, $.type_declaration, $.function_declaration)),
+        declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration, $.type_declaration, $.function_declaration, $.control_declaration)),
 
         type_declaration: $=> choice($.struct_declaration),
         struct_declaration: $ => seq($.struct, $.identifier, '{', optional($.struct_declaration_fields), '}'),
@@ -77,6 +77,20 @@ export default grammar({
         parserDeclaration: $ => seq($.parserType, '{', optional($.parserLocalElements), $.parserStates, '}'),
 
         variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq($.assignment, $.expression)), $._semicolon),
+
+        // Control declarations
+        control_declaration: $ => seq($.control, $.identifier, $.parameters, '{', repeat(choice($.table_declaration, $.action_declaration)), '}'),
+        action_declaration: $ => seq($.action, $.identifier, $.parameters, $.statement),
+        table_declaration: $ => seq($.table, $.identifier, '{', optional($.table_property_list), '}'),
+
+        // Table property list
+        table_property_list: $ => repeat1(choice($.table_keys, $.table_actions)),
+        table_keys: $=> seq($.key, '=', '{', repeat($.table_key_entry), '}'),
+        table_key_entry: $=> seq($.keysetExpression, ':', $.table_key_match_type, $._semicolon),
+        table_actions: $=> seq($.actions, '=', '{', optional(repeat1($.identifier)), '}'),
+
+        // match types
+        table_key_match_type: $ => choice($.exact), // support exact only for now.
 
         // Statements
 
@@ -150,6 +164,7 @@ export default grammar({
         enum: $ => "enum",
         error: $ => "error",
         exit: $ => "exit",
+        exact: $ => "exact",
         extern: $ => "extern",
         false: $ => "false",
         header: $ => "header",

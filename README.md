@@ -9,9 +9,20 @@ Very, very alpha:
 1. Limited parts of the language can be parsed.
 2. Limited programs can be evaluated.
 
-As an example of what can be parsed and evaluated, here is a fairly complex P4 program from our unit tests:
+As an example of what can be parsed and evaluated, here is a fairly complex P4 program cobbled together from our unit tests:
 
 ```P4
+control simple(bool x, bool y) {
+  action a(int z) {
+    z = false;
+  }
+  table t {
+    key = {
+      x: exact;
+      y: exact;
+    }
+  }
+};
 struct Testing {
   bool yesno;
   int count;

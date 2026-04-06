@@ -39,6 +39,10 @@ public class Identifier: CustomStringConvertible, Comparable, Hashable {
     return lhs.name == rhs.name
   }
 
+  public static func == (lhs: Identifier, rhs: String) -> Bool {
+    return Identifier(name: rhs) == lhs
+  }
+
   public static func < (lhs: Identifier, rhs: Identifier) -> Bool {
     return lhs.name < rhs.name
   }
