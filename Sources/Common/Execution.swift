@@ -108,9 +108,9 @@ public typealias VarValueScopes = Scopes<P4Value>
 
 /// Indicate the control flow result of a particular statement.
 public enum ControlFlow {
-    case Next
-    case Continue
-    case Break
-    case Return(P4Value?)
-    case Error
+  case Next
+  case Continue
+  case Break
+  case Return(P4Value?)
+  case Error
 }

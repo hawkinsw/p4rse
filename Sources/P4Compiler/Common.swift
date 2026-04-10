@@ -263,7 +263,8 @@ func argument_list_compiler(
   // Otherwise, there should be one argument left!
   switch Argument.Compile(node: currentChild!, withContext: context) {
   case .Ok(let (ce, updated_context)):
-    return Result.Ok((arguments.addArgument(Argument(ce, atIndex: arguments.count() + 1)), updated_context))
+    return Result.Ok(
+      (arguments.addArgument(Argument(ce, atIndex: arguments.count() + 1)), updated_context))
   case .Error(let e): return Result.Error(e)
   }
 }
@@ -311,8 +312,8 @@ extension Argument: Compilable {
     let expression_node = node.child(at: 0)!
 
     return switch Expression.Compile(node: expression_node, withContext: context) {
-        case .Ok(let compiled_expression): .Ok((compiled_expression, context))
-        case .Error(let e): .Error(e)
+    case .Ok(let compiled_expression): .Ok((compiled_expression, context))
+    case .Error(let e): .Error(e)
     }
   }
 }

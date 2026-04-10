@@ -163,7 +163,7 @@ struct Expression {
     let expression_parsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
       BinaryOperatorExpression.self, ArrayAccessExpression.self, FieldAccessExpression.self,
-      FunctionCall.self
+      FunctionCall.self,
     ]
 
     for candidate_expression_parser in expression_parsers {
@@ -680,18 +680,21 @@ extension FunctionCall: CompilableExpression {
       return Result.Error(maybe_callee_name.error()!)
     }
 
-    let maybe_callee = switch context.types.lookup(identifier: callee_name) {
-      case .Ok(let looked_up): switch looked_up {
-        case let callee as FunctionDeclaration: Result.Ok(callee) // What we found is actually a function declaration
-        default: Result<FunctionDeclaration>.Error(ErrorOnNode(node: currentChild!, withError: "\(callee_name) is not a function"))
-      }
+    let maybe_callee =
+      switch context.types.lookup(identifier: callee_name) {
+      case .Ok(let looked_up):
+        switch looked_up {
+        case let callee as FunctionDeclaration: Result.Ok(callee)  // What we found is actually a function declaration
+        default:
+          Result<FunctionDeclaration>.Error(
+            ErrorOnNode(node: currentChild!, withError: "\(callee_name) is not a function"))
+        }
       case .Error(let e): Result<FunctionDeclaration>.Error(e)
-    }
+      }
 
     guard case .Ok(let callee) = maybe_callee else {
       return .Error(maybe_callee.error()!)
     }
-
 
     currentChildIdx += 1
     currentChildIdxSafe += 1
@@ -702,8 +705,8 @@ extension FunctionCall: CompilableExpression {
     currentChild = expression.child(at: currentChildIdx)
 
     let maybe_argument_list = ArgumentList.Compile(node: currentChild!, withContext: context)
-    
-    guard case .Ok((let arguments, _)) = maybe_argument_list  else {
+
+    guard case .Ok((let arguments, _)) = maybe_argument_list else {
       return .Error(maybe_argument_list.error()!)
     }
 

@@ -45,9 +45,14 @@ extension ParserStateDirectTransition: EvaluatableParserState {
     for statement in statements {
       let (control_flow, next_program) = statement.evaluate(execution: program)
       switch control_flow {
-        case .Next: program = next_program // Ok!
-        case .Error: return (reject, next_program)
-        default: return (reject, next_program.setError(error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)")))
+      case .Next: program = next_program  // Ok!
+      case .Error: return (reject, next_program)
+      default:
+        return (
+          reject,
+          next_program.setError(
+            error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)"))
+        )
       }
     }
     let res = program.scopes.lookup(identifier: get_next_state())
@@ -100,9 +105,14 @@ extension ParserStateSelectTransition: EvaluatableParserState {
     for statement in statements {
       let (control_flow, next_program) = statement.evaluate(execution: program)
       switch control_flow {
-        case .Next: program = next_program // Ok!
-        case .Error: return (reject, next_program)
-        default: return (reject, next_program.setError(error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)")))
+      case .Next: program = next_program  // Ok!
+      case .Error: return (reject, next_program)
+      default:
+        return (
+          reject,
+          next_program.setError(
+            error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)"))
+        )
       }
     }
 

@@ -400,18 +400,21 @@ extension FunctionCall: EvaluatableExpression {
       guard case .Ok(let argument_value) = maybe_argument_value else {
         return .Error(Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)"))
       }
-      called_execution = called_execution.declare(identifier: parameter.name, withValue: argument_value)
+      called_execution = called_execution.declare(
+        identifier: parameter.name, withValue: argument_value)
     }
 
     let (control_flow, _) = body.evaluate(execution: called_execution)
 
     return switch control_flow {
-      case ControlFlow.Return(let value): if let value = value {
-        .Ok(value) 
+    case ControlFlow.Return(let value):
+      if let value = value {
+        .Ok(value)
       } else {
         .Error(Error(withMessage: "No value returned from called function (\(self.callee.name))"))
       }
-      default: .Error(Error(withMessage: "No value returned from called function (\(self.callee.name))"))
+    default:
+      .Error(Error(withMessage: "No value returned from called function (\(self.callee.name))"))
     }
   }
 

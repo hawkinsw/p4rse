@@ -108,10 +108,8 @@ extension ExpressionStatement: EvaluatableStatement {
 extension ReturnStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     return switch self.value.evaluate(execution: execution) {
-      case .Ok(let v): (ControlFlow.Return(v), execution)
-      case .Error(let e): (ControlFlow.Error, execution.setError(error: e))
+    case .Ok(let v): (ControlFlow.Return(v), execution)
+    case .Error(let e): (ControlFlow.Error, execution.setError(error: e))
     }
   }
 }
-
-
