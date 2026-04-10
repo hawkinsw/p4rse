@@ -129,7 +129,7 @@ extension KeysetExpression: CompilableExpression {
 
     // If there is a default keyset, that's easy!
     if keyset_expression_node.nodeType == "default_keyset" {
-      return .Ok(PlaceholderDefaultKeysetExpression())
+      return .Ok(KeysetExpression(P4SetDefaultValue(withType: context.expected_type!)))
     }
 
     // Compile the expression:
@@ -139,7 +139,7 @@ extension KeysetExpression: CompilableExpression {
       return .Error(maybe_compiled_set_expression.error()!)
     }
 
-    return .Ok(NonDefaultKeysetExpression(compiled_expression))
+    return .Ok(KeysetExpression(compiled_expression))
   }
 }
 
@@ -261,13 +261,9 @@ extension SelectExpression: CompilableExpression {
 
     select_body_node.enumerateNamedChildren { current_node in
       let maybe_parsed_cse = SelectCaseExpression.compile(
-        node: current_node, withContext: context)
+        node: current_node, withContext: context.update(newExpectation: selector.type()))
       if case .Ok(let parsed_cse) = maybe_parsed_cse {
-        let parsed_cse = parsed_cse as! SelectCaseExpression
-        switch parsed_cse.update_type(to: selector.type()) {
-        case .Ok(let updated_cse): sces.append(updated_cse)
-        case .Error(let e): sces_errors.append(ErrorOnNode(node: current_node, withError: e.msg))
-        }
+        sces.append(parsed_cse as! SelectCaseExpression)
       } else {
         sces_errors.append(Error(withMessage: "\(maybe_parsed_cse.error()!)"))
       }
@@ -309,8 +305,19 @@ extension SelectCaseExpression: CompilableExpression {
 
     let maybe_parsed_keysetexpression = KeysetExpression.compile(
       node: keysetexpression_node, withContext: context)
-    guard case Result.Ok(let keysetexpression) = maybe_parsed_keysetexpression else {
+    guard case Result.Ok(let maybe_keysetexpression) = maybe_parsed_keysetexpression else {
       return Result.Error(maybe_parsed_keysetexpression.error()!)
+    }
+
+    guard let maybe_keysetexpression = maybe_keysetexpression else {
+      return Result.Error(
+        ErrorOnNode(node: keysetexpression_node, withError: "Missing expected keyset expression"))
+    }
+
+    let keysetexpression = maybe_keysetexpression as! KeysetExpression
+
+    if case .Error(let e) = keysetexpression.compatible(type: context.expected_type!) {
+      return .Error(ErrorOnNode(node: keysetexpression_node, withError: e.msg))
     }
 
     let maybe_parsed_targetstate = Identifier.Compile(
@@ -321,7 +328,7 @@ extension SelectCaseExpression: CompilableExpression {
 
     return .Ok(
       SelectCaseExpression(
-        withKey: keysetexpression as! KeysetExpression, withNextState: targetstate)
+        withKey: keysetexpression, withNextState: targetstate)
     )
   }
 }

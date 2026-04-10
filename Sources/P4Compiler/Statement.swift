@@ -310,7 +310,17 @@ extension ReturnStatement: CompilableStatement {
     let expression_node = node.child(at: 1)!
 
     return switch Expression.Compile(node: expression_node, withContext: context) {
-    case .Ok(let result): .Ok((ReturnStatement(result), context))
+    case .Ok(let result):
+      if result.type().eq(rhs: context.expected_type!) {
+        .Ok((ReturnStatement(result), context))
+      } else {
+        .Error(
+          ErrorOnNode(
+            node: node,
+            withError:
+              "Type of expression in return statement (\(result.type())) is not compatible with function return type (\(context.expected_type!))"
+          ))
+      }
     case .Error(let e): .Error(e)
     }
   }

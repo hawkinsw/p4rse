@@ -40,39 +40,72 @@ public func ErrorOnNode(node: Node, withError error: String) -> Error {
   return Error(withMessage: "\(node.range): \(error)")
 }
 
-/// Context for compilation.
+/// Context for compilation
+///
+/// It contains (at least) three important pieces of information:
+/// 1. Instances: A ``VarTypeScopes`` that contains information about instantiated objects
+/// (and their types) in scope
+/// 1. Types: A ``TypeTypeScopes`` that contains information about declared types in scope.
+/// 1. Expected Type: In certain situations, to typecheck an element of a P4 program requires
+/// knowledge of an expected type. For instance, when compiling a return statement, the
+/// compiler must know the return type of the function to type check.
 public struct CompilerContext {
   let instances: VarTypeScopes
   let types: TypeTypeScopes
+  let expected_type: P4Type?
 
   public init(withInstances _instances: VarTypeScopes) {
     instances = _instances
     types = TypeTypeScopes()
+    expected_type = .none
   }
 
   public init(withInstances _instances: VarTypeScopes, withTypes _types: TypeTypeScopes) {
     instances = _instances
     types = _types
+    expected_type = .none
+  }
+
+  public init(
+    withInstances _instances: VarTypeScopes, withTypes _types: TypeTypeScopes,
+    withExpectation expectation: P4Type?
+  ) {
+    instances = _instances
+    types = _types
+    expected_type = expectation
   }
 
   /// Update a compiler context
   ///
   /// Create a new compiler context based on the current with the same types and new names.
   ///
-  /// - Parameter names: a ``TypeScopes`` with the updated names for the newly created compiler context.
+  /// - Parameter instances: a ``VarTypeScopes`` with the updated instances for the newly created compiler context.
   /// - Returns: A new compiler context based on the current with the same types and new names.
   public func update(newInstances instances: VarTypeScopes) -> CompilerContext {
-    return CompilerContext(withInstances: instances, withTypes: self.types)
+    return CompilerContext(
+      withInstances: instances, withTypes: self.types, withExpectation: self.expected_type)
   }
 
   /// Update a compiler context
   ///
   /// Create a new compiler context based on the current with the same names and new types.
   ///
-  /// - Parameter types: a ``TypeScopes`` with the updated types for the newly created compiler context.
+  /// - Parameter types: a ``TypeTypeScopes`` with the updated types for the newly created compiler context.
   /// - Returns: A new compiler context based on the current with the same names and new types.
   public func update(newTypes types: TypeTypeScopes) -> CompilerContext {
-    return CompilerContext(withInstances: self.instances, withTypes: types)
+    return CompilerContext(
+      withInstances: self.instances, withTypes: types, withExpectation: self.expected_type)
+  }
+
+  /// Update a compiler context
+  ///
+  /// Create a new compiler context based on the current with the same names and types but new expected type.
+  ///
+  /// - Parameter expectation: a ``P4Type?`` to (re)set the type the compiler is expecting.
+  /// - Returns: A new compiler context based on the current with the same names and types but new expected type.
+  public func update(newExpectation expectation: P4Type?) -> CompilerContext {
+    return CompilerContext(
+      withInstances: self.instances, withTypes: self.types, withExpectation: expectation)
   }
 
 }

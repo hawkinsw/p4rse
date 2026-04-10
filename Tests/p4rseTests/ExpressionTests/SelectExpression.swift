@@ -105,7 +105,6 @@ import TreeSitterP4
         }
       };
     """
-
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
@@ -133,7 +132,7 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-        "Error(s) parsing select cases: {81, 12}: Keyset expression type does not match selector expression type"
+        "Error(s) parsing select cases: {81, 4}: Key expression of type Boolean is not compatible with selector type Int"
       ),
       Program.Compile(simple_parser_declaration)))
 }

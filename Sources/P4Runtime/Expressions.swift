@@ -374,12 +374,12 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
 }
 
 extension KeysetExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
-    return self.kse_evaluate(execution: execution)
+  public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
+    return self.key.evaluate(execution: execution)
   }
 
-  public func type() -> any Common.P4Type {
-    return self.kse_type()
+  public func type() -> P4Type {
+    return self.key.type()
   }
 }
 

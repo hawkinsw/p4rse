@@ -134,3 +134,24 @@ import TreeSitterP4
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
+
+@Test func test_function_call_invalid_return_type() async throws {
+  let simple_parser_declaration = """
+      int functionb(int c) {
+        return true;
+      };
+      parser main_parser() {
+        state start {
+          int c = 5;
+          transition select (4 == functionb(c)) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
+    """
+
+  let error = try #UseErrorResult(Program.Compile(simple_parser_declaration))
+
+  #expect(error.msg.contains("{29, 12}: Type of expression in return statement (Boolean) is not compatible with function return type (Int)"))
+}

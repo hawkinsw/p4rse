@@ -112,7 +112,9 @@ extension FunctionDeclaration: CompilableDeclaration {
     }
 
     let maybe_function_body = Parser.Statement.Compile(
-      node: currentChild!, withContext: context.update(newInstances: function_scope))
+      node: currentChild!,
+      withContext: context.update(newInstances: function_scope).update(
+        newExpectation: function_type))
     guard case .Ok((let function_body, _)) = maybe_function_body else {
       return .Error(maybe_function_body.error()!)
     }

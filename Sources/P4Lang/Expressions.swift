@@ -17,91 +17,30 @@
 
 import Common
 
-public class KeysetExpression {
-  public func update_type(to: P4Type) -> Result<KeysetExpression> {
-    return .Ok(self)
-  }
-
-  public func kse_evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-    return .Error(Error(withMessage: "Missing key in keyset expression"))
-  }
-
-  public func kse_type() -> P4Type {
-    return P4Boolean()
-  }
-}
-
-public class NonDefaultKeysetExpression: KeysetExpression {
+public struct KeysetExpression {
   public let key: EvaluatableExpression
 
   public init(_ key: EvaluatableExpression) {
     self.key = key
   }
 
-  // Some keyset expressions need additional
-  // context about their types -- e.g., default.
-  // Override to update and return true if the
-  // update is safe.
-  public override func update_type(to: P4Type) -> Result<KeysetExpression> {
-    // In the default case, if the current key type
-    // does not match the updated type, that's an
-    // error.
-    return Map(input: key.type().eq(rhs: to)) { input in
-      input
-        ? .Ok(self)
-        : .Error(
-          Error(withMessage: "Keyset expression type does not match selector expression type"))
+  public func compatible(type: P4Type) -> Result<()> {
+    if let key_type = self.key.type() as? P4Set {
+      if !key_type.set_type().eq(rhs: type) {
+        return .Error(
+          Error(
+            withMessage:
+              "Key expression of type set of type \(key_type.set_type()) is not compatible with selector type \(type)"
+          ))
+      }
+    } else if !self.key.type().eq(rhs: type) {
+      return .Error(
+        Error(
+          withMessage:
+            "Key expression of type \(self.key.type()) is not compatible with selector type \(type)"
+        ))
     }
-  }
-
-  public override func kse_evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-    return self.key.evaluate(execution: execution)
-  }
-
-  public override func kse_type() -> P4Type {
-    return self.key.type()
-  }
-
-}
-
-public class DefaultKeysetExpression: KeysetExpression {
-  let type: P4Type
-
-  public init(withType type: P4Type) {
-    self.type = type
-  }
-
-  public override func update_type(to: P4Type) -> Result<KeysetExpression> {
-    return Map(input: type.eq(rhs: to)) { input in
-      input
-        ? .Ok(DefaultKeysetExpression(withType: to))
-        : .Error(
-          Error(withMessage: "Keyset expression type does not match selector expression type"))
-    }
-  }
-
-  public override func kse_evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-    return .Ok(P4SetDefaultValue(withType: self.type))
-  }
-
-  public override func kse_type() -> P4Type {
-    return P4Set(withSetType: self.type)
-  }
-}
-
-public class PlaceholderDefaultKeysetExpression: KeysetExpression {
-  public override init() {}
-
-  public override func update_type(to: P4Type) -> Result<KeysetExpression> {
-    .Ok(DefaultKeysetExpression(withType: to))
-  }
-
-  public override func kse_evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-    return .Error(Error(withMessage: "Cannot evaluate a placeholder default keyset expression"))
-  }
-
-  public override func kse_type() -> P4Type {
-    return P4Set(withSetType: P4Boolean())
+    return .Ok(())
   }
 }
 
@@ -122,20 +61,6 @@ public struct SelectCaseExpression {
     self.key = key
     self.next_state_identifier = next_state_id
     self.next_state = next_state
-  }
-
-  // Some keyset expressions need additional
-  // context about their types -- e.g., default.
-  // Override to update and return true if the
-  public func update_type(to: P4Type) -> Result<SelectCaseExpression> {
-    switch key.update_type(to: to) {
-    case .Ok(let new_kse):
-      .Ok(
-        SelectCaseExpression(
-          withKey: new_kse, withNextState: self.next_state_identifier,
-          withNextState: self.next_state))
-    case .Error(let e): .Error(e)
-    }
   }
 }
 
