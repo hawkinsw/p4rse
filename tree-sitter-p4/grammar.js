@@ -34,6 +34,10 @@ export default grammar({
         direction: $ => choice($.in, $.out, $.inout),
         parameters: $=> seq('(', optional($.parameter_list), ')'),
 
+        argument_list: $ => choice($.argument, seq($.argument_list, ',', $.argument)),
+        argument: $ => $.expression,
+        arguments: $=> seq('(', optional($.argument_list), ')'),
+
         // Common - Types
         typeRef: $ => choice($.baseType, $.type_identifier),
         baseType: $ => choice($.bool, $.error, $.string, $.int, $.bit /* omitting "templated" types" */),
@@ -96,11 +100,12 @@ export default grammar({
 
         // General statements
         statements: $ => repeat1($.statement),
-        statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement, $.assignmentStatement, $.variableDeclaration),// Limited, so far.
+        statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement, $.assignmentStatement, $.variableDeclaration, $.return_statement),// Limited, so far.
         blockStatement: $ => seq(optional($.annotations), '{', optional($.statements), '}'),
         conditionalStatement: $ => choice(prec(1, seq($.if, '(', $.expression, ')', $.statement)), prec(2, seq($.if, '(', $.expression, ')', $.statement, $.else, $.statement))),
         expressionStatement: $=> seq($.expression, $._semicolon),
         assignmentStatement: $=> seq($.expression, $.assignment, $.expression, $._semicolon),
+        return_statement: $=> seq($.return, $.expression, $._semicolon),
 
         // Parser statements
         parserStatements: $ => repeat1($.parserStatement),
@@ -111,7 +116,7 @@ export default grammar({
         // Expressions
         expression: $ => choice($.grouped_expression, $.simple_expression),
         grouped_expression: $ => seq('(', $.expression, ')'),
-        simple_expression: $ => choice($.identifier, $.integer, $.booleanLiteralExpression, $.string_literal, $.binaryOperatorExpression, $.arrayAccessExpression, $.fieldAccessExpression), // Very limited.
+        simple_expression: $ => choice($.identifier, $.integer, $.booleanLiteralExpression, $.string_literal, $.binaryOperatorExpression, $.arrayAccessExpression, $.fieldAccessExpression, $.function_call), // Very limited.
         booleanLiteralExpression: $ => choice($.true, $.false),
         selectExpression: $ => seq($.select, '(', $.expression, ')', '{', $.selectBody, '}'), // TODO: Should be expression list and not just a single expression
         transitionSelectionExpression: $ => choice($.identifier, $.selectExpression),
@@ -130,6 +135,10 @@ export default grammar({
         ),
         arrayAccessExpression: $ => seq($.expression, $.open_bracket, $.expression, $.close_bracket),
         fieldAccessExpression: $=> prec.left(2, seq($.expression, $.field_access, $.identifier)),
+
+        // Function call
+
+        function_call: $=> seq($.identifier, $.arguments),
 
         // Binary Operations
         binaryEqualOperatorExpression: $ => prec.left(2, seq($.expression, $.double_equal, $.expression)),

@@ -19,51 +19,99 @@ import Common
 import P4Lang
 
 extension BlockStatement: EvaluatableStatement {
-  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+  public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     var execution = execution
     for s in self.statements {
-      execution = s.evaluate(execution: execution)
+      let (control_flow, next_execution) = s.evaluate(execution: execution)
+      switch control_flow {
+      case ControlFlow.Return(let value): return (ControlFlow.Return(value), next_execution)
+      case ControlFlow.Next: execution = next_execution
+      case ControlFlow.Error: return (ControlFlow.Error, next_execution)
+      default:
+        return (
+          ControlFlow.Next,
+          next_execution.setError(
+            error: Error(withMessage: "Invalid control flow \(control_flow) in block statement"))
+        )
+      }
     }
-    return execution
+    return (ControlFlow.Next, execution)
   }
 }
 
 extension VariableDeclarationStatement: EvaluatableStatement {
-  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+  public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     guard case .Ok(let initial_value) = self.initializer.evaluate(execution: execution) else {
-      return execution.setError(error: Error(withMessage: "Could not evaluate \(self.initializer)"))
+      return (
+        ControlFlow.Error,
+        execution.setError(error: Error(withMessage: "Could not evaluate \(self.initializer)"))
+      )
     }
     let new_scopes = execution.scopes.declare(identifier: self.identifier, withValue: initial_value)
     execution.scopes = new_scopes
-    return execution
+    return (ControlFlow.Next, execution)
   }
 }
 
 extension ConditionalStatement: EvaluatableStatement {
-  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+  public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     guard case .Ok(let evaluated_condition) = self.condition.evaluate(execution: execution) else {
-      return execution.setError(error: Error(withMessage: "Could not evaluate \(self.condition)"))
+      return (
+        ControlFlow.Error,
+        execution.setError(error: Error(withMessage: "Could not evaluate \(self.condition)"))
+      )
     }
+
     if !evaluated_condition.type().eq(rhs: P4Boolean()) {
-      return execution.setError(error: Error(withMessage: "Condition expression is not a Boolean"))
+      return (
+        ControlFlow.Error,
+        execution.setError(error: Error(withMessage: "Condition expression is not a Boolean"))
+      )
     }
+
     if evaluated_condition.eq(rhs: P4BooleanValue.init(withValue: true)) {
       let execution = execution.enter_scope()
-      var result = self.thenn.evaluate(execution: execution)
-      result = result.exit_scope()
-      return result
+      switch self.thenn.evaluate(execution: execution) {
+      case (ControlFlow.Next, let result): return (ControlFlow.Next, result.exit_scope())
+      case (ControlFlow.Error, let result): return (ControlFlow.Error, result.exit_scope())
+      case (let cf, let result):
+        return (
+          ControlFlow.Next,
+          result.setError(
+            error: Error(withMessage: "Invalid control flow \(cf) in conditional statement"))
+        )
+      }
     } else if let elss = self.elss {
       let execution = execution.enter_scope()
-      var result = elss.evaluate(execution: execution)
-      result = result.exit_scope()
-      return result
+      switch elss.evaluate(execution: execution) {
+      case (ControlFlow.Next, let result): return (ControlFlow.Next, result.exit_scope())
+      case (ControlFlow.Error, let result): return (ControlFlow.Error, result.exit_scope())
+      case (let cf, let result):
+        return (
+          ControlFlow.Next,
+          result.setError(
+            error: Error(withMessage: "Invalid control flow \(cf) in conditional statement"))
+        )
+      }
     }
-    return execution
+    return (ControlFlow.Next, execution)
   }
 }
 
 extension ExpressionStatement: EvaluatableStatement {
-  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
-    return execution
+  public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
+    // TODO: Should this do something? Side effects?
+    return (ControlFlow.Next, execution)
   }
 }
+
+extension ReturnStatement: EvaluatableStatement {
+  public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
+    return switch self.value.evaluate(execution: execution) {
+      case .Ok(let v): (ControlFlow.Return(v), execution)
+      case .Error(let e): (ControlFlow.Error, execution.setError(error: e))
+    }
+  }
+}
+
+

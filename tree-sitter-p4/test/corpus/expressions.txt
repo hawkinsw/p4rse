@@ -306,3 +306,131 @@ parser simple() {
   )
  )
 )
+
+=========================
+Simple Function Call
+=========================
+parser simple() {
+  state start {
+    func();
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+    (parameters)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (expressionStatement
+        (expression
+         (simple_expression
+          (function_call
+           (identifier)
+           (arguments)
+          )
+         )
+        )
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+
+=========================
+Simple Function Call (With Arguments)
+=========================
+parser simple() {
+  state start {
+    func(1, true, variable);
+    transition accept;
+  }
+};
+
+---
+(p4program
+ (declaration
+  (parserDeclaration
+   (parserType
+    (parser)
+    (identifier)
+    (parameters)
+   )
+   (parserStates
+    (parserState
+     (state)
+     (identifier)
+     (parserStatements
+      (parserStatement
+       (expressionStatement
+        (expression
+         (simple_expression
+          (function_call
+           (identifier)
+           (arguments
+            (argument_list
+             (argument_list
+              (argument_list
+               (argument
+                (expression
+                 (simple_expression
+                  (integer)
+                 )
+                )
+               )
+              )
+              (argument
+               (expression
+                (simple_expression
+                 (booleanLiteralExpression
+                  (true)
+                 )
+                )
+               )
+              )
+             )
+             (argument
+              (expression
+               (simple_expression
+                (identifier)
+               )
+              )
+             )
+            )
+           )
+          )
+         )
+        )
+       )
+      )
+     )
+     (parserTransitionStatement
+      (transition)
+      (transitionSelectionExpression
+       (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)

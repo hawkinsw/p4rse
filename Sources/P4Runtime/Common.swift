@@ -17,18 +17,3 @@
 
 import Common
 import P4Lang
-
-public protocol Execution {
-  func execute(execution: ProgramExecution) -> ProgramExecution
-}
-
-public protocol EvaluatableParserState: P4Value {
-  func execute(program: ProgramExecution) -> (EvaluatableParserState, ProgramExecution)
-  func done() -> Bool
-  func state() -> ParserState
-}
-
-public protocol CallableExecution<T> {
-  associatedtype T
-  func call(execution: ProgramExecution, arguments: ArgumentList) -> (T, ProgramExecution)
-}

@@ -176,7 +176,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
 
   let args = ArgumentList([
-    P4BooleanValue(withValue: false), P4StringValue(withValue: "Testing"), P4IntValue(withValue: 5),
+    Argument(P4BooleanValue(withValue: false), atIndex: 1), Argument(P4StringValue(withValue: "Testing"), atIndex: 2), Argument(P4IntValue(withValue: 5), atIndex: 3),
   ])
   let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: args))
   #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
@@ -197,7 +197,7 @@ import TreeSitterP4
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
 
   let args = ArgumentList([
-    P4BooleanValue(withValue: false), P4StringValue(withValue: "Testing"), P4IntValue(withValue: 5),
+    Argument(P4BooleanValue(withValue: false), atIndex: 1), Argument(P4StringValue(withValue: "Testing"), atIndex: 2), Argument(P4IntValue(withValue: 5), atIndex: 3),
   ])
   let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: args))
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)

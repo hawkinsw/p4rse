@@ -28,8 +28,10 @@ public protocol EvaluatableStatement {
   /// Evaluate a statement for a given execution
   /// - Parameters
   ///  - execution: The execution context in which to evaluate the parser statement
-  /// - Returns: An updated execution after evaluating the parser statement
-  func evaluate(execution: ProgramExecution) -> ProgramExecution
+  /// - Returns: A tuple of
+  /// 1. Whether this statement affects control flow.
+  /// 2. An updated execution after evaluating the parser statement
+  func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution)
 }
 
 public protocol P4Type: CustomStringConvertible {

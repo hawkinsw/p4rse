@@ -62,6 +62,7 @@ public struct Parser {
         "expressionStatement": ExpressionStatement.self,
         "variableDeclaration": VariableDeclarationStatement.self,
         "conditionalStatement": ConditionalStatement.self, "blockStatement": BlockStatement.self,
+        "return_statement": ReturnStatement.self,
       ]
       guard let parser = statementParsers[statement.nodeType ?? ""] else {
         return Result.Error(

@@ -19,20 +19,20 @@ import Common
 import P4Lang
 
 extension ParserAssignmentStatement: EvaluatableStatement {
-  public func evaluate(execution: ProgramExecution) -> ProgramExecution {
+  public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     let result = self.value.evaluate(execution: execution)
     guard case Result.Ok(let value) = result else {
-      return execution.setError(error: result.error()!)
+      return (ControlFlow.Error, execution.setError(error: result.error()!))
     }
 
     let maybe_updated_scopes = self.lvalue.set(
       to: value, inScopes: execution.scopes, duringExecution: execution)
     guard case Result.Ok(let updated_scopes) = maybe_updated_scopes else {
-      return execution.setError(error: maybe_updated_scopes.error()!)
+      return (ControlFlow.Error, execution.setError(error: maybe_updated_scopes.error()!))
     }
     execution.scopes = updated_scopes.0
 
-    return execution
+    return (ControlFlow.Next, execution)
   }
 }
 
@@ -43,7 +43,12 @@ extension ParserStateDirectTransition: EvaluatableParserState {
     var program = program.enter_scope()
 
     for statement in statements {
-      program = statement.evaluate(execution: program)
+      let (control_flow, next_program) = statement.evaluate(execution: program)
+      switch control_flow {
+        case .Next: program = next_program // Ok!
+        case .Error: return (reject, next_program)
+        default: return (reject, next_program.setError(error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)")))
+      }
     }
     let res = program.scopes.lookup(identifier: get_next_state())
 
@@ -93,7 +98,12 @@ extension ParserStateSelectTransition: EvaluatableParserState {
 
     // First, evaluate the statements.
     for statement in statements {
-      program = statement.evaluate(execution: program)
+      let (control_flow, next_program) = statement.evaluate(execution: program)
+      switch control_flow {
+        case .Next: program = next_program // Ok!
+        case .Error: return (reject, next_program)
+        default: return (reject, next_program.setError(error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)")))
+      }
     }
 
     let res = self.selectExpression.evaluate(execution: program)
@@ -159,8 +169,8 @@ extension Parser: CallableExecution {
     }
 
     for (parameter, argument) in zip(self.parameters.parameters, arguments.arguments) {
-      let arg_idx = argument.0
-      let arg_value = argument.1
+      let arg_idx = argument.index
+      let arg_value = argument.argument
       let maybe_argument_value = arg_value.evaluate(execution: execution)
       guard case .Ok(let argument_value) = maybe_argument_value else {
         return (

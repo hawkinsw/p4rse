@@ -163,6 +163,7 @@ struct Expression {
     let expression_parsers: [CompilableExpression.Type] = [
       P4BooleanValue.self, P4StringValue.self, P4IntValue.self, TypedIdentifier.self,
       BinaryOperatorExpression.self, ArrayAccessExpression.self, FieldAccessExpression.self,
+      FunctionCall.self
     ]
 
     for candidate_expression_parser in expression_parsers {
@@ -651,5 +652,69 @@ extension ArrayAccessExpression: CompilableLValueExpression {
     let array_access_expression = maybe_array_access_expression as! ArrayAccessExpression
 
     return Result.Ok(array_access_expression)
+  }
+}
+
+extension FunctionCall: CompilableExpression {
+  static func compile(
+    node: Node, withContext context: CompilerContext
+  ) -> Result<EvaluatableExpression?> {
+    let expression = node.child(at: 0)!
+    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+      node: expression, type: "function_call")
+
+    var currentChildIdx = 0
+    var currentChildIdxSafe = 1
+    var currentChild: Node? = .none
+
+    if expression.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing function call component"))
+    }
+
+    currentChild = expression.child(at: currentChildIdx)
+
+    let maybe_callee_name = Identifier.Compile(
+      node: currentChild!, withContext: context)
+    guard case .Ok(let callee_name) = maybe_callee_name else {
+      return Result.Error(maybe_callee_name.error()!)
+    }
+
+    let maybe_callee = switch context.types.lookup(identifier: callee_name) {
+      case .Ok(let looked_up): switch looked_up {
+        case let callee as FunctionDeclaration: Result.Ok(callee) // What we found is actually a function declaration
+        default: Result<FunctionDeclaration>.Error(ErrorOnNode(node: currentChild!, withError: "\(callee_name) is not a function"))
+      }
+      case .Error(let e): Result<FunctionDeclaration>.Error(e)
+    }
+
+    guard case .Ok(let callee) = maybe_callee else {
+      return .Error(maybe_callee.error()!)
+    }
+
+
+    currentChildIdx += 1
+    currentChildIdxSafe += 1
+    if expression.childCount < currentChildIdxSafe {
+      return Result.Error(
+        ErrorOnNode(node: node, withError: "Missing function call component"))
+    }
+    currentChild = expression.child(at: currentChildIdx)
+
+    let maybe_argument_list = ArgumentList.Compile(node: currentChild!, withContext: context)
+    
+    guard case .Ok((let arguments, _)) = maybe_argument_list  else {
+      return .Error(maybe_argument_list.error()!)
+    }
+
+    // Now, compare the arguments with the parameters:
+
+    if case .Error(let e) = arguments.compatible(callee.params) {
+      return .Error(e)
+    }
+
+    // All good!
+
+    return .Ok(FunctionCall(callee, withArguments: arguments))
   }
 }

@@ -21,6 +21,13 @@ open class ProgramExecution: CustomStringConvertible {
   var error: Error?
   var debug: DebugLevel = DebugLevel.Error
 
+  init(copy: ProgramExecution) {
+    self.scopes = copy.scopes
+    self.initialValues = copy.initialValues
+    self.error = copy.error
+    self.debug = copy.debug
+  }
+
   public init() {
     initialValues = .none
   }
@@ -42,7 +49,7 @@ open class ProgramExecution: CustomStringConvertible {
   }
 
   public func setError(error: Error) -> ProgramExecution {
-    let npe = self
+    let npe = ProgramExecution(copy: self)
     npe.error = error
     return npe
   }
@@ -52,7 +59,7 @@ open class ProgramExecution: CustomStringConvertible {
   }
 
   public func setDebugLevel(_ dl: DebugLevel) -> ProgramExecution {
-    let pe = self
+    let pe = ProgramExecution(copy: self)
     pe.debug = dl
     return pe
   }
@@ -67,22 +74,22 @@ open class ProgramExecution: CustomStringConvertible {
   }
 
   public func enter_scope() -> ProgramExecution {
-    let new_pe = self
-    new_pe.scopes = self.scopes.enter()
+    let new_pe = ProgramExecution(copy: self)
+    new_pe.scopes = new_pe.scopes.enter()
 
     return new_pe
   }
 
   public func exit_scope() -> ProgramExecution {
-    let new_pe = self
-    new_pe.scopes = self.scopes.exit()
+    let new_pe = ProgramExecution(copy: self)
+    new_pe.scopes = new_pe.scopes.exit()
 
     return new_pe
   }
 
   public func declare(identifier: Identifier, withValue value: P4Value) -> ProgramExecution {
-    let new_pe = self
-    let new_scopes = self.scopes.declare(identifier: identifier, withValue: value)
+    let new_pe = ProgramExecution(copy: self)
+    let new_scopes = new_pe.scopes.declare(identifier: identifier, withValue: value)
 
     new_pe.scopes = new_scopes
     return new_pe
@@ -98,3 +105,12 @@ public typealias VarValueScope = Scope<P4Value>
 
 /// Scopes that resolves variable identifiers to their values.
 public typealias VarValueScopes = Scopes<P4Value>
+
+/// Indicate the control flow result of a particular statement.
+public enum ControlFlow {
+    case Next
+    case Continue
+    case Break
+    case Return(P4Value?)
+    case Error
+}

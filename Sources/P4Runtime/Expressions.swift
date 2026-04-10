@@ -382,3 +382,40 @@ extension KeysetExpression: EvaluatableExpression {
     return self.kse_type()
   }
 }
+
+extension FunctionCall: EvaluatableExpression {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+
+    guard let body = self.callee.body else {
+      return .Error(Error(withMessage: "No body for called function (\(self.callee.name))"))
+    }
+
+    // Put the arguments into scope
+
+    var called_execution = execution.enter_scope()
+    for (parameter, argument) in zip(self.callee.params.parameters, arguments.arguments) {
+      let arg_idx = argument.index
+      let arg_value = argument.argument
+      let maybe_argument_value = arg_value.evaluate(execution: called_execution)
+      guard case .Ok(let argument_value) = maybe_argument_value else {
+        return .Error(Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)"))
+      }
+      called_execution = called_execution.declare(identifier: parameter.name, withValue: argument_value)
+    }
+
+    let (control_flow, _) = body.evaluate(execution: called_execution)
+
+    return switch control_flow {
+      case ControlFlow.Return(let value): if let value = value {
+        .Ok(value) 
+      } else {
+        .Error(Error(withMessage: "No value returned from called function (\(self.callee.name))"))
+      }
+      default: .Error(Error(withMessage: "No value returned from called function (\(self.callee.name))"))
+    }
+  }
+
+  public func type() -> any Common.P4Type {
+    return self.callee.tipe
+  }
+}

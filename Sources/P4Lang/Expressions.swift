@@ -201,33 +201,12 @@ public struct FieldAccessExpression {
   }
 }
 
-public struct ArgumentList {
-  public let arguments: [(Int, EvaluatableExpression)]
-  public init(_ arguments: [EvaluatableExpression]) {
-    self.arguments = zip(1..., arguments).map { (idx, argument) in
-      (idx, argument)
-    }
-  }
+public struct FunctionCall {
+  public let callee: FunctionDeclaration
+  public let arguments: ArgumentList
 
-  public func compatible(_ parameters: ParameterList) -> Result<()> {
-    if self.arguments.count != parameters.parameters.count {
-      return .Error(
-        Error(
-          withMessage:
-            "\(self.arguments.count) arguments found but \(parameters.parameters.count) required"))
-    }
-
-    for (arg, param) in zip(self.arguments, parameters.parameters) {
-      let arg_index = arg.0
-      let arg_type = arg.1.type()
-      if !arg_type.eq(rhs: param.type) {
-        return .Error(
-          Error(
-            withMessage:
-              "Argument \(arg_index)'s type (\(arg_type)) is incompatible with the parameter type (\(param.type))"
-          ))
-      }
-    }
-    return .Ok(())
+  public init(_ callee: FunctionDeclaration, withArguments arguments: ArgumentList) {
+    self.callee = callee
+    self.arguments = arguments
   }
 }

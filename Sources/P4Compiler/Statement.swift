@@ -299,3 +299,19 @@ extension ParserAssignmentStatement: CompilableStatement {
       ))
   }
 }
+
+extension ReturnStatement: CompilableStatement {
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(any Common.EvaluatableStatement, CompilerContext)> {
+    #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
+      node: node, type: "return_statement", nice_type_name: "return statement")
+
+    let expression_node = node.child(at: 1)!
+
+    return switch Expression.Compile(node: expression_node, withContext: context) {
+    case .Ok(let result): .Ok((ReturnStatement(result), context))
+    case .Error(let e): .Error(e)
+    }
+  }
+}

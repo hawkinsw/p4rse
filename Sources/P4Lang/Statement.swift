@@ -55,3 +55,11 @@ public struct BlockStatement {
   }
 
 }
+
+public struct ReturnStatement {
+  public let value: EvaluatableExpression
+
+  public init(_ value: EvaluatableExpression) {
+    self.value = value
+  }
+}
