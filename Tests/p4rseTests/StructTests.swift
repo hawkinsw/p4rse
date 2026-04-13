@@ -45,7 +45,7 @@ import TreeSitterP4
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -139,7 +139,7 @@ import TreeSitterP4
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -174,7 +174,7 @@ import TreeSitterP4
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -208,7 +208,7 @@ import TreeSitterP4
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -248,7 +248,7 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
@@ -290,7 +290,7 @@ import TreeSitterP4
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -322,7 +322,7 @@ import TreeSitterP4
     P4StructFieldIdentifier(name: "count", withType: P4Int()),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
 
   #expect(
     #RequireErrorResult(
@@ -357,7 +357,7 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
@@ -405,7 +405,7 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
@@ -452,7 +452,7 @@ import TreeSitterP4
   let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: ts_struct_type)
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
 
   #expect(
     #RequireErrorResult(

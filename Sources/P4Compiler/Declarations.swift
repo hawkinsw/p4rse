@@ -108,7 +108,8 @@ extension FunctionDeclaration: CompilableDeclaration {
     // Add the parameters into scope.
     var function_scope = context.instances.enter()
     for parameter in function_parameters.parameters {
-      function_scope = function_scope.declare(identifier: parameter.name, withValue: parameter.type)
+      function_scope = function_scope.declare(
+        identifier: parameter.name, withValue: parameter.attributedType())
     }
 
     let maybe_function_body = Parser.Statement.Compile(
@@ -331,7 +332,7 @@ extension P4Lang.Parser: CompilableDeclaration {
     for parameter in parameter_list.parameters {
       current_context = current_context.update(
         newInstances: current_context.instances.declare(
-          identifier: parameter.name, withValue: parameter.type))
+          identifier: parameter.name, withValue: parameter.attributedType()))
     }
 
     currentChildIdx += 1
@@ -374,7 +375,7 @@ extension P4Lang.Parser: CompilableDeclaration {
           parser,
           context.update(
             newInstances: updated_context.instances.declare(
-              identifier: parser.name, withValue: parser))
+              identifier: parser.name, withValue: P4TypeAttributed(parser, [])))
         ))
     case Result.Error(let error): return .Error(error)
     }
@@ -436,7 +437,8 @@ extension Control: CompilableDeclaration {
     // Before continuing, make sure to put the parameters into context.
     var control_scope = local_context.instances.enter()
     for parameter in control_parameters.parameters {
-      control_scope = control_scope.declare(identifier: parameter.name, withValue: parameter.type)
+      control_scope = control_scope.declare(
+        identifier: parameter.name, withValue: parameter.attributedType())
     }
     local_context = local_context.update(newInstances: control_scope)
 
@@ -505,7 +507,7 @@ extension Control: CompilableDeclaration {
         declared_control,
         context.update(
           newInstances: context.instances.declare(
-            identifier: control_name, withValue: declared_control))
+            identifier: control_name, withValue: P4TypeAttributed(declared_control, [])))
       ))
   }
 }
@@ -566,7 +568,8 @@ extension Action: Compilable {
     // Add the parameters into scope.
     var function_scope = context.instances.enter()
     for parameter in action_parameters.parameters {
-      function_scope = function_scope.declare(identifier: parameter.name, withValue: parameter.type)
+      function_scope = function_scope.declare(
+        identifier: parameter.name, withValue: parameter.attributedType())
     }
 
     let maybe_action_body = Parser.Statement.Compile(

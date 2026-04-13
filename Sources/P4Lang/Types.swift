@@ -14,3 +14,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+import Common
+
+public struct AttributedP4Type {
+  public let type: P4Type
+  public let attributes: P4TypeAttributed
+
+  public init(_ type: P4Type, _ attributes: P4TypeAttributed) {
+    self.type = type
+    self.attributes = attributes
+  }
+}

@@ -40,7 +40,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Int()))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
@@ -68,7 +68,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Int())
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Int()))
   #expect(
     #RequireErrorResult(
       Error(
@@ -91,7 +91,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Int()))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
@@ -118,7 +118,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Int()))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
@@ -145,7 +145,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Int()))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
@@ -173,7 +173,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Array(withValueType: P4Int())))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Array(withValueType: P4Int()))))
   var test_values = VarValueScopes().enter()
 
   let nested = P4ArrayValue(
@@ -206,7 +206,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Int()))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
@@ -235,7 +235,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Array(withValueType: P4Int())))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Array(withValueType: P4Int()))))
   var test_values = VarValueScopes().enter()
 
   let nested = P4ArrayValue(

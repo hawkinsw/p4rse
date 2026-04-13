@@ -231,7 +231,7 @@ extension VariableDeclarationStatement: CompilableStatement {
         // Context with updated names to include the newly declared name.
         context.update(
           newInstances: context.instances.declare(
-            identifier: parsed_variablename, withValue: declaration_p4_type))
+            identifier: parsed_variablename, withValue: P4TypeAttributed(declaration_p4_type, [])))
       ))
   }
 }

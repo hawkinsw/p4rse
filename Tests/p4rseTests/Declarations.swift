@@ -166,3 +166,12 @@ import TreeSitterP4
   #expect(#RequireOkResult(Program.Compile(simple_parser_declaration)))
 }
 
+@Test func test_function_declaration_with_parameters_and_direction() async throws {
+  let simple_parser_declaration = """
+      bool functionb(in bool x, out string y, inout int z) {
+        x = true;
+      };
+   """
+  #expect(#RequireOkResult(Program.Compile(simple_parser_declaration)))
+}
+

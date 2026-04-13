@@ -253,7 +253,7 @@ import TreeSitterP4
       };
     """
   var test_types = VarTypeScopes().enter()
-  test_types = test_types.declare(identifier: Identifier(name: "ta"), withValue: P4Array(withValueType: P4Int()))
+  test_types = test_types.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
   #expect(
     #RequireErrorResult(
       Error(

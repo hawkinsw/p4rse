@@ -81,11 +81,12 @@ extension TypedIdentifier: EvaluatableLValueExpression {
       return .Error(Error(withMessage: "Cannot assign to identifier not in scope"))
     }
 
-    if !type.eq(rhs: to.type()) {
+    if !type.type.eq(rhs: to.type()) {
       return .Error(
         Error(
           withMessage:
-            "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type)"))
+            "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type.type)"
+        ))
     }
     return .Ok(())
   }

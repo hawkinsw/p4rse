@@ -39,8 +39,8 @@ let p4_program_with_control_decl = """
 
 
 // snippet.include
-let flter = { (tipe: P4Type) -> Bool in
-  switch tipe {
+let flter = { (tipe: P4TypeAttributed) -> Bool in
+  switch tipe.type {
   case let c as Control: c.name == "simple"
   default: false
   }

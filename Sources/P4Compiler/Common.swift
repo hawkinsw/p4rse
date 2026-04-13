@@ -120,6 +120,30 @@ extension ParameterList: Compilable {
   }
 }
 
+extension Direction: Compilable {
+  public typealias T = Direction
+  public static func Compile(
+    node: Node, withContext context: CompilerContext
+  ) -> Result<(Direction, CompilerContext)> {
+    let direction_node = node
+    #RequireNodeType<Node, (Direction, CompilerContext)>(
+      node: direction_node, type: "direction", nice_type_name: "direction")
+    let directions = [
+      "in": Direction.In,
+      "out": Direction.Out,
+      "inout": Direction.InOut,
+    ]
+
+    guard let parsed_direction = directions[direction_node.text!] else {
+      return .Error(
+        ErrorOnNode(
+          node: direction_node, withError: "\(direction_node.text!) is not a valid direction"))
+    }
+
+    return .Ok((parsed_direction, context))
+  }
+}
+
 extension Parameter: Compilable {
   public typealias T = Parameter
   public static func Compile(
@@ -148,15 +172,22 @@ extension Parameter: Compilable {
           withError: "Annotations in parameter declarations are not yet handled"))
       // Will increment indexes here.
     }
+    currentChild = node.child(at: currentChildIdx)
 
+    var direction: Direction? = .none
     // Direction?
     if currentChild!.nodeType == "direction" {
-      return .Error(
-        ErrorOnNode(
-          node: currentChild!, withError: "Direction in parameter declarations are not yet handled"
-        ))
-      // Will increment indexes here.
+
+      let maybe_parsed_direction = Direction.Compile(node: currentChild!, withContext: context)
+      guard case .Ok((let parsed_direction, _)) = maybe_parsed_direction else {
+        return .Error(maybe_parsed_direction.error()!)
+      }
+      direction = parsed_direction
+
+      currentChildIdx += 1
+      currentChildIdxSafe += 1
     }
+    currentChild = node.child(at: currentChildIdx)
 
     if currentChild!.nodeType != "typeRef" {
       return Result.Error(
@@ -195,7 +226,7 @@ extension Parameter: Compilable {
     return Result.Ok(
       (
         Parameter(
-          identifier: parameter_name, withType: parameter_type),
+          identifier: parameter_name, withType: parameter_type, withDirection: direction),
         context
       ))
   }

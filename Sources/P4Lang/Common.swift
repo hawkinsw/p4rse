@@ -19,21 +19,35 @@ import Common
 
 public struct Parameter: CustomStringConvertible, Equatable {
   public static func == (lhs: Parameter, rhs: Parameter) -> Bool {
-    return lhs.name == rhs.name && lhs.type.eq(rhs: rhs.type)
+    return lhs.name == rhs.name && lhs.type.eq(rhs: rhs.type) && lhs.direction == rhs.direction
   }
 
   public var name: Identifier
   public var type: P4Type
+  public var direction: Direction?
 
   public init(
-    identifier: Identifier, withType type: P4Type
+    identifier: Identifier, withType type: P4Type, withDirection direction: Direction? = .none
   ) {
     self.name = identifier
     self.type = type
+    self.direction = direction
   }
 
   public var description: String {
-    return "Parameter: \(self.name) with type \(self.type)"
+    let direction = self.direction != .none ? self.direction!.description : "no"
+    return "Parameter: \(self.name) with type \(self.type) with \(direction) direction"
+  }
+
+  /// Calculate whether the `argument` is compatible with this parameter.
+  public func compatible(_ argument: Argument) -> Bool {
+    let arg_type = argument.argument.type()
+    return arg_type.eq(rhs: self.type)
+  }
+
+  public func attributedType() -> P4TypeAttributed {
+    return P4TypeAttributed(
+      self.type, self.direction == .none ? [] : [P4TypeAttribute.Direction(self.direction!)])
   }
 }
 
@@ -89,7 +103,7 @@ public struct ArgumentList {
     for (arg, param) in zip(self.arguments, parameters.parameters) {
       let arg_index = arg.index
       let arg_type = arg.argument.type()
-      if !arg_type.eq(rhs: param.type) {
+      if !param.compatible(arg) {
         return .Error(
           Error(
             withMessage:

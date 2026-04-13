@@ -782,3 +782,76 @@ public class P4SetDefaultValue: P4Value {
     "Default of P4Set of \(self.type()) type"
   }
 }
+
+public enum Direction: Equatable, CustomStringConvertible {
+  case In
+  case Out
+  case InOut
+
+  public var description: String {
+    return switch self {
+    case Direction.In: "In"
+    case Direction.Out: "Out"
+    case Direction.InOut: "InOut"
+    }
+  }
+
+  /// Compare two optional ``Direction``s
+  static public func eqopt(_ lhs: Direction?, _ rhs: Direction?) -> Bool {
+    // If both are empty, they are the same.
+    if lhs == .none && rhs == .none {
+      return true
+    }
+
+    // If one is empty, they are different
+    if lhs == .none || rhs == .none {
+      return false
+    }
+
+    // Both have values -- compare them natively.
+    return lhs! == rhs!
+  }
+}
+
+public enum P4TypeAttribute {
+  case Direction(Direction)
+  case Readonly  // Not yet used -- here to keep Swift warnings at bay
+}
+
+public struct P4TypeAttributed {
+  let attributes: [P4TypeAttribute]
+  public let type: P4Type
+
+  public init(_ type: P4Type, _ attributes: [P4TypeAttribute]) {
+    self.attributes = attributes
+    self.type = type
+  }
+
+  public func direction() -> Direction? {
+    let result = attributes.firstIndex { attribute in
+      return switch attribute {
+      case .Direction(_): true
+      default: false
+      }
+    }
+    return result.flatMap { index in
+      return switch attributes[index] {
+      case .Direction(let d): d
+      default: Optional<Direction>.none
+      }
+    }
+  }
+
+  public func readOnly() -> Bool {
+    return attributes.contains { attribute in
+      return switch attribute {
+      case .Readonly: true
+      default: false
+      }
+    }
+  }
+
+  public static func Attributeless(_ type: P4Type) -> P4TypeAttributed {
+    return P4TypeAttributed(type, [])
+  }
+}
