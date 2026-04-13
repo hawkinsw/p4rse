@@ -281,7 +281,140 @@ bool functionb() {
     )
    )
    (identifier)
+   (parameters)
+   (statement
+    (blockStatement
+     (statements
+      (statement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (string)
+         )
+        )
+       (identifier)
+       )
+      )
+     )
+    )
+   )
+  )
+ )
+)
+
+=========================
+Function Declaration With Parameters
+=========================
+bool functionb(bool a, int b) {
+  string fieldA;
+};
+---
+(p4program
+ (declaration
+  (function_declaration
+   (typeRef
+    (baseType
+     (bool)
+    )
+   )
+   (identifier)
    (parameters
+    (parameter_list
+     (parameter_list
+      (parameter
+       (typeRef
+        (baseType
+         (bool)
+        )
+       )
+       (identifier)
+      )
+     )
+     (parameter
+      (typeRef
+       (baseType
+        (int)
+       )
+      )
+      (identifier)
+     )
+    )
+   )
+   (statement
+    (blockStatement
+     (statements
+      (statement
+       (variableDeclaration
+        (typeRef
+         (baseType
+          (string)
+         )
+        )
+       (identifier)
+       )
+      )
+     )
+    )
+   )
+  )
+ )
+)
+=========================
+Function Declaration With Parameters And Directions
+=========================
+bool functionb(in bool a, out int b, inout string c) {
+  string fieldA;
+};
+---
+(p4program
+ (declaration
+  (function_declaration
+   (typeRef
+    (baseType
+     (bool)
+    )
+   )
+   (identifier)
+   (parameters
+    (parameter_list
+     (parameter_list
+      (parameter_list
+       (parameter
+        (direction
+         (in)
+        )
+        (typeRef
+         (baseType
+         (bool)
+         )
+        )
+        (identifier)
+       )
+      )
+      (parameter
+       (direction
+        (out)
+       )
+       (typeRef
+        (baseType
+         (int)
+        )
+       )
+       (identifier)
+      )
+     )
+     (parameter
+      (direction
+       (inout)
+      )
+      (typeRef
+       (baseType
+        (string)
+       )
+      )
+      (identifier)
+     )
+    )
    )
    (statement
     (blockStatement

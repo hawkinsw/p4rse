@@ -29,7 +29,7 @@ export default grammar({
         // Common - Parameters
         typeParameters: $ => seq('<', $.typeParameterList, '>'),
         typeParameterList: $ => choice("[a-z]+", seq($.typeParameterList, ',', "[a-z]+")),
-        parameter_list: $ => choice($.parameter, seq($.parameter_list, ',', $.parameter)),
+        parameter_list: $ => choice(seq($.parameter_list, ',', $.parameter), $.parameter),
         parameter: $ => choice(seq(optional($.annotations), optional($.direction), $.typeRef, $.identifier), seq(optional($.annotations), optional($.direction), $.typeRef, $.identifier, '=', $.expression)),
         direction: $ => choice($.in, $.out, $.inout),
         parameters: $=> seq('(', optional($.parameter_list), ')'),
