@@ -68,6 +68,25 @@ Here are the style guidelines that we are _trying_ to maintain:
 
 Of course, we want to follow the formatter, too: see [below](#checking-format).
 
+#### Commit Messages
+
+We will try to maintain the following headline format for commit messages:
+
+```
+<component>: <subcomponent>: <change>
+```
+
+where `<component>` is one of:
+
+1. `grammar`: For the tree-sitter-based grammar.
+2. `compiler`: For the Swift-based P4 compiler of tree-sitter-based-parser parsed programs into AST.
+3. `runtime`: For the Swift-based P4 interpreter.
+4. `common`: For any Swift-based components common to the entire project (and macros).
+5. `documentation`: For any documentation updates.
+6. `testing`: For Swift-based tests.
+
+where `<subcomponent>` can be more free-form and `<change>` is a pithy description of the changes in the commit.
+
 #### Testing
 
 To run the P4RSE tests:
