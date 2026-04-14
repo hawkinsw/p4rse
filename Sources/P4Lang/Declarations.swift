@@ -19,34 +19,34 @@ import Common
 
 public struct Declaration {}
 
-public struct FunctionDeclaration: P4Type, P4Value {
-  public func type() -> any Common.P4Type {
+public struct FunctionDeclaration: P4DataType, P4DataValue {
+  public func type() -> any Common.P4DataType {
     return self
   }
 
-  public func eq(rhs: any Common.P4Type) -> Bool {
+  public func eq(rhs: any Common.P4DataType) -> Bool {
     switch rhs {
     case let frhs as FunctionDeclaration:
-      return frhs.tipe.eq(rhs: self.tipe) && frhs.params == self.params
+      return frhs.tipe.eq(self.tipe) && frhs.params == self.params
     default: return false
     }
   }
 
-  public func eq(rhs: any Common.P4Value) -> Bool {
+  public func eq(rhs: any Common.P4DataValue) -> Bool {
     switch rhs {
-    case let frhs as FunctionDeclaration: return self.eq(rhs: frhs as P4Type)
+    case let frhs as FunctionDeclaration: return self.eq(rhs: frhs as P4DataType)
     default: return false
     }
   }
 
-  public func lt(rhs: any Common.P4Value) -> Bool {
+  public func lt(rhs: any Common.P4DataValue) -> Bool {
     switch rhs {
     case let frhs as FunctionDeclaration: return self.name < frhs.name
     default: return false
     }
   }
 
-  public func lte(rhs: any Common.P4Value) -> Bool {
+  public func lte(rhs: any Common.P4DataValue) -> Bool {
     switch rhs {
     case let frhs as FunctionDeclaration: return self.name <= frhs.name
     default: return false
@@ -54,23 +54,24 @@ public struct FunctionDeclaration: P4Type, P4Value {
 
   }
 
-  public func gt(rhs: any Common.P4Value) -> Bool {
+  public func gt(rhs: any Common.P4DataValue) -> Bool {
     switch rhs {
     case let frhs as FunctionDeclaration: return self.name > frhs.name
     default: return false
     }
   }
 
-  public func gte(rhs: any Common.P4Value) -> Bool {
+  public func gte(rhs: any Common.P4DataValue) -> Bool {
     switch rhs {
     case let frhs as FunctionDeclaration: return self.name >= frhs.name
     default: return false
     }
   }
 
-  public func def() -> any Common.P4Value {
+  public func def() -> any Common.P4DataValue {
     return FunctionDeclaration(
-      named: Identifier(name: ""), ofType: P4Boolean(), withParameters: ParameterList([]),
+      named: Identifier(name: ""), ofType: P4Type(P4Boolean()),
+      withParameters: ParameterList([]),
       withBody: .none)
   }
 

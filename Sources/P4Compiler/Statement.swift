@@ -214,7 +214,7 @@ extension VariableDeclarationStatement: CompilableStatement {
         return .Error(maybe_parsed_rvalue.error()!)
       }
 
-      if parsed_rvalue.type().eq(rhs: declaration_p4_type) {
+      if parsed_rvalue.type().eq(declaration_p4_type) {
         initializer = parsed_rvalue
       } else {
         return Result.Error(
@@ -231,8 +231,9 @@ extension VariableDeclarationStatement: CompilableStatement {
         // Context with updated names to include the newly declared name.
         context.update(
           newInstances: context.instances.declare(
-            identifier: parsed_variablename, withValue: P4TypeAttributed(declaration_p4_type, [])))
-      ))
+            identifier: parsed_variablename, withValue: declaration_p4_type))
+      )
+    )
   }
 }
 
@@ -311,7 +312,7 @@ extension ReturnStatement: CompilableStatement {
 
     return switch Expression.Compile(node: expression_node, withContext: context) {
     case .Ok(let result):
-      if result.type().eq(rhs: context.expected_type!) {
+      if result.type().eq(context.expected_type!) {
         .Ok((ReturnStatement(result), context))
       } else {
         .Error(

@@ -42,8 +42,8 @@ import TreeSitterP4
     """
   let test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   var test_types = TypeTypeScopes().enter()
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
@@ -75,8 +75,8 @@ import TreeSitterP4
     """
   let test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   var test_types = TypeTypeScopes().enter()
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
@@ -109,8 +109,8 @@ import TreeSitterP4
     """
   let test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   var test_types = TypeTypeScopes().enter()
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
@@ -146,8 +146,8 @@ import TreeSitterP4
     """
   let test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   var test_types = TypeTypeScopes().enter()
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
@@ -183,8 +183,8 @@ import TreeSitterP4
     """
   let test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   var test_types = TypeTypeScopes().enter()
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)

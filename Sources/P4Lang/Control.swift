@@ -120,53 +120,53 @@ public struct Table: CustomStringConvertible {
   }
 }
 
-public struct Control: P4Type, P4Value, Equatable, CustomStringConvertible {
+public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertible {
   public static func == (lhs: Control, rhs: Control) -> Bool {
     // Two "bare" controls are always equal.
     return true
   }
 
-  public func eq(rhs: any Common.P4Type) -> Bool {
+  public func eq(rhs: any Common.P4DataType) -> Bool {
     return switch rhs {
     case is Control: true
     default: false
     }
   }
 
-  public func type() -> any Common.P4Type {
+  public func type() -> any Common.P4DataType {
     return self
   }
 
   // Any operation between two "bare" parser states is always true.
-  public func eq(rhs: any Common.P4Value) -> Bool {
+  public func eq(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is Control: true
     default: false
     }
   }
 
-  public func lt(rhs: any Common.P4Value) -> Bool {
+  public func lt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is Control: true
     default: false
     }
   }
 
-  public func lte(rhs: any Common.P4Value) -> Bool {
+  public func lte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is Control: true
     default: false
     }
   }
 
-  public func gt(rhs: any Common.P4Value) -> Bool {
+  public func gt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is Control: true
     default: false
     }
   }
 
-  public func gte(rhs: any Common.P4Value) -> Bool {
+  public func gte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is Control: true
     default: false
@@ -200,7 +200,7 @@ public struct Control: P4Type, P4Value, Equatable, CustomStringConvertible {
     self.table = table
   }
 
-  public func def() -> any P4Value {
+  public func def() -> any P4DataValue {
     return Control(
       named: Identifier(name: ""),
       withParameters: ParameterList(),

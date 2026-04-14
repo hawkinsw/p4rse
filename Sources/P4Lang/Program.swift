@@ -22,16 +22,16 @@ public struct ExpressionStatement {
 }
 
 public struct Program {
-  public var types: [P4Type] = Array()
-  public var instances: [P4TypeAttributed] = Array()
+  public var types: [P4DataType] = Array()
+  public var instances: [P4Type] = Array()
 
   /// Type of closure for filtering results from ``Program/InstancesWithTypes(_:)``
-  public typealias AttributedTypeFilter = (P4TypeAttributed) -> Bool
+  public typealias AttributedTypeFilter = (P4Type) -> Bool
   /// Type of closure for filtering results from ``Program/TypesWithTypes(_:)``
-  public typealias TypeFilter = (P4Type) -> Bool
+  public typealias TypeFilter = (P4DataType) -> Bool
 
   /// Retrieve global instances in the compiled P4 program.
-  public func InstancesWithTypes() -> [P4TypeAttributed] {
+  public func InstancesWithTypes() -> [P4Type] {
     return self.instances
   }
 
@@ -47,14 +47,14 @@ public struct Program {
   ///
   /// @Snippet(path: "use-program-instanceswithtypes", slice: "include")
   ///
-  public func InstancesWithTypes(_ filter: AttributedTypeFilter) -> [P4TypeAttributed] {
+  public func InstancesWithTypes(_ filter: AttributedTypeFilter) -> [P4Type] {
     return self.instances.filter { instance in
       filter(instance)
     }
   }
 
   /// Retrieve global types in the compiled P4 program.
-  public func TypesWithTypes() -> [P4Type] {
+  public func TypesWithTypes() -> [P4DataType] {
     return self.types
   }
 
@@ -70,7 +70,7 @@ public struct Program {
   ///
   /// @Snippet(path: "use-program-typeswithtypes", slice: "include")
   ///
-  public func TypesWithTypes(_ filter: TypeFilter) -> [P4Type] {
+  public func TypesWithTypes(_ filter: TypeFilter) -> [P4DataType] {
     return self.types.filter { instance in
       filter(instance)
     }
@@ -85,7 +85,7 @@ public struct Program {
 
   public func find_parser(withName name: Identifier) -> Result<Parser> {
     for instance in self.instances {
-      guard let parser = instance.type as? Parser else {
+      guard let parser = instance.dataType() as? Parser else {
         continue
       }
       if parser.name == name {

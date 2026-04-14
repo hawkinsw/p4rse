@@ -40,13 +40,13 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Array(withValueType: P4Type(P4Int()))))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
-    withValue: P4ArrayValue(withType: P4Int(), withValue: [
-      P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3),
-    ]))
+    withValue: P4Value(P4ArrayValue(withType: P4Type(P4Int()), withValue: [
+      P4Value(P4IntValue(withValue: 1)), P4Value(P4IntValue(withValue: 2)), P4Value(P4IntValue(withValue: 3))
+    ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -68,7 +68,7 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Int()))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Int()))
   #expect(
     #RequireErrorResult(
       Error(
@@ -91,13 +91,14 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Array(withValueType: P4Type(P4Int()))))
   var test_values = VarValueScopes().enter()
+
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
-    withValue: P4ArrayValue(withType: P4Int(), withValue: [
-      P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3),
-    ]))
+    withValue: P4Value(P4ArrayValue(withType: P4Type(P4Int()), withValue: [
+      P4Value(P4IntValue(withValue: 1)), P4Value(P4IntValue(withValue: 2)), P4Value(P4IntValue(withValue: 3))
+    ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -118,13 +119,13 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Array(withValueType: P4Type(P4Int()))))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
-    withValue: P4ArrayValue(withType: P4Int(), withValue: [
-      P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3),
-    ]))
+    withValue: P4Value(P4ArrayValue(withType: P4Type(P4Int()), withValue: [
+      P4Value(P4IntValue(withValue: 1)), P4Value(P4IntValue(withValue: 2)), P4Value(P4IntValue(withValue: 3)),
+    ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -145,13 +146,13 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Array(withValueType: P4Type(P4Int()))))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
-    withValue: P4ArrayValue(withType: P4Int(), withValue: [
-      P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3),
-    ]))
+    withValue: P4Value(P4ArrayValue(withType: P4Type(P4Int()), withValue: [
+      P4Value(P4IntValue(withValue: 1)), P4Value(P4IntValue(withValue: 2)), P4Value(P4IntValue(withValue: 3)),
+    ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -173,16 +174,16 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Array(withValueType: P4Int()))))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Array(withValueType: P4Type(P4Array(withValueType: P4Type(P4Int()))))))
   var test_values = VarValueScopes().enter()
 
-  let nested = P4ArrayValue(
-    withType: P4Int(),
-    withValue: [P4IntValue(withValue: 5), P4IntValue(withValue: 2), P4IntValue(withValue: 3)])
+  let nested = P4Value(P4ArrayValue(
+    withType: P4Type(P4Int()),
+    withValue: [P4Value(P4IntValue(withValue: 5)), P4Value(P4IntValue(withValue: 2)), P4Value(P4IntValue(withValue: 3))]))
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
-    withValue: P4ArrayValue(withType: P4Array(withValueType: P4Int()), withValue: [nested]))
+    withValue: P4Value(P4ArrayValue(withType: P4Type(P4Array(withValueType: P4Type(P4Int()))), withValue: [nested])))
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
@@ -206,13 +207,13 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Int())))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Array(withValueType: P4Type(P4Int()))))
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
-    withValue: P4ArrayValue(withType: P4Int(), withValue: [
-      P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3),
-    ]))
+    withValue: P4Value(P4ArrayValue(withType: P4Type(P4Int()), withValue: [
+      P4Value(P4IntValue(withValue: 1)), P4Value(P4IntValue(withValue: 2)), P4Value(P4IntValue(withValue: 3)),
+    ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -235,16 +236,16 @@ import TreeSitterP4
       };
     """
   var test_declarations = VarTypeScopes().enter()
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4TypeAttributed.Attributeless(P4Array(withValueType: P4Array(withValueType: P4Int()))))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ta"), withValue: P4Type(P4Array(withValueType: P4Type(P4Array(withValueType: P4Type(P4Int()))))))
   var test_values = VarValueScopes().enter()
 
-  let nested = P4ArrayValue(
-    withType: P4Int(),
-    withValue: [P4IntValue(withValue: 1), P4IntValue(withValue: 2), P4IntValue(withValue: 3)])
+  let nested = P4Value(P4ArrayValue(
+    withType: P4Type(P4Int()),
+    withValue: [P4Value(P4IntValue(withValue: 1)), P4Value(P4IntValue(withValue: 2)), P4Value(P4IntValue(withValue: 3))]))
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ta"),
-    withValue: P4ArrayValue(withType: P4Array(withValueType: P4Int()), withValue: [nested]))
+    withValue: P4Value(P4ArrayValue(withType: P4Type(P4Array(withValueType: P4Type(P4Int()))), withValue: [nested])))
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))

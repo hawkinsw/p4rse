@@ -226,7 +226,10 @@ extension Parameter: Compilable {
     return Result.Ok(
       (
         Parameter(
-          identifier: parameter_name, withType: parameter_type, withDirection: direction),
+          identifier: parameter_name,
+          withType: direction != nil
+            ? parameter_type.update(addAttribute: P4TypeAttribute.Direction(direction!))
+            : parameter_type),
         context
       ))
   }

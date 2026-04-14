@@ -18,10 +18,10 @@
 import Common
 
 public struct AttributedP4Type {
-  public let type: P4Type
-  public let attributes: P4TypeAttributed
+  public let type: P4DataType
+  public let attributes: P4Type
 
-  public init(_ type: P4Type, _ attributes: P4TypeAttributed) {
+  public init(_ type: P4DataType, _ attributes: P4Type) {
     self.type = type
     self.attributes = attributes
   }

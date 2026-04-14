@@ -43,13 +43,13 @@ extension TypedIdentifier: CompilableExpression {
       node: node, type: "identifier")
 
     guard
-      case Result.Ok(let attributed_type) = context.instances.lookup(
+      case Result.Ok(let type) = context.instances.lookup(
         identifier: Common.Identifier(name: node.text!))
     else {
       return .Error(ErrorOnNode(node: node, withError: "Cannot find \(node.text!) in scope"))
     }
 
-    return .Ok(TypedIdentifier(name: node.text!, withType: attributed_type.type))
+    return .Ok(TypedIdentifier(name: node.text!, withType: type))
   }
 }
 
@@ -82,9 +82,9 @@ extension P4BooleanValue: CompilableExpression {
       node: node, type: "booleanLiteralExpression")
 
     if node.text == "false" {
-      return .Ok(P4BooleanValue(withValue: false))
+      return .Ok(P4Value(P4BooleanValue(withValue: false)))
     } else if node.text == "true" {
-      return .Ok(P4BooleanValue(withValue: true))
+      return .Ok(P4Value(P4BooleanValue(withValue: true)))
     }
 
     return .Error(
@@ -99,7 +99,7 @@ extension P4IntValue: CompilableExpression {
     let node = node.child(at: 0)!
     #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "integer")
     if let parsed_int = Int(node.text!) {
-      return .Ok(P4IntValue(withValue: parsed_int))
+      return .Ok(P4Value(P4IntValue(withValue: parsed_int)))
     } else {
       return .Error(ErrorOnNode(node: node, withError: "Failed to parse integer: \(node.text!)"))
     }
@@ -113,7 +113,7 @@ extension P4StringValue: CompilableExpression {
     let node = node.child(at: 0)!
     #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
       node: node, type: "string_literal")
-    return .Ok(P4StringValue(withValue: node.text!))
+    return .Ok(P4Value(P4StringValue(withValue: node.text!)))
   }
 }
 
@@ -129,7 +129,7 @@ extension KeysetExpression: CompilableExpression {
 
     // If there is a default keyset, that's easy!
     if keyset_expression_node.nodeType == "default_keyset" {
-      return .Ok(KeysetExpression(P4SetDefaultValue(withType: context.expected_type!)))
+      return .Ok(KeysetExpression(P4Value(P4SetDefaultValue(withType: context.expected_type!))))
     }
 
     // Compile the expression:
@@ -399,44 +399,48 @@ extension BinaryOperatorExpression: CompilableExpression {
 
     let evaluators: [String: (String, P4Type, BinaryOperatorChecker?, BinaryOperatorEvaluator)] = [
       "binaryEqualOperatorExpression": (
-        "Binary Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        "Binary Equal", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_equal_operator_evaluator
       ),
       "binaryLessThanOperatorExpression": (
-        "Binary Less Than", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        "Binary Less Than", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_lt_operator_evaluator
       ),
       "binaryLessThanEqualOperatorExpression": (
-        "Binary Less Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        "Binary Less Than Or Equal", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_lte_operator_evaluator
       ),
       "binaryGreaterThanOperatorExpression": (
-        "Binary Greater Than", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        "Binary Greater Than", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_gt_operator_evaluator
       ),
       "binaryGreaterThanEqualOperatorExpression": (
-        "Binary Greater Than Or Equal", P4Boolean(), Optional<BinaryOperatorChecker>.none,
+        "Binary Greater Than Or Equal", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_gte_operator_evaluator
       ),
       "binaryAndOperatorExpression": (
-        "Binary Or", P4Boolean(), binary_and_or_operator_checker, binary_and_operator_evaluator
+        "Binary Or", P4Type(P4Boolean()), binary_and_or_operator_checker,
+        binary_and_operator_evaluator
       ),
       "binaryOrOperatorExpression": (
-        "Binary And", P4Boolean(), binary_and_or_operator_checker, binary_or_operator_evaluator
+        "Binary And", P4Type(P4Boolean()), binary_and_or_operator_checker,
+        binary_or_operator_evaluator
       ),
       "binaryAddOperatorExpression": (
-        "Binary Add", P4Int(), binary_int_math_operator_checker, binary_add_operator_evaluator
+        "Binary Add", P4Type(P4Int()), binary_int_math_operator_checker,
+        binary_add_operator_evaluator
       ),
       "binarySubtractOperatorExpression": (
-        "Binary Subtract", P4Int(), binary_int_math_operator_checker,
+        "Binary Subtract", P4Type(P4Int()), binary_int_math_operator_checker,
         binary_subtract_operator_evaluator
       ),
       "binaryMultiplyOperatorExpression": (
-        "Binary Multiply", P4Int(), binary_int_math_operator_checker,
+        "Binary Multiply", P4Type(P4Int()), binary_int_math_operator_checker,
         binary_multiply_operator_evaluator
       ),
       "binaryDivideOperatorExpression": (
-        "Binary Divide", P4Int(), binary_int_math_operator_checker, binary_divide_operator_evaluator
+        "Binary Divide", P4Type(P4Int()), binary_int_math_operator_checker,
+        binary_divide_operator_evaluator
       ),
     ]
 
@@ -517,7 +521,7 @@ extension ArrayAccessExpression: CompilableExpression {
     }
 
     let maybe_array_type = array_identifier.type()
-    guard let array_type = maybe_array_type as? P4Array else {
+    guard let array_type = maybe_array_type.dataType() as? P4Array else {
       return Result.Error(
         ErrorOnNode(
           node: array_access_identifier_node,
@@ -595,7 +599,7 @@ extension FieldAccessExpression: CompilableExpression {
     guard case Result.Ok(let struct_identifier) = maybe_struct_identifier else {
       return Result.Error(maybe_struct_identifier.error()!)
     }
-    guard let struct_type = struct_identifier.type() as? P4Struct else {
+    guard let struct_type = struct_identifier.type().dataType() as? P4Struct else {
       return .Error(
         ErrorOnNode(
           node: struct_identifier_node,

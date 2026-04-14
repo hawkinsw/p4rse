@@ -41,19 +41,19 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(withType: struct_type, andInitializers: [
-      P4BooleanValue(withValue: true),
-      P4IntValue(withValue: 5),
-    ]))
+    withValue: P4Value(P4StructValue(withType: struct_type, andInitializers: [
+      P4Value(P4BooleanValue(withValue: true)),
+      P4Value(P4IntValue(withValue: 5)),
+    ])))
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
@@ -78,8 +78,8 @@ import TreeSitterP4
     """
   var test_types = TypeTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
   test_types = test_types.declare(identifier: Identifier(name: "Testing"), withValue: struct_type)
@@ -108,8 +108,8 @@ import TreeSitterP4
     """
   var test_types = TypeTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
   test_types = test_types.declare(identifier: Identifier(name: "Testing"), withValue: struct_type)
@@ -135,19 +135,19 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(withType: struct_type, andInitializers: [
-      P4BooleanValue(withValue: false),
-      P4IntValue(withValue: 5),
-    ]))
+    withValue: P4Value(P4StructValue(withType: struct_type, andInitializers: [
+      P4Value(P4BooleanValue(withValue: false)),
+      P4Value(P4IntValue(withValue: 5)),
+    ])))
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
@@ -170,19 +170,19 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(withType: struct_type, andInitializers: [
-      P4BooleanValue(withValue: true),
-      P4IntValue(withValue: 5),
-    ]))
+    withValue: P4Value(P4StructValue(withType: struct_type, andInitializers: [
+      P4Value(P4BooleanValue(withValue: true)),
+      P4Value(P4IntValue(withValue: 5)),
+    ])))
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
@@ -204,19 +204,19 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(withType: struct_type, andInitializers: [
-      P4BooleanValue(withValue: true),
-      P4IntValue(withValue: 8),
-    ]))
+    withValue: P4Value(P4StructValue(withType: struct_type, andInitializers: [
+      P4Value(P4BooleanValue(withValue: true)),
+      P4Value(P4IntValue(withValue: 8)),
+    ])))
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
@@ -240,30 +240,30 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(
+    withValue: P4Value(P4StructValue(
       withType: ts_struct_type,
       andInitializers: [
-        P4StructValue(
+        P4Value(P4StructValue(
           withType: ty_struct_type,
           andInitializers: [
-            P4BooleanValue(withValue: true),
-            P4IntValue(withValue: 5),
-          ])
-      ]))
+            P4Value(P4BooleanValue(withValue: true)),
+            P4Value(P4IntValue(withValue: 5)),
+          ]))
+      ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -286,19 +286,19 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(withType: struct_type, andInitializers: [
-      P4BooleanValue(withValue: false),
-      P4IntValue(withValue: 5),
-    ]))
+    withValue: P4Value(P4StructValue(withType: struct_type, andInitializers: [
+      P4Value(P4BooleanValue(withValue: false)),
+      P4Value(P4IntValue(withValue: 5)),
+    ])))
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
@@ -318,11 +318,11 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
 
   #expect(
     #RequireErrorResult(
@@ -349,30 +349,30 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(
+    withValue: P4Value(P4StructValue(
       withType: ts_struct_type,
       andInitializers: [
-        P4StructValue(
+        P4Value(P4StructValue(
           withType: ty_struct_type,
           andInitializers: [
-            P4BooleanValue(withValue: true),
-            P4IntValue(withValue: 7),
-          ])
-      ]))
+            P4Value(P4BooleanValue(withValue: true)),
+            P4Value(P4IntValue(withValue: 7)),
+          ]))
+      ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -397,30 +397,30 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
   test_values = test_values.declare(
     identifier: Identifier(name: "ts"),
-    withValue: P4StructValue(
+    withValue: P4Value(P4StructValue(
       withType: ts_struct_type,
       andInitializers: [
-        P4StructValue(
+        P4Value(P4StructValue(
           withType: ty_struct_type,
           andInitializers: [
-            P4BooleanValue(withValue: true),
-            P4IntValue(withValue: 7),
-          ])
-      ]))
+            P4Value(P4BooleanValue(withValue: true)),
+            P4Value(P4IntValue(withValue: 7)),
+          ]))
+      ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
@@ -444,15 +444,15 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: ty_struct_type)])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4TypeAttributed.Attributeless(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
 
   #expect(
     #RequireErrorResult(

@@ -21,7 +21,7 @@ public protocol EvaluatableExpression {
   ///  - execution: The execution context in which to evaluate the expression
   /// - Returns: The value of expression
   func evaluate(execution: ProgramExecution) -> Result<P4Value>
-  func type() -> any P4Type
+  func type() -> P4Type
 }
 
 public protocol EvaluatableStatement {
@@ -34,24 +34,18 @@ public protocol EvaluatableStatement {
   func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution)
 }
 
-public protocol P4Type: CustomStringConvertible {
-  func eq(rhs: any P4Type) -> Bool
-  func def() -> P4Value
+public protocol P4DataType: CustomStringConvertible {
+  func eq(rhs: any P4DataType) -> Bool
+  func def() -> P4DataValue
 }
 
-public protocol P4Value: EvaluatableExpression, CustomStringConvertible {
-  func type() -> any P4Type
-  func eq(rhs: P4Value) -> Bool
-  func lt(rhs: P4Value) -> Bool
-  func lte(rhs: P4Value) -> Bool
-  func gt(rhs: P4Value) -> Bool
-  func gte(rhs: P4Value) -> Bool
-}
-
-extension P4Value {
-  public func evaluate(execution: ProgramExecution) -> Result<P4Value> {
-    return Result.Ok(self)
-  }
+public protocol P4DataValue: CustomStringConvertible {
+  func type() -> any P4DataType
+  func eq(rhs: P4DataValue) -> Bool
+  func lt(rhs: P4DataValue) -> Bool
+  func lte(rhs: P4DataValue) -> Bool
+  func gt(rhs: P4DataValue) -> Bool
+  func gte(rhs: P4DataValue) -> Bool
 }
 
 public protocol EvaluatableLValueExpression: EvaluatableExpression {

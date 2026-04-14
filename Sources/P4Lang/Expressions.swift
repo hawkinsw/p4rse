@@ -25,15 +25,15 @@ public struct KeysetExpression {
   }
 
   public func compatible(type: P4Type) -> Result<()> {
-    if let key_type = self.key.type() as? P4Set {
-      if !key_type.set_type().eq(rhs: type) {
+    if let key_type = self.key.type().dataType() as? P4Set {
+      if !key_type.set_type().eq(type) {
         return .Error(
           Error(
             withMessage:
               "Key expression of type set of type \(key_type.set_type()) is not compatible with selector type \(type)"
           ))
       }
-    } else if !self.key.type().eq(rhs: type) {
+    } else if !self.key.type().eq(type) {
       return .Error(
         Error(
           withMessage:
@@ -66,26 +66,27 @@ public struct SelectCaseExpression {
 
 public struct SelectExpression {
   public let selector: EvaluatableExpression
-  public let select_expressions: [SelectCaseExpression]
+  public let case_expressions: [SelectCaseExpression]
 
   public init(
     withSelector selector: EvaluatableExpression,
     withSelectCaseExpressions sces: [SelectCaseExpression]
   ) {
     self.selector = selector
-    self.select_expressions = sces
+    self.case_expressions = sces
   }
 
   public func append_checked_sce(sce: SelectCaseExpression) -> SelectExpression {
-    var new_cses = self.select_expressions
+    var new_cses = self.case_expressions
     new_cses.append(sce)
     return SelectExpression(
       withSelector: self.selector, withSelectCaseExpressions: new_cses)
   }
 }
 
-public typealias NamedBinaryOperatorEvaluator = (String, P4Type, (P4Value, P4Value) -> P4Value)
-public typealias BinaryOperatorEvaluator = (P4Value, P4Value) -> P4Value
+public typealias NamedBinaryOperatorEvaluator = (String, P4Type, (P4Value, P4Value) -> P4DataValue)
+public typealias BinaryOperatorEvaluator = (P4Value, P4Value) -> P4DataValue
+
 public struct BinaryOperatorExpression {
   public let evaluator: NamedBinaryOperatorEvaluator
   public let left: EvaluatableExpression

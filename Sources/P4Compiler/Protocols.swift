@@ -29,19 +29,19 @@ public protocol CompilableStatement {
 }
 
 public protocol CompilableValue {
-  static func CompileValue(withValue value: String) -> Result<P4Value>
+  static func CompileValue(withValue value: String) -> Result<P4DataValue>
 }
 
 public protocol CompilableType {
   static func CompileType(
     type: SwiftTreeSitter.Node, withContext: CompilerContext
-  ) -> Result<P4Type?>
+  ) -> Result<P4DataType?>
 }
 
 public protocol CompilableDeclaration {
   static func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4Type, CompilerContext)?>
+  ) -> Result<(P4DataType, CompilerContext)?>
 }
 
 public protocol Compilable<T> {

@@ -22,7 +22,7 @@ public protocol Execution {
   func execute(execution: ProgramExecution) -> ProgramExecution
 }
 
-public protocol EvaluatableParserState: P4Value {
+public protocol EvaluatableParserState: P4DataValue {
   func execute(program: ProgramExecution) -> (EvaluatableParserState, ProgramExecution)
   func done() -> Bool
   func state() -> ParserState

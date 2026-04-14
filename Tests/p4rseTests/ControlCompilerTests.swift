@@ -39,8 +39,8 @@ import P4Lang
       }
     };
     """
-  let x = { (tipe: P4TypeAttributed) -> Bool in
-    switch tipe.type {
+  let x = { (tipe: P4Type) -> Bool in
+    switch tipe.dataType() {
     case let c as Control: c.name == "simple"
     default: false
     }
@@ -73,8 +73,8 @@ import P4Lang
     };
     """
 
-  let filter = { (tipe: P4TypeAttributed) -> Bool in
-    switch tipe.type {
+  let filter = { (tipe: P4Type) -> Bool in
+    switch tipe.dataType() {
     case let c as Control: c.name == "simple" || c.name == "complex"
     default: false
     }

@@ -25,7 +25,7 @@ import TreeSitterP4
 extension Declaration: CompilableDeclaration {
   public static func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4Type, CompilerContext)?> {
+  ) -> Result<(P4DataType, CompilerContext)?> {
 
     let declaration_compilers: [String: CompilableDeclaration.Type] = [
       "function_declaration": FunctionDeclaration.self,
@@ -44,7 +44,7 @@ extension Declaration: CompilableDeclaration {
 extension FunctionDeclaration: CompilableDeclaration {
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
-  ) -> Common.Result<(any Common.P4Type, CompilerContext)?> {
+  ) -> Common.Result<(any Common.P4DataType, CompilerContext)?> {
     let function_declaration_node = node
     #RequireNodeType<Node, (ParameterList, CompilerContext)>(
       node: function_declaration_node, type: "function_declaration",
@@ -109,7 +109,7 @@ extension FunctionDeclaration: CompilableDeclaration {
     var function_scope = context.instances.enter()
     for parameter in function_parameters.parameters {
       function_scope = function_scope.declare(
-        identifier: parameter.name, withValue: parameter.attributedType())
+        identifier: parameter.name, withValue: parameter.type)
     }
 
     let maybe_function_body = Parser.Statement.Compile(
@@ -141,7 +141,7 @@ struct StructDeclaration {}
 extension StructDeclaration: CompilableDeclaration {
   static func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4Type, CompilerContext)?> {
+  ) -> Result<(P4DataType, CompilerContext)?> {
 
     let struct_declaration_node = node.child(at: 0)!
     var currentChildIdx = 0
@@ -249,9 +249,9 @@ extension StructDeclaration: CompilableDeclaration {
 extension P4Lang.Parser: CompilableDeclaration {
   public static func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4Type, CompilerContext)?> {
+  ) -> Result<(P4DataType, CompilerContext)?> {
     let parser_node = node
-    #SkipUnlessNodeType<Node, (P4Type, CompilerContext)?>(
+    #SkipUnlessNodeType<Node, (P4DataType, CompilerContext)?>(
       node: parser_node, type: "parserDeclaration")
 
     var current_context = context
@@ -332,7 +332,7 @@ extension P4Lang.Parser: CompilableDeclaration {
     for parameter in parameter_list.parameters {
       current_context = current_context.update(
         newInstances: current_context.instances.declare(
-          identifier: parameter.name, withValue: parameter.attributedType()))
+          identifier: parameter.name, withValue: parameter.type))
     }
 
     currentChildIdx += 1
@@ -375,7 +375,7 @@ extension P4Lang.Parser: CompilableDeclaration {
           parser,
           context.update(
             newInstances: updated_context.instances.declare(
-              identifier: parser.name, withValue: P4TypeAttributed(parser, [])))
+              identifier: parser.name, withValue: P4Type(parser)))
         ))
     case Result.Error(let error): return .Error(error)
     }
@@ -385,9 +385,9 @@ extension P4Lang.Parser: CompilableDeclaration {
 extension Control: CompilableDeclaration {
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
-  ) -> Common.Result<(any Common.P4Type, CompilerContext)?> {
+  ) -> Common.Result<(any Common.P4DataType, CompilerContext)?> {
 
-    #SkipUnlessNodeType<Node, (P4Type, CompilerContext)?>(
+    #SkipUnlessNodeType<Node, (P4DataType, CompilerContext)?>(
       node: node, type: "control_declaration")
 
     var currentChildIdx = 0
@@ -438,7 +438,7 @@ extension Control: CompilableDeclaration {
     var control_scope = local_context.instances.enter()
     for parameter in control_parameters.parameters {
       control_scope = control_scope.declare(
-        identifier: parameter.name, withValue: parameter.attributedType())
+        identifier: parameter.name, withValue: parameter.type)
     }
     local_context = local_context.update(newInstances: control_scope)
 
@@ -498,7 +498,7 @@ extension Control: CompilableDeclaration {
       (Control(
         named: control_name, withParameters: control_parameters, withTable: tables[0],
         withActions: Actions(withActions: actions))
-        as P4Type)
+        as P4DataType)
 
     // Don't forget to add the newly declared Control to the instance that we were given
     // (and not the one that we entered to do the parsing of this Control).
@@ -507,7 +507,7 @@ extension Control: CompilableDeclaration {
         declared_control,
         context.update(
           newInstances: context.instances.declare(
-            identifier: control_name, withValue: P4TypeAttributed(declared_control, [])))
+            identifier: control_name, withValue: P4Type(declared_control)))
       ))
   }
 }
@@ -517,7 +517,7 @@ extension Action: Compilable {
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.Action, CompilerContext)> {
-    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
       node: node, type: "action_declaration", nice_type_name: "Action Declaration")
 
     var currentChildIdx = 1
@@ -569,7 +569,7 @@ extension Action: Compilable {
     var function_scope = context.instances.enter()
     for parameter in action_parameters.parameters {
       function_scope = function_scope.declare(
-        identifier: parameter.name, withValue: parameter.attributedType())
+        identifier: parameter.name, withValue: parameter.type)
     }
 
     let maybe_action_body = Parser.Statement.Compile(
@@ -592,7 +592,7 @@ extension TableKeyEntry: Compilable {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.TableKeyEntry, CompilerContext)> {
 
-    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
       node: node, type: "table_key_entry", nice_type_name: "Table Key Entry")
 
     var currentChildIdx = 0
@@ -701,7 +701,7 @@ extension TablePropertyList: Compilable {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.TablePropertyList, CompilerContext)> {
 
-    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
       node: node, type: "table_property_list", nice_type_name: "Table Property List")
 
     var current_context = context
@@ -756,7 +756,7 @@ extension Table: Compilable {
   ) -> Common.Result<(P4Lang.Table, CompilerContext)> {
 
     let table_declaration_node = node
-    #RequireNodeType<Node, (P4Type, CompilerContext)>(
+    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
       node: table_declaration_node, type: "table_declaration", nice_type_name: "Table Declaration")
 
     var currentChildIdx = 1

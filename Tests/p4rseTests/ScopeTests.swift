@@ -28,39 +28,39 @@ import TreeSitterP4
 
 @Test func test_scope() async throws {
   let s = VarTypeScope()
-  let s2 = s.declare(identifier: Identifier(name: "first"), withValue: P4TypeAttributed.Attributeless(P4Int()))
+  let s2 = s.declare(identifier: Identifier(name: "first"), withValue: P4Type(P4Int()))
   let found_first = try! #require(s2.lookup(identifier: Identifier(name: "first")))
 
-  #expect(found_first.type.eq(rhs: P4Int()))
+  #expect(found_first.dataType().eq(rhs: P4Int()))
   #expect(s2.count == 1)
 }
 
 @Test func test_scope_no_set() async throws {
   var ss = VarTypeScopes().enter()
-  ss = ss.declare(identifier: Identifier(name: "first"), withValue: P4TypeAttributed.Attributeless(P4Int()))
+  ss = ss.declare(identifier: Identifier(name: "first"), withValue: P4Type(P4Int()))
   ss = ss.enter()
-  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4TypeAttributed.Attributeless(P4Boolean()))
+  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4Type(P4Boolean()))
 
   let found_first = try! #UseOkResult(ss.lookup(identifier: Identifier(name: "first")))
   let found_second = try! #UseOkResult(ss.lookup(identifier: Identifier(name: "second")))
 
-  #expect(found_first.type.eq(rhs: P4Int()))
-  #expect(found_second.type.eq(rhs: P4Boolean()))
+  #expect(found_first.dataType().eq(rhs: P4Int()))
+  #expect(found_second.dataType().eq(rhs: P4Boolean()))
 }
 
 @Test func test_scope_set() async throws {
   var ss = VarTypeScopes().enter()
   let id = Identifier(name: "first")
-  let id_type = P4TypeAttributed.Attributeless(P4Int())
+  let id_type = P4Type(P4Int())
 
   ss = ss.declare(identifier: id, withValue: id_type)
   ss = ss.enter()
-  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4TypeAttributed.Attributeless(P4Boolean()))
+  ss = ss.declare(identifier: Identifier(name: "second"), withValue: P4Type(P4Boolean()))
   // Change the value of `first`.
-  ss = ss.set(identifier: id, withValue: P4TypeAttributed.Attributeless(P4String()))
+  ss = ss.set(identifier: id, withValue: P4Type(P4String()))
 
   // Verify the change!
   let found = try! #UseOkResult(ss.lookup(identifier: id))
 
-  #expect(found.type.eq(rhs: P4String()))
+  #expect(found.dataType().eq(rhs: P4String()))
 }

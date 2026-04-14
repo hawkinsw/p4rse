@@ -62,14 +62,14 @@ extension ConditionalStatement: EvaluatableStatement {
       )
     }
 
-    if !evaluated_condition.type().eq(rhs: P4Boolean()) {
+    if !evaluated_condition.type().dataType().eq(rhs: P4Boolean()) {
       return (
         ControlFlow.Error,
         execution.setError(error: Error(withMessage: "Condition expression is not a Boolean"))
       )
     }
 
-    if evaluated_condition.eq(rhs: P4BooleanValue.init(withValue: true)) {
+    if evaluated_condition.dataValue().eq(rhs: P4BooleanValue.init(withValue: true)) {
       let execution = execution.enter_scope()
       switch self.thenn.evaluate(execution: execution) {
       case (ControlFlow.Next, let result): return (ControlFlow.Next, result.exit_scope())

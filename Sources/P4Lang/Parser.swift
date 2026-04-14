@@ -41,53 +41,53 @@ public struct ParserAssignmentStatement {
 ///
 /// Note: A P4 Parser State is both a type and a value.
 /// This "bare" parser state represents the state more as a type than a value.
-public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
+public class ParserState: P4DataType, P4DataValue, Equatable, CustomStringConvertible {
   public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
     // Two "bare" parser states are always equal.
     return true
   }
 
-  public func eq(rhs: any Common.P4Type) -> Bool {
+  public func eq(rhs: any Common.P4DataType) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public func type() -> any Common.P4Type {
+  public func type() -> any Common.P4DataType {
     return self
   }
 
   // Any operation between two "bare" parser states is always true.
-  public func eq(rhs: any Common.P4Value) -> Bool {
+  public func eq(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public func lt(rhs: any Common.P4Value) -> Bool {
+  public func lt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public func lte(rhs: any Common.P4Value) -> Bool {
+  public func lte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public func gt(rhs: any Common.P4Value) -> Bool {
+  public func gt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public func gte(rhs: any Common.P4Value) -> Bool {
+  public func gte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
@@ -101,7 +101,7 @@ public class ParserState: P4Type, P4Value, Equatable, CustomStringConvertible {
   /// Construct a ParserState
   public init() {}
 
-  public func def() -> any P4Value {
+  public func def() -> any P4DataValue {
     return ParserState()
   }
 }
@@ -116,46 +116,46 @@ public class InstantiatedParserState: ParserState {
     return lhs.state == rhs.state
   }
 
-  public override func eq(rhs: any Common.P4Type) -> Bool {
+  public override func eq(rhs: any Common.P4DataType) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public override func type() -> any Common.P4Type {
+  public override func type() -> any Common.P4DataType {
     return self
   }
 
-  public override func eq(rhs: any Common.P4Value) -> Bool {
+  public override func eq(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let other as InstantiatedParserState: self.state == other.state
     default: false
     }
   }
 
-  public override func lt(rhs: any Common.P4Value) -> Bool {
+  public override func lt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let other as InstantiatedParserState: self.state < other.state
     default: false
     }
   }
 
-  public override func lte(rhs: any Common.P4Value) -> Bool {
+  public override func lte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let other as InstantiatedParserState: self.state <= other.state
     default: false
     }
   }
 
-  public override func gt(rhs: any Common.P4Value) -> Bool {
+  public override func gt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let other as InstantiatedParserState: self.state > other.state
     default: false
     }
   }
 
-  public override func gte(rhs: any Common.P4Value) -> Bool {
+  public override func gte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let other as InstantiatedParserState: self.state >= other.state
     default: false
@@ -185,7 +185,7 @@ public class InstantiatedParserState: ParserState {
     statements = Array()
   }
 
-  public override func def() -> any P4Value {
+  public override func def() -> any P4DataValue {
     return InstantiatedParserState(name: Identifier(name: ""))
   }
 }
@@ -276,40 +276,40 @@ public struct ParserStates {
 /// A P4 Parser
 ///
 /// Note: A Parser is both a type _and_ a value.
-public struct Parser: P4Type, P4Value {
-  public func type() -> any Common.P4Type {
+public struct Parser: P4DataType, P4DataValue {
+  public func type() -> any Common.P4DataType {
     return self
   }
 
-  public func eq(rhs: any Common.P4Type) -> Bool {
+  public func eq(rhs: any Common.P4DataType) -> Bool {
     return switch rhs {
     case let parser_rhs as Parser: self.name == parser_rhs.name
     default: false
     }
   }
 
-  public func lt(rhs: any Common.P4Value) -> Bool {
+  public func lt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let parser_rhs as Parser: self.name < parser_rhs.name
     default: false
     }
   }
 
-  public func lte(rhs: any Common.P4Value) -> Bool {
+  public func lte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let parser_rhs as Parser: self.name <= parser_rhs.name
     default: false
     }
   }
 
-  public func gt(rhs: any Common.P4Value) -> Bool {
+  public func gt(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let parser_rhs as Parser: self.name > parser_rhs.name
     default: false
     }
   }
 
-  public func gte(rhs: any Common.P4Value) -> Bool {
+  public func gte(rhs: any Common.P4DataValue) -> Bool {
     return switch rhs {
     case let parser_rhs as Parser: self.name >= parser_rhs.name
     default: false
@@ -342,7 +342,7 @@ public struct Parser: P4Type, P4Value {
     return .none
   }
 
-  public func eq(rhs: any P4Value) -> Bool {
+  public func eq(rhs: any P4DataValue) -> Bool {
     return switch rhs {
     case let other as Parser: self.name == other.name
     default: false
@@ -353,7 +353,7 @@ public struct Parser: P4Type, P4Value {
     return "Parser \(self.name) with parameters: \(parameters) and states: \(self.states)"
   }
 
-  public func def() -> any P4Value {
+  public func def() -> any P4DataValue {
     return Parser(withName: Identifier(name: ""))
   }
 }

@@ -58,8 +58,8 @@ extension ParserStateDirectTransition: EvaluatableParserState {
     let res = program.scopes.lookup(identifier: get_next_state())
 
     if case .Ok(let value) = res {
-      if value.type().eq(rhs: self) {
-        return (value as! EvaluatableParserState, program.exit_scope())
+      if value.type().dataType().eq(rhs: self) {
+        return (value.dataValue() as! EvaluatableParserState, program.exit_scope())
       }
     }
 
@@ -119,8 +119,14 @@ extension ParserStateSelectTransition: EvaluatableParserState {
     let res = self.selectExpression.evaluate(execution: program)
 
     if case .Ok(let value) = res {
-      if value.type().eq(rhs: self) {
-        return (value as! EvaluatableParserState, program.exit_scope())
+      if value.type().dataType().eq(rhs: self) {
+        return (value.dataValue() as! EvaluatableParserState, program.exit_scope())
+      } else {
+        return (
+          self,
+          program.setError(
+            error: Error(withMessage: "Select transition transitioned to a none state"))
+        )
       }
     }
 
@@ -145,9 +151,11 @@ extension Parser: CallableExecution {
     var execution = execution.enter_scope()
 
     execution = execution.declare(
-      identifier: AsInstantiatedParserState(accept.state()).state, withValue: accept)
+      identifier: AsInstantiatedParserState(accept.state()).state,
+      withValue: P4Value(accept, P4Type.ReadOnly(accept.type())))
     execution = execution.declare(
-      identifier: AsInstantiatedParserState(reject.state()).state, withValue: reject)
+      identifier: AsInstantiatedParserState(reject.state()).state,
+      withValue: P4Value(reject, P4Type.ReadOnly(reject.type())))
 
     // Add initial values to the global scope
     if let initial = execution.initial_values() {
@@ -158,7 +166,8 @@ extension Parser: CallableExecution {
 
     // First, add every state to the scope!
     for state in self.states.states {
-      execution = execution.declare(identifier: state.state, withValue: state)
+      execution = execution.declare(
+        identifier: state.state, withValue: P4Value(state))
     }
 
     guard let _current_state = self.findStartState(),

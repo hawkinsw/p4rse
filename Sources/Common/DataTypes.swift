@@ -69,24 +69,18 @@ public class TypedIdentifier: Identifier {
 
 /// A P4 variable
 public class Variable: TypedIdentifier {
-  var constant: Bool
-  var value: P4Value?
+  var value: P4Value
 
   public init(
-    name: String, withType type: P4Type, withValue value: P4Value?, isConstant constant: Bool
+    name: String, withValue value: P4Value
   ) {
-    self.constant = constant
     self.value = value
-    super.init(name: name, withType: type)
+    super.init(name: name, withType: value.type())
   }
 
   public override var description: String {
     return
-      "\(super.description) = \(value?.description ?? "Missing Value") \(constant ? "(constant)" : "")"
-  }
-
-  public var value_type: P4Value? {
-    value
+      "\(super.description) = \(value.description)"
   }
 }
 
@@ -141,7 +135,7 @@ public struct P4StructFields: Sequence, CustomStringConvertible, Equatable {
 }
 
 /// The type for a P4 struct
-public struct P4Struct: P4Type {
+public struct P4Struct: P4DataType {
 
   public let name: Identifier
   public let fields: P4StructFields
@@ -160,7 +154,7 @@ public struct P4Struct: P4Type {
     return "Struct \(self.name) with fields: \(self.fields)"
   }
 
-  public func eq(rhs: P4Type) -> Bool {
+  public func eq(rhs: P4DataType) -> Bool {
     return if let struct_rhs = rhs as? P4Struct {
       struct_rhs.name == self.name
     } else {
@@ -168,19 +162,20 @@ public struct P4Struct: P4Type {
     }
   }
 
-  public func def() -> any P4Value {
+  public func def() -> any P4DataValue {
     return P4StructValue(withType: self)
   }
 }
 
 /// An instance of a P4 struct
-public class P4StructValue: P4Value {
-  public func type() -> any P4Type {
+public class P4StructValue: P4DataValue {
+  public func type() -> P4DataType {
     return self.stype
   }
 
-  func bin_op_impl(lhs: P4StructValue, rhs: P4StructValue, op: (P4Value?, P4Value?) -> Bool) -> Bool
-  {
+  func bin_op_impl(
+    lhs: P4StructValue, rhs: P4StructValue, op: (P4DataValue?, P4DataValue?) -> Bool
+  ) -> Bool {
     if lhs.stype.fields.count() != rhs.stype.fields.count() {
       // If there are a different number of fields, then we cannot
       // possibly be equal.
@@ -208,14 +203,14 @@ public class P4StructValue: P4Value {
       }
 
       // Now that we know that the field names match, do the values match?
-      if !op(left_field_value, right_field_value) {
+      if !op(left_field_value.dataValue(), right_field_value.dataValue()) {
         return false
       }
     }
     return true
   }
 
-  public func eq(rhs: any P4Value) -> Bool {
+  public func eq(rhs: any P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
@@ -231,7 +226,7 @@ public class P4StructValue: P4Value {
       return llhs.eq(rhs: rrhs)
     }
   }
-  public func lt(rhs: any P4Value) -> Bool {
+  public func lt(rhs: any P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
@@ -247,7 +242,7 @@ public class P4StructValue: P4Value {
       return llhs.lt(rhs: rrhs)
     }
   }
-  public func lte(rhs: any P4Value) -> Bool {
+  public func lte(rhs: any P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
@@ -263,7 +258,7 @@ public class P4StructValue: P4Value {
       return llhs.lte(rhs: rrhs)
     }
   }
-  public func gt(rhs: any P4Value) -> Bool {
+  public func gt(rhs: any P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
@@ -280,7 +275,7 @@ public class P4StructValue: P4Value {
     }
   }
 
-  public func gte(rhs: any P4Value) -> Bool {
+  public func gte(rhs: any P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4StructValue else {
       return false
     }
@@ -337,7 +332,7 @@ public class P4StructValue: P4Value {
 
     for field_idx in 0..<stype.fields.count() {
       if stype.fields.fields[field_idx] == field {
-        if !stype.fields.fields[field_idx].type.eq(rhs: to.type()) {
+        if !stype.fields.fields[field_idx].type.eq(to.type()) {
           return .Error(
             Error(
               withMessage:
@@ -355,25 +350,25 @@ public class P4StructValue: P4Value {
 }
 
 /// A P4 boolean type
-public struct P4Boolean: P4Type {
+public struct P4Boolean: P4DataType {
   public init() {}
   public var description: String {
     return "Boolean"
   }
-  public func eq(rhs: P4Type) -> Bool {
+  public func eq(rhs: P4DataType) -> Bool {
     return switch rhs {
     case is P4Boolean: true
     default: false
     }
   }
-  public func def() -> any P4Value {
+  public func def() -> any P4DataValue {
     return P4BooleanValue(withValue: false)
   }
 }
 
 /// An instance of a P4 boolean
-public class P4BooleanValue: P4Value {
-  public func type() -> any P4Type {
+public class P4BooleanValue: P4DataValue {
+  public func type() -> any P4DataType {
     return P4Boolean()
   }
 
@@ -386,35 +381,35 @@ public class P4BooleanValue: P4Value {
   public init(withValue value: Bool) {
     self.value = value
   }
-  public func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4DataValue) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
     return self.value == bool_rhs.value
   }
 
-  public func lt(rhs: P4Value) -> Bool {
+  public func lt(rhs: P4DataValue) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
     return (self.value ? 1 : 0) < (bool_rhs.value ? 1 : 0)
   }
 
-  public func lte(rhs: P4Value) -> Bool {
+  public func lte(rhs: P4DataValue) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
     return (self.value ? 1 : 0) <= (bool_rhs.value ? 1 : 0)
   }
 
-  public func gt(rhs: P4Value) -> Bool {
+  public func gt(rhs: P4DataValue) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
     return (self.value ? 1 : 0) > (bool_rhs.value ? 1 : 0)
   }
 
-  public func gte(rhs: P4Value) -> Bool {
+  public func gte(rhs: P4DataValue) -> Bool {
     guard let bool_rhs = rhs as? P4BooleanValue else {
       return false
     }
@@ -427,26 +422,26 @@ public class P4BooleanValue: P4Value {
 }
 
 /// A P4 int type
-public struct P4Int: P4Type {
+public struct P4Int: P4DataType {
   public init() {}
 
   public var description: String {
     return "Int"
   }
-  public func eq(rhs: P4Type) -> Bool {
+  public func eq(rhs: P4DataType) -> Bool {
     return switch rhs {
     case is P4Int: true
     default: false
     }
   }
-  public func def() -> any P4Value {
+  public func def() -> any P4DataValue {
     return P4IntValue(withValue: 0)
   }
 }
 
 /// An instance of a P4 integer
-public class P4IntValue: P4Value {
-  public func type() -> any P4Type {
+public class P4IntValue: P4DataValue {
+  public func type() -> P4DataType {
     return P4Int()
   }
 
@@ -459,35 +454,35 @@ public class P4IntValue: P4Value {
     return self.value
   }
 
-  public func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4DataValue) -> Bool {
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }
     return self.value == int_rhs.value
   }
 
-  public func lt(rhs: P4Value) -> Bool {
+  public func lt(rhs: P4DataValue) -> Bool {
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }
     return self.value < int_rhs.value
   }
 
-  public func lte(rhs: P4Value) -> Bool {
+  public func lte(rhs: P4DataValue) -> Bool {
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }
     return self.value <= int_rhs.value
   }
 
-  public func gt(rhs: P4Value) -> Bool {
+  public func gt(rhs: P4DataValue) -> Bool {
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }
     return self.value > int_rhs.value
   }
 
-  public func gte(rhs: P4Value) -> Bool {
+  public func gte(rhs: P4DataValue) -> Bool {
     guard let int_rhs = rhs as? P4IntValue else {
       return false
     }
@@ -500,24 +495,24 @@ public class P4IntValue: P4Value {
 }
 
 /// A P4 string type
-public struct P4String: P4Type {
+public struct P4String: P4DataType {
   public init() {}
   public var description: String {
     return "String"
   }
-  public func eq(rhs: any P4Type) -> Bool {
+  public func eq(rhs: any P4DataType) -> Bool {
     return switch rhs {
     case is P4String: true
     default: false
     }
   }
-  public func def() -> any P4Value {
+  public func def() -> any P4DataValue {
     return P4StringValue(withValue: "")
   }
 }
 /// An instance of a P4 string
-public class P4StringValue: P4Value {
-  public func type() -> any P4Type {
+public class P4StringValue: P4DataValue {
+  public func type() -> any P4DataType {
     return P4String()
   }
 
@@ -525,35 +520,35 @@ public class P4StringValue: P4Value {
   public init(withValue value: String) {
     self.value = value
   }
-  public func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4DataValue) -> Bool {
     guard let string_rhs = rhs as? P4StringValue else {
       return false
     }
     return self.value == string_rhs.value
   }
 
-  public func lt(rhs: P4Value) -> Bool {
+  public func lt(rhs: P4DataValue) -> Bool {
     guard let string_rhs = rhs as? P4StringValue else {
       return false
     }
     return self.value < string_rhs.value
   }
 
-  public func lte(rhs: P4Value) -> Bool {
+  public func lte(rhs: P4DataValue) -> Bool {
     guard let string_rhs = rhs as? P4StringValue else {
       return false
     }
     return self.value <= string_rhs.value
   }
 
-  public func gt(rhs: P4Value) -> Bool {
+  public func gt(rhs: P4DataValue) -> Bool {
     guard let string_rhs = rhs as? P4StringValue else {
       return false
     }
     return self.value > string_rhs.value
   }
 
-  public func gte(rhs: P4Value) -> Bool {
+  public func gte(rhs: P4DataValue) -> Bool {
     guard let string_rhs = rhs as? P4StringValue else {
       return false
     }
@@ -570,7 +565,7 @@ public class Packet {
 }
 
 /// A P4 array type
-public struct P4Array: P4Type {
+public struct P4Array: P4DataType {
   public init(withValueType vtype: P4Type) {
     self.vtype = vtype
   }
@@ -585,21 +580,21 @@ public struct P4Array: P4Type {
     return "Array"
   }
 
-  public func eq(rhs: any P4Type) -> Bool {
+  public func eq(rhs: any P4DataType) -> Bool {
     return switch rhs {
     case is P4Array: true
     default: false
     }
   }
 
-  public func def() -> P4Value {
-    return P4ArrayValue(withType: self, withValue: [])
+  public func def() -> P4DataValue {
+    return P4ArrayValue(withType: self.vtype, withValue: [])
   }
 }
 
 /// An instance of a P4 array
-public class P4ArrayValue: P4Value {
-  public func type() -> any P4Type {
+public class P4ArrayValue: P4DataValue {
+  public func type() -> any P4DataType {
     return P4Array(withValueType: self.vtype)
   }
 
@@ -622,7 +617,7 @@ public class P4ArrayValue: P4Value {
     return Result.Ok(P4ArrayValue(withType: self.vtype, withValue: updated_values))
   }
 
-  public func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4DataValue) -> Bool {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
@@ -630,7 +625,7 @@ public class P4ArrayValue: P4Value {
     return true
   }
 
-  public func lt(rhs: P4Value) -> Bool {
+  public func lt(rhs: P4DataValue) -> Bool {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
@@ -638,7 +633,7 @@ public class P4ArrayValue: P4Value {
     return true
   }
 
-  public func lte(rhs: P4Value) -> Bool {
+  public func lte(rhs: P4DataValue) -> Bool {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
@@ -646,7 +641,7 @@ public class P4ArrayValue: P4Value {
     return true
   }
 
-  public func gt(rhs: P4Value) -> Bool {
+  public func gt(rhs: P4DataValue) -> Bool {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
@@ -654,7 +649,7 @@ public class P4ArrayValue: P4Value {
     return true
   }
 
-  public func gte(rhs: P4Value) -> Bool {
+  public func gte(rhs: P4DataValue) -> Bool {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
@@ -668,7 +663,7 @@ public class P4ArrayValue: P4Value {
 }
 
 /// A P4 set type
-public struct P4Set: P4Type {
+public struct P4Set: P4DataType {
   public init(withSetType stype: P4Type) {
     self.stype = stype
   }
@@ -683,30 +678,28 @@ public struct P4Set: P4Type {
     return "P4Set"
   }
 
-  public func eq(rhs: any P4Type) -> Bool {
+  public func eq(rhs: any P4DataType) -> Bool {
     return switch rhs {
     // If rhs is a set type, then they are the same if the types in the set are the same.
-    case let srhs as P4Set: srhs.eq(rhs: self.stype)
+    case let srhs as P4Set: srhs.eq(rhs: self.stype.dataType())
     default: false
     }
   }
 
-  public func def() -> P4Value {
-    return P4ArrayValue(withType: self, withValue: [])
+  public func def() -> P4DataValue {
+    return P4SetValue(withValue: P4Value(self.stype.dataType().def(), self.stype))
   }
 }
 
 /// An instance of a P4 set
-public class P4SetValue: P4Value {
-  public func type() -> any P4Type {
-    return P4Set(withSetType: self.stype)
+public class P4SetValue: P4DataValue {
+  public func type() -> any P4DataType {
+    return P4Set(withSetType: self.value.type())
   }
 
   let value: P4Value
-  let stype: P4Type
 
-  public init(withType type: P4Type, withValue value: P4Value) {
-    self.stype = type
+  public init(withValue value: P4Value) {
     self.value = value
   }
 
@@ -714,44 +707,44 @@ public class P4SetValue: P4Value {
     return self.value
   }
 
-  public func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4SetValue else {
       return false
     }
-    return rrhs.access().eq(rhs: self.value)
+    return rrhs.access().dataValue().eq(rhs: self.value.dataValue())
   }
-  public func lt(rhs: P4Value) -> Bool {
+  public func lt(rhs: P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4SetValue else {
       return false
     }
-    return rrhs.access().lt(rhs: self.value)
+    return rrhs.access().dataValue().lt(rhs: self.value.dataValue())
   }
-  public func lte(rhs: P4Value) -> Bool {
+  public func lte(rhs: P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4SetValue else {
       return false
     }
-    return rrhs.access().lte(rhs: self.value)
+    return rrhs.access().dataValue().lte(rhs: self.value.dataValue())
   }
-  public func gt(rhs: P4Value) -> Bool {
+  public func gt(rhs: P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4SetValue else {
       return false
     }
-    return rrhs.access().gt(rhs: self.value)
+    return rrhs.access().dataValue().gt(rhs: self.value.dataValue())
   }
-  public func gte(rhs: P4Value) -> Bool {
+  public func gte(rhs: P4DataValue) -> Bool {
     guard let rrhs = rhs as? P4SetValue else {
       return false
     }
-    return rrhs.access().gte(rhs: self.value)
+    return rrhs.access().dataValue().gte(rhs: self.value.dataValue())
   }
 
   public var description: String {
-    "P4Set with \(self.value) of \(self.type()) type"
+    "P4Set with \(self.value)"
   }
 }
 
-public class P4SetDefaultValue: P4Value {
-  public func type() -> any P4Type {
+public class P4SetDefaultValue: P4DataValue {
+  public func type() -> P4DataType {
     return P4Set(withSetType: self.stype)
   }
 
@@ -762,96 +755,23 @@ public class P4SetDefaultValue: P4Value {
   }
 
   // Snarf up everything!
-  public func eq(rhs: P4Value) -> Bool {
+  public func eq(rhs: P4DataValue) -> Bool {
     return true
   }
-  public func lt(rhs: P4Value) -> Bool {
+  public func lt(rhs: P4DataValue) -> Bool {
     return true
   }
-  public func lte(rhs: P4Value) -> Bool {
+  public func lte(rhs: P4DataValue) -> Bool {
     return true
   }
-  public func gt(rhs: P4Value) -> Bool {
+  public func gt(rhs: P4DataValue) -> Bool {
     return true
   }
-  public func gte(rhs: P4Value) -> Bool {
+  public func gte(rhs: P4DataValue) -> Bool {
     return true
   }
 
   public var description: String {
     "Default of P4Set of \(self.type()) type"
-  }
-}
-
-public enum Direction: Equatable, CustomStringConvertible {
-  case In
-  case Out
-  case InOut
-
-  public var description: String {
-    return switch self {
-    case Direction.In: "In"
-    case Direction.Out: "Out"
-    case Direction.InOut: "InOut"
-    }
-  }
-
-  /// Compare two optional ``Direction``s
-  static public func eqopt(_ lhs: Direction?, _ rhs: Direction?) -> Bool {
-    // If both are empty, they are the same.
-    if lhs == .none && rhs == .none {
-      return true
-    }
-
-    // If one is empty, they are different
-    if lhs == .none || rhs == .none {
-      return false
-    }
-
-    // Both have values -- compare them natively.
-    return lhs! == rhs!
-  }
-}
-
-public enum P4TypeAttribute {
-  case Direction(Direction)
-  case Readonly  // Not yet used -- here to keep Swift warnings at bay
-}
-
-public struct P4TypeAttributed {
-  let attributes: [P4TypeAttribute]
-  public let type: P4Type
-
-  public init(_ type: P4Type, _ attributes: [P4TypeAttribute]) {
-    self.attributes = attributes
-    self.type = type
-  }
-
-  public func direction() -> Direction? {
-    let result = attributes.firstIndex { attribute in
-      return switch attribute {
-      case .Direction(_): true
-      default: false
-      }
-    }
-    return result.flatMap { index in
-      return switch attributes[index] {
-      case .Direction(let d): d
-      default: Optional<Direction>.none
-      }
-    }
-  }
-
-  public func readOnly() -> Bool {
-    return attributes.contains { attribute in
-      return switch attribute {
-      case .Readonly: true
-      default: false
-      }
-    }
-  }
-
-  public static func Attributeless(_ type: P4Type) -> P4TypeAttributed {
-    return P4TypeAttributed(type, [])
   }
 }

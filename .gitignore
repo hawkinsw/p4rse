@@ -7,4 +7,3 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 tree-sitter-p4/test.txt
-documentation/

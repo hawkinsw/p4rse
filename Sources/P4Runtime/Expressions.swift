@@ -19,22 +19,22 @@ import Common
 import P4Lang
 
 extension SelectCaseExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
     return execution.scopes.lookup(identifier: next_state_identifier)
   }
 
-  public func type() -> any Common.P4Type {
-    return ParserState()
+  public func type() -> P4Type {
+    return P4Type(ParserState())
   }
 }
 
 extension SelectExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
     switch self.selector.evaluate(execution: execution) {
     case .Ok(let selector_value):
-      for sce in self.select_expressions {
+      for sce in self.case_expressions {
         if case .Ok(let kse) = sce.key.evaluate(execution: execution),
-          kse.eq(rhs: selector_value)
+          kse.eq(selector_value)
         {
           let result = sce.evaluate(execution: execution)
           return result
@@ -45,14 +45,14 @@ extension SelectExpression: EvaluatableExpression {
     }
   }
 
-  public func type() -> any Common.P4Type {
-    return ParserState()
+  public func type() -> P4Type {
+    return P4Type(ParserState())
   }
 }
 
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableExpression {
-  public func type() -> any Common.P4Type {
+  public func type() -> P4Type {
     return self.type
   }
 
@@ -64,7 +64,7 @@ extension TypedIdentifier: EvaluatableExpression {
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes,
+    to: P4Value, inScopes scopes: Common.VarValueScopes,
     duringExecution execution: ProgramExecution
   ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     if case .Error(let e) = scopes.lookup(identifier: self) {
@@ -81,90 +81,90 @@ extension TypedIdentifier: EvaluatableLValueExpression {
       return .Error(Error(withMessage: "Cannot assign to identifier not in scope"))
     }
 
-    if !type.type.eq(rhs: to.type()) {
+    if !type.eq(to.type()) {
       return .Error(
         Error(
           withMessage:
-            "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type.type)"
+            "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type)"
         ))
     }
     return .Ok(())
   }
 }
 
-public func binary_equal_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  return Map(input: left.eq(rhs: right)) { input in
+public func binary_equal_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  return Map(input: left.dataValue().eq(rhs: right.dataValue())) { input in
     P4BooleanValue(withValue: input)
   }
 }
 
-public func binary_lt_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  return Map(input: left.lt(rhs: right)) { input in
+public func binary_lt_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  return Map(input: left.dataValue().lt(rhs: right.dataValue())) { input in
     P4BooleanValue(withValue: input)
   }
 }
 
-public func binary_lte_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  return Map(input: left.lte(rhs: right)) { input in
+public func binary_lte_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  return Map(input: left.dataValue().lte(rhs: right.dataValue())) { input in
     P4BooleanValue(withValue: input)
   }
 }
 
-public func binary_gt_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  return Map(input: left.gt(rhs: right)) { input in
+public func binary_gt_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  return Map(input: left.dataValue().gt(rhs: right.dataValue())) { input in
     P4BooleanValue(withValue: input)
   }
 }
 
-public func binary_gte_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  return Map(input: left.gte(rhs: right)) { input in
+public func binary_gte_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  return Map(input: left.dataValue().gte(rhs: right.dataValue())) { input in
     P4BooleanValue(withValue: input)
   }
 }
 
-public func binary_and_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  let bleft = left as! P4BooleanValue
-  let bright = right as! P4BooleanValue
+public func binary_and_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  let bleft = left.dataValue() as! P4BooleanValue
+  let bright = right.dataValue() as! P4BooleanValue
   return Map(input: bleft.access() && bright.access()) { input in
     P4BooleanValue(withValue: input)
   }
 }
 
-public func binary_or_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  let bleft = left as! P4BooleanValue
-  let bright = right as! P4BooleanValue
+public func binary_or_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  let bleft = left.dataValue() as! P4BooleanValue
+  let bright = right.dataValue() as! P4BooleanValue
   return Map(input: bleft.access() || bright.access()) { input in
     P4BooleanValue(withValue: input)
   }
 }
 
-public func binary_add_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  let ileft = left as! P4IntValue
-  let iright = right as! P4IntValue
+public func binary_add_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  let ileft = left.dataValue() as! P4IntValue
+  let iright = right.dataValue() as! P4IntValue
   return Map(input: ileft.access() + iright.access()) { input in
     P4IntValue(withValue: input)
   }
 }
 
-public func binary_subtract_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  let ileft = left as! P4IntValue
-  let iright = right as! P4IntValue
+public func binary_subtract_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  let ileft = left.dataValue() as! P4IntValue
+  let iright = right.dataValue() as! P4IntValue
   return Map(input: ileft.access() - iright.access()) { input in
     P4IntValue(withValue: input)
   }
 }
 
-public func binary_multiply_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  let ileft = left as! P4IntValue
-  let iright = right as! P4IntValue
+public func binary_multiply_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  let ileft = left.dataValue() as! P4IntValue
+  let iright = right.dataValue() as! P4IntValue
   return Map(input: ileft.access() * iright.access()) { input in
     P4IntValue(withValue: input)
   }
 }
 
-public func binary_divide_operator_evaluator(left: P4Value, right: P4Value) -> P4Value {
-  let ileft = left as! P4IntValue
-  let iright = right as! P4IntValue
+public func binary_divide_operator_evaluator(left: P4Value, right: P4Value) -> P4DataValue {
+  let ileft = left.dataValue() as! P4IntValue
+  let iright = right.dataValue() as! P4IntValue
   return Map(input: ileft.access() / iright.access()) { input in
     P4IntValue(withValue: input)
   }
@@ -177,7 +177,8 @@ public func binary_and_or_operator_checker(
   left: EvaluatableExpression, right: EvaluatableExpression
 ) -> Result<()> {
   // Check that both are Boolean-typed things!
-  if !(left.type().eq(rhs: P4Boolean()) && right.type().eq(rhs: P4Boolean())) {
+  if !(left.type().dataType().eq(rhs: P4Boolean()) && right.type().dataType().eq(rhs: P4Boolean()))
+  {
     return .Error(Error(withMessage: "And/Or on operands with non-bool type is not allowed"))
   }
   return .Ok(())
@@ -187,7 +188,7 @@ public func binary_int_math_operator_checker(
   left: EvaluatableExpression, right: EvaluatableExpression
 ) -> Result<()> {
   // Check that both are int-typed things!
-  if !(left.type().eq(rhs: P4Int()) && right.type().eq(rhs: P4Int())) {
+  if !(left.type().dataType().eq(rhs: P4Int()) && right.type().dataType().eq(rhs: P4Int())) {
     return .Error(
       Error(withMessage: "Mathematical operation on operands with non-int type is not allowed"))
   }
@@ -195,7 +196,7 @@ public func binary_int_math_operator_checker(
 }
 
 extension BinaryOperatorExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
     let maybe_evaluated_left = self.left.evaluate(execution: execution)
     guard case Result.Ok(let evaluated_left) = maybe_evaluated_left else {
       return maybe_evaluated_left
@@ -206,16 +207,16 @@ extension BinaryOperatorExpression: EvaluatableExpression {
       return maybe_evaluated_right
     }
 
-    return Result.Ok(self.evaluator.2(evaluated_left, evaluated_right))
+    return Result.Ok(P4Value(self.evaluator.2(evaluated_left, evaluated_right)))
   }
 
-  public func type() -> any Common.P4Type {
+  public func type() -> P4Type {
     return self.evaluator.1
   }
 }
 
 extension ArrayAccessExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
     let maybe_name = self.name.evaluate(execution: execution)
     guard case Result.Ok(let name) = maybe_name else {
       return maybe_name
@@ -226,11 +227,11 @@ extension ArrayAccessExpression: EvaluatableExpression {
       return maybe_indexor
     }
 
-    guard let indexor_int = indexor as? P4IntValue else {
+    guard let indexor_int = indexor.dataValue() as? P4IntValue else {
       return Result.Error(Error(withMessage: "\(indexor) cannot index an array"))
     }
 
-    guard let array = name as? P4ArrayValue else {
+    guard let array = name.dataValue() as? P4ArrayValue else {
       return Result.Error(Error(withMessage: "\(name) does not name an array"))
     }
     let accessed = array.access(indexor_int.access())
@@ -238,29 +239,24 @@ extension ArrayAccessExpression: EvaluatableExpression {
     return .Ok(accessed)
   }
 
-  public func type() -> any Common.P4Type {
+  public func type() -> P4Type {
     return self.type.value_type()
   }
 }
 
 extension ArrayAccessExpression: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes,
+    to: P4Value, inScopes scopes: Common.VarValueScopes,
     duringExecution execution: ProgramExecution
   ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
-    // For purposes of documentation, assume the field access expression we are evaluating is
-    // (strct_id)[indexor] = new_value
-    // where strct_id expands to
-    // (identifier.field_id1.field_id2...).field_id = new_field_value
 
-    // First, evaluate strct_id and make sure that it names a struct.
     let maybe_value = self.name.evaluate(execution: execution)
     guard case .Ok(let value) = maybe_value else {
       return Result.Error(
         Error(withMessage: "\(self.name) cannot be evaluated: \(maybe_value.error()!)"))
     }
-    guard let array_value = value as? P4ArrayValue else {
-      return Result.Error(Error(withMessage: "\(self.name) does not identify a struct"))
+    guard let array_value = value.dataValue() as? P4ArrayValue else {
+      return Result.Error(Error(withMessage: "\(self.name) does not identify an array"))
     }
 
     // Now, get the indexor!
@@ -269,27 +265,31 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
       return Result.Error(
         Error(withMessage: "\(self.indexor) cannot be evaluated: \(maybe_indexor_value.error()!)"))
     }
-    guard let indexor_int = indexor_value as? P4IntValue else {
+    guard let indexor_int = indexor_value.dataValue() as? P4IntValue else {
       return Result.Error(Error(withMessage: "\(self.indexor) cannot be used to index an array"))
     }
 
     // Now we have an array and an index!
 
-    // Update field_id of that structure and get the new structure value.
-    let set_result = array_value.set(index: indexor_int.access(), to: to)
-    guard case .Ok(let new_array_value) = set_result else {
-      return .Error(set_result.error()!)
+    let maybe_updated_array_data_value = array_value.set(index: indexor_int.access(), to: to)
+    guard case .Ok(let new_array_value) = maybe_updated_array_data_value else {
+      return .Error(maybe_updated_array_data_value.error()!)
+    }
+
+    let maybe_updated_array_value = value.update(withNewValue: new_array_value)
+    guard case .Ok(let updated_array_value) = maybe_updated_array_value else {
+      return .Error(maybe_updated_array_value.error()!)
     }
 
     let array_lvalue = self.name as! EvaluatableLValueExpression
-    return array_lvalue.set(to: new_array_value, inScopes: scopes, duringExecution: execution)
+    return array_lvalue.set(to: updated_array_value, inScopes: scopes, duringExecution: execution)
   }
 
   public func check(
     to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
   ) -> Common.Result<()> {
 
-    if !self.type.value_type().eq(rhs: to.type()) {
+    if !self.type.value_type().eq(to.type()) {
       return .Error(
         Error(
           withMessage:
@@ -301,13 +301,14 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
 }
 
 extension FieldAccessExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
+
     let maybe_struct = self.strct.evaluate(execution: execution)
     guard case Result.Ok(let strct) = maybe_struct else {
       return maybe_struct
     }
 
-    guard let struct_strct = strct as? P4StructValue else {
+    guard let struct_strct = strct.dataValue() as? P4StructValue else {
       return Result.Error(Error(withMessage: "\(strct) does not identify a struct"))
     }
 
@@ -319,14 +320,14 @@ extension FieldAccessExpression: EvaluatableExpression {
     return .Ok(value)
   }
 
-  public func type() -> any Common.P4Type {
+  public func type() -> P4Type {
     return self.field.type
   }
 }
 
 extension FieldAccessExpression: EvaluatableLValueExpression {
   public func set(
-    to: any Common.P4Value, inScopes scopes: Common.VarValueScopes,
+    to: P4Value, inScopes scopes: Common.VarValueScopes,
     duringExecution execution: ProgramExecution
   ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
     // For purposes of documentation, assume the field access expression we are evaluating is
@@ -341,16 +342,21 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
         Error(withMessage: "\(self.strct) cannot be evaluated: \(maybe_value.error()!)"))
     }
 
-    guard let struct_value = value as? P4StructValue else {
+    guard let struct_value = value.dataValue() as? P4StructValue else {
       return Result.Error(Error(withMessage: "\(self.strct) does not identify a struct"))
     }
 
     // Now we know that struct_id identifies a structure value.
 
     // Update field_id of that structure and get the new structure value.
-    let set_result = struct_value.set(field: self.field, to: to)
-    guard case .Ok(let new_struct_value) = set_result else {
-      return .Error(set_result.error()!)
+    let maybe_new_struct_data_value = struct_value.set(field: self.field, to: to)
+    guard case .Ok(let new_struct_data_value) = maybe_new_struct_data_value else {
+      return .Error(maybe_new_struct_data_value.error()!)
+    }
+
+    let maybe_new_struct_value = value.update(withNewValue: new_struct_data_value)
+    guard case .Ok(let new_struct_value) = maybe_new_struct_value else {
+      return .Error(maybe_new_struct_value.error()!)
     }
 
     // That new structure value should be assignable to the lvalue that is strct_id.
@@ -364,7 +370,7 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
     to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
   ) -> Common.Result<()> {
 
-    if !self.field.type.eq(rhs: to.type()) {
+    if !self.field.type.eq(to.type()) {
       return .Error(
         Error(
           withMessage:
@@ -385,7 +391,7 @@ extension KeysetExpression: EvaluatableExpression {
 }
 
 extension FunctionCall: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<any Common.P4Value> {
+  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
 
     guard let body = self.callee.body else {
       return .Error(Error(withMessage: "No body for called function (\(self.callee.name))"))
@@ -419,7 +425,13 @@ extension FunctionCall: EvaluatableExpression {
     }
   }
 
-  public func type() -> any Common.P4Type {
+  public func type() -> P4Type {
     return self.callee.tipe
+  }
+}
+
+extension P4Value: EvaluatableExpression {
+  public func evaluate(execution: ProgramExecution) -> Result<P4Value> {
+    return .Ok(self)
   }
 }

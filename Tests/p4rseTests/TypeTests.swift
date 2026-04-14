@@ -26,8 +26,8 @@ import TreeSitterP4
 
 @Test func test_simple_struct() async throws {
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Boolean()),
-    P4StructFieldIdentifier(name: "count", withType: P4Int()),
+    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
   ])
 
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
