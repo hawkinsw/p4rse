@@ -188,7 +188,8 @@ extension Parser: LibraryCallable {
 
     return
       switch Call(
-        body: call_body, withArguments: arguments, withParameters: parameters, inExecution: execution)
+        body: call_body, withArguments: arguments, withParameters: parameters,
+        inExecution: execution)
     {
     case (.Ok(let value), let updated_execution):
       (value.dataValue() as! InstantiatedParserState, updated_execution)
