@@ -83,8 +83,8 @@ func parameter_list_compiler(
 
   // Otherwise, there should be one parameter left!
   switch Parameter.Compile(node: currentChild!, withContext: context) {
-  case .Ok(let (vds, updated_context)):
-    return Result.Ok((parameters.addParameter(vds), updated_context))
+  case .Ok(let (parsed_parameter, updated_context)):
+    return Result.Ok((parameters.addParameter(parsed_parameter), updated_context))
   case .Error(let e): return Result.Error(e)
   }
 }

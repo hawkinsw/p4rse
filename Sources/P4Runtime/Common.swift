@@ -17,3 +17,57 @@
 
 import Common
 import P4Lang
+
+public func Call<T>(
+  body: (ProgramExecution) -> (Result<T>, ProgramExecution), withArguments args: ArgumentList,
+  withParameters params: ParameterList, inExecution execution: ProgramExecution
+) -> (Result<T>, ProgramExecution) {
+    
+  if case .Error(let e) = args.compatible(params) {
+    return (.Error(e), execution)
+  }
+
+  var called_execution = execution.enter_scope()
+
+  for (parameter, argument) in zip(params.parameters, args.arguments) {
+    let arg_idx = argument.index
+    let arg_value = argument.argument
+    let maybe_argument_value = arg_value.evaluate(execution: called_execution)
+    guard case (.Ok(let argument_value), let updated_execution) = maybe_argument_value else {
+      return (
+        .Error(Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)")),
+        called_execution.exit_scope()
+      )
+    }
+    called_execution = updated_execution.declare(
+      identifier: parameter.name, withValue: argument_value)
+  }
+
+  let (maybe_call_result, updated_execution) = body(called_execution)
+  guard case .Ok(let call_result) = maybe_call_result else {
+    return (.Error(maybe_call_result.error()!), updated_execution.exit_scope())
+  }
+
+  // Before returning, update the (in)out parameters!
+  var inout_scopes = updated_execution.exit_scope().scopes
+
+  for (parameter, argument) in zip(params.parameters, args.arguments) {
+    if let param_direction = parameter.type.direction(),
+    param_direction == Direction.InOut || param_direction == Direction.Out {
+      // Let's make sure that it is an evaluatable l value!
+      guard let arg_lvalue = argument.argument as? EvaluatableLValueExpression else {
+        return (.Error(Error(withMessage: "(in)out parameter argument is not lvalue")), updated_execution.exit_scope())
+      }
+
+      guard case .Ok(let arg_new_value) = updated_execution.scopes.lookup(identifier: parameter.name) else {
+        return (.Error(Error(withMessage: "Could not get (in)out parameter value from scope")), updated_execution.exit_scope())
+      }
+
+      switch arg_lvalue.set(to: arg_new_value, inScopes: inout_scopes, duringExecution: updated_execution) {
+        case .Ok((let updated_scopes, _)): inout_scopes = updated_scopes
+        case .Error(let e): return (.Error(e), updated_execution.exit_scope())
+      }
+    } 
+  }
+  return (.Ok(call_result), updated_execution.replaceScopes(inout_scopes))
+}

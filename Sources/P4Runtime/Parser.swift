@@ -20,19 +20,20 @@ import P4Lang
 
 extension ParserAssignmentStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
-    let result = self.value.evaluate(execution: execution)
-    guard case Result.Ok(let value) = result else {
-      return (ControlFlow.Error, execution.setError(error: result.error()!))
+    let updated_execution = execution
+    let result = self.value.evaluate(execution: updated_execution)
+    guard case (.Ok(let value), let updated_execution) = result else {
+      return (ControlFlow.Error, execution.setError(error: result.0.error()!))
     }
 
     let maybe_updated_scopes = self.lvalue.set(
-      to: value, inScopes: execution.scopes, duringExecution: execution)
+      to: value, inScopes: execution.scopes, duringExecution: updated_execution)
     guard case Result.Ok(let updated_scopes) = maybe_updated_scopes else {
       return (ControlFlow.Error, execution.setError(error: maybe_updated_scopes.error()!))
     }
     execution.scopes = updated_scopes.0
 
-    return (ControlFlow.Next, execution)
+    return (ControlFlow.Next, updated_execution)
   }
 }
 
@@ -116,9 +117,8 @@ extension ParserStateSelectTransition: EvaluatableParserState {
       }
     }
 
-    let res = self.selectExpression.evaluate(execution: program)
-
-    if case .Ok(let value) = res {
+    switch self.selectExpression.evaluate(execution: program) {
+    case (.Ok(let value), let program):
       if value.type().dataType().eq(rhs: self) {
         return (value.dataValue() as! EvaluatableParserState, program.exit_scope())
       } else {
@@ -128,10 +128,8 @@ extension ParserStateSelectTransition: EvaluatableParserState {
             error: Error(withMessage: "Select transition transitioned to a none state"))
         )
       }
+    case (.Error(let e), let program): return (self, program.setError(error: e).exit_scope())
     }
-
-    program = program.setError(error: res.error()!).exit_scope()
-    return (self, program.exit_scope())
   }
 
   public func done() -> Bool {
@@ -143,7 +141,7 @@ extension ParserStateSelectTransition: EvaluatableParserState {
   }
 }
 
-extension Parser: CallableExecution {
+extension Parser: LibraryCallable {
   public typealias T = InstantiatedParserState
   public func call(
     execution: Common.ProgramExecution, arguments: P4Lang.ArgumentList
@@ -178,34 +176,24 @@ extension Parser: CallableExecution {
       )
     }
 
-    // Now that we are assured that there is a start state,
-    // let's set the arguments.
-
-    if case .Error(let e) = arguments.compatible(self.parameters) {
-      return (
-        reject, execution.setError(error: Error(withMessage: "Cannot call parser: \(e)"))
-      )
-    }
-
-    for (parameter, argument) in zip(self.parameters.parameters, arguments.arguments) {
-      let arg_idx = argument.index
-      let arg_value = argument.argument
-      let maybe_argument_value = arg_value.evaluate(execution: execution)
-      guard case .Ok(let argument_value) = maybe_argument_value else {
-        return (
-          reject,
-          execution.setError(
-            error: Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)"))
-        )
+    let call_body: (ProgramExecution) -> (Result<P4Value>, ProgramExecution) = {
+      (execution: ProgramExecution) in
+      var current_execution = execution
+      // Evaluate until the state is either accept or reject.
+      while !current_state.done() && !current_execution.hasError() {
+        (current_state, current_execution) = current_state.execute(program: current_execution)
       }
-      execution = execution.declare(identifier: parameter.name, withValue: argument_value)
+      return (.Ok(P4Value(AsInstantiatedParserState(current_state.state()))), current_execution)
     }
 
-    // Evaluate until the state is either accept or reject.
-    while !current_state.done() && !execution.hasError() {
-      (current_state, execution) = current_state.execute(program: execution)
+    return
+      switch Call(
+        body: call_body, withArguments: arguments, withParameters: parameters, inExecution: execution)
+    {
+    case (.Ok(let value), let updated_execution):
+      (value.dataValue() as! InstantiatedParserState, updated_execution)
+    case (.Error(let e), let updated_execution):
+      (reject, updated_execution.setError(error: Error(withMessage: "Cannot call parser: \(e)")))
     }
-
-    return (AsInstantiatedParserState(current_state.state()), execution.exit_scope())
   }
 }

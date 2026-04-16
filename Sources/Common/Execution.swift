@@ -87,6 +87,12 @@ open class ProgramExecution: CustomStringConvertible {
     return new_pe
   }
 
+  public func replaceScopes(_ new_scopes: VarValueScopes) -> ProgramExecution {
+    let new_pe = ProgramExecution(copy: self)
+    new_pe.scopes = new_scopes
+    return new_pe
+  }
+
   public func declare(identifier: Identifier, withValue value: P4Value) -> ProgramExecution {
     let new_pe = ProgramExecution(copy: self)
     let new_scopes = new_pe.scopes.declare(identifier: identifier, withValue: value)

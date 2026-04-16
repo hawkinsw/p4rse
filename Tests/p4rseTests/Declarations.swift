@@ -172,6 +172,34 @@ import TreeSitterP4
         x = true;
       };
    """
-  #expect(#RequireOkResult(Program.Compile(simple_parser_declaration)))
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{56, 21}: Failed to parse a statement element: {63, 9}: Failed to parse a statement element: {63, 1}: Cannot assign value with type Boolean to identifier x that is in parameter"
+      ),
+      Program.Compile(simple_parser_declaration))
+  )
+}
+
+@Test func test_function_declaration_with_parameters_and_direction_struct() async throws {
+  let simple_parser_declaration = """
+     struct Testing {
+       bool yesno;
+       int count;
+     };
+     bool functionb(in Testing x, out string y, inout int z) {
+        x.yesno = true;
+      };
+   """
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+        "{113, 27}: Failed to parse a statement element: {120, 15}: Failed to parse a statement element: {120, 7}: Cannot assign to field yesno of x that is in parameter"
+      ),
+      Program.Compile(simple_parser_declaration))
+  )
+
 }
 

@@ -28,7 +28,8 @@ public protocol EvaluatableParserState: P4DataValue {
   func state() -> ParserState
 }
 
-public protocol CallableExecution<T> {
+/// Defines an interface for P4 components that can be invoked directly by the p4rse library user
+public protocol LibraryCallable<T> {
   associatedtype T
   func call(execution: ProgramExecution, arguments: ArgumentList) -> (T, ProgramExecution)
 }

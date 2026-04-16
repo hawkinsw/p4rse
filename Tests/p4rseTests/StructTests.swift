@@ -327,7 +327,7 @@ import TreeSitterP4
   #expect(
     #RequireErrorResult(
       Error(
-        withMessage: "{49, 13}: Failed to parse a statement element: {49, 8}: Cannot assign value of type Int to field with type Boolean"
+        withMessage: "{49, 13}: Failed to parse a statement element: {49, 8}: Cannot assign value of type Int to field yesno of type Boolean"
       ),
       Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   )
@@ -457,7 +457,7 @@ import TreeSitterP4
   #expect(
     #RequireErrorResult(
       Error(
-        withMessage: "{49, 20}: Failed to parse a statement element: {49, 11}: Cannot assign value of type Boolean to field with type Int"
+        withMessage: "{49, 20}: Failed to parse a statement element: {49, 11}: Cannot assign value of type Boolean to field count of type Int"
       ),
       Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
   )

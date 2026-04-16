@@ -15,6 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+public enum TypeCheckResults: Equatable {
+  case Ok
+  case ReadOnly
+  case WrongDirection
+  case IncompatibleTypes
+}
+
 public enum Direction: Equatable, CustomStringConvertible {
   case In
   case Out
@@ -115,11 +122,11 @@ public struct P4Type: CustomStringConvertible {
   }
 
   public func update(removeAttribute attribute: P4TypeAttribute) -> P4Type {
-    return P4Type(self._data_type, self._attributes.update(addAttribute: attribute))
+    return P4Type(self._data_type, self._attributes.update(removeAttribute: attribute))
   }
 
   public func update(addAttribute attribute: P4TypeAttribute) -> P4Type {
-    return P4Type(self._data_type, self._attributes.update(removeAttribute: attribute))
+    return P4Type(self._data_type, self._attributes.update(addAttribute: attribute))
   }
 
   public func direction() -> Direction? {
@@ -141,6 +148,37 @@ public struct P4Type: CustomStringConvertible {
   public func eq(_ rhs: P4Type) -> Bool {
     return self.direction() == rhs.direction() && self.readOnly() == self.readOnly()
       && self.dataType().eq(rhs: rhs.dataType())
+  }
+
+  public func assignable() -> TypeCheckResults {
+    if self.readOnly() {
+      return TypeCheckResults.ReadOnly
+    }
+
+    if let direction = direction(),
+      direction == Direction.In
+    {
+      return TypeCheckResults.WrongDirection
+    }
+    return TypeCheckResults.Ok
+  }
+
+  public func assignableFromType(_ rhs: P4Type) -> TypeCheckResults {
+    if !self.dataType().eq(rhs: rhs.dataType()) {
+      return TypeCheckResults.IncompatibleTypes
+    }
+
+    if self.readOnly() {
+      return TypeCheckResults.ReadOnly
+    }
+
+    if let direction = direction(),
+      direction == Direction.In
+    {
+      return TypeCheckResults.WrongDirection
+    }
+
+    return TypeCheckResults.Ok
   }
 
   public static func ReadOnly(_ type: P4DataType) -> P4Type {

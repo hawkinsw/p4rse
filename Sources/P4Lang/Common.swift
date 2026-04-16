@@ -39,7 +39,16 @@ public struct Parameter: CustomStringConvertible, Equatable {
   /// Calculate whether the `argument` is compatible with this parameter.
   public func compatible(_ argument: Argument) -> Bool {
     let arg_type = argument.argument.type()
-    return arg_type.eq(self.type)
+
+    // If the parameter is (in)out, then the argument must be an lvalue.
+    if let param_direction = self.type.direction(),
+      param_direction == Direction.In || param_direction == Direction.InOut
+    {
+      if !(argument.argument is EvaluatableLValueExpression) {
+        return false
+      }
+    }
+    return arg_type.dataType().eq(rhs: self.type.dataType())
   }
 
 }

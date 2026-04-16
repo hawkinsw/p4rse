@@ -19,8 +19,8 @@ import Common
 import P4Lang
 
 extension SelectCaseExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
-    return execution.scopes.lookup(identifier: next_state_identifier)
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
+    return (execution.scopes.lookup(identifier: next_state_identifier), execution)
   }
 
   public func type() -> P4Type {
@@ -29,19 +29,19 @@ extension SelectCaseExpression: EvaluatableExpression {
 }
 
 extension SelectExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
     switch self.selector.evaluate(execution: execution) {
-    case .Ok(let selector_value):
+    case (.Ok(let selector_value), let updated_execution):
       for sce in self.case_expressions {
-        if case .Ok(let kse) = sce.key.evaluate(execution: execution),
+        if case (.Ok(let kse), let updated_execution) = sce.key.evaluate(execution: updated_execution),
           kse.eq(selector_value)
         {
-          let result = sce.evaluate(execution: execution)
+          let result = sce.evaluate(execution: updated_execution)
           return result
         }
       }
-      return .Error(Error(withMessage: "No key matched the selector"))
-    case .Error(let e): return .Error(e)
+      return (.Error(Error(withMessage: "No key matched the selector")), updated_execution)
+    case (.Error(let e), let updated_execution): return (.Error(e), updated_execution)
     }
   }
 
@@ -56,8 +56,8 @@ extension TypedIdentifier: EvaluatableExpression {
     return self.type
   }
 
-  public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
-    return execution.scopes.lookup(identifier: self)
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
+    return (execution.scopes.lookup(identifier: self), execution)
   }
 }
 
@@ -81,14 +81,12 @@ extension TypedIdentifier: EvaluatableLValueExpression {
       return .Error(Error(withMessage: "Cannot assign to identifier not in scope"))
     }
 
-    if !type.eq(to.type()) {
-      return .Error(
-        Error(
-          withMessage:
-            "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type)"
-        ))
+    return switch type.assignableFromType(to.type()) {
+      case TypeCheckResults.IncompatibleTypes: .Error( Error( withMessage: "Cannot assign value with type \(to.type()) to identifier \(self) with type \(type)"))
+      case TypeCheckResults.ReadOnly: .Error( Error( withMessage: "Cannot assign value with type \(to.type()) to identifier \(self) that is read only"))
+      case TypeCheckResults.WrongDirection: .Error( Error( withMessage: "Cannot assign value with type \(to.type()) to identifier \(self) that is in parameter"))
+      case TypeCheckResults.Ok: .Ok(())
     }
-    return .Ok(())
   }
 }
 
@@ -196,18 +194,19 @@ public func binary_int_math_operator_checker(
 }
 
 extension BinaryOperatorExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
-    let maybe_evaluated_left = self.left.evaluate(execution: execution)
-    guard case Result.Ok(let evaluated_left) = maybe_evaluated_left else {
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
+    let updated_execution = execution
+    let maybe_evaluated_left = self.left.evaluate(execution: updated_execution)
+    guard case (.Ok(let evaluated_left), let updated_execution) = maybe_evaluated_left else {
       return maybe_evaluated_left
     }
 
-    let maybe_evaluated_right = self.right.evaluate(execution: execution)
-    guard case Result.Ok(let evaluated_right) = maybe_evaluated_right else {
+    let maybe_evaluated_right = self.right.evaluate(execution: updated_execution)
+    guard case (.Ok(let evaluated_right), let updated_execution) = maybe_evaluated_right else {
       return maybe_evaluated_right
     }
 
-    return Result.Ok(P4Value(self.evaluator.2(evaluated_left, evaluated_right)))
+    return (.Ok(P4Value(self.evaluator.2(evaluated_left, evaluated_right))), updated_execution)
   }
 
   public func type() -> P4Type {
@@ -216,27 +215,28 @@ extension BinaryOperatorExpression: EvaluatableExpression {
 }
 
 extension ArrayAccessExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
-    let maybe_name = self.name.evaluate(execution: execution)
-    guard case Result.Ok(let name) = maybe_name else {
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
+    let updated_execution = execution
+    let maybe_name = self.name.evaluate(execution: updated_execution)
+    guard case (.Ok(let name), let updated_execution) = maybe_name else {
       return maybe_name
     }
 
-    let maybe_indexor = self.indexor.evaluate(execution: execution)
-    guard case Result.Ok(let indexor) = maybe_indexor else {
+    let maybe_indexor = self.indexor.evaluate(execution: updated_execution)
+    guard case (.Ok(let indexor), let updated_execution) = maybe_indexor else {
       return maybe_indexor
     }
 
     guard let indexor_int = indexor.dataValue() as? P4IntValue else {
-      return Result.Error(Error(withMessage: "\(indexor) cannot index an array"))
+      return (.Error(Error(withMessage: "\(indexor) cannot index an array")), updated_execution)
     }
 
     guard let array = name.dataValue() as? P4ArrayValue else {
-      return Result.Error(Error(withMessage: "\(name) does not name an array"))
+      return (.Error(Error(withMessage: "\(name) does not name an array")), updated_execution)
     }
     let accessed = array.access(indexor_int.access())
 
-    return .Ok(accessed)
+    return (.Ok(accessed), updated_execution)
   }
 
   public func type() -> P4Type {
@@ -250,20 +250,20 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
     duringExecution execution: ProgramExecution
   ) -> Common.Result<(Common.VarValueScopes, P4Value)> {
 
-    let maybe_value = self.name.evaluate(execution: execution)
-    guard case .Ok(let value) = maybe_value else {
-      return Result.Error(
-        Error(withMessage: "\(self.name) cannot be evaluated: \(maybe_value.error()!)"))
+    let updated_execution = execution
+    let maybe_value = self.name.evaluate(execution: updated_execution)
+    guard case (.Ok(let value), let updated_execution) = maybe_value else {
+      return .Error(Error(withMessage: "\(self.name) cannot be evaluated: \(maybe_value.0.error()!)"))
     }
     guard let array_value = value.dataValue() as? P4ArrayValue else {
       return Result.Error(Error(withMessage: "\(self.name) does not identify an array"))
     }
 
     // Now, get the indexor!
-    let maybe_indexor_value = self.indexor.evaluate(execution: execution)
-    guard case .Ok(let indexor_value) = maybe_indexor_value else {
+    let maybe_indexor_value = self.indexor.evaluate(execution: updated_execution)
+    guard case (.Ok(let indexor_value), let updated_execution) = maybe_indexor_value else {
       return Result.Error(
-        Error(withMessage: "\(self.indexor) cannot be evaluated: \(maybe_indexor_value.error()!)"))
+        Error(withMessage: "\(self.indexor) cannot be evaluated: \(maybe_indexor_value.0.error()!)"))
     }
     guard let indexor_int = indexor_value.dataValue() as? P4IntValue else {
       return Result.Error(Error(withMessage: "\(self.indexor) cannot be used to index an array"))
@@ -282,42 +282,63 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
     }
 
     let array_lvalue = self.name as! EvaluatableLValueExpression
-    return array_lvalue.set(to: updated_array_value, inScopes: scopes, duringExecution: execution)
+    return array_lvalue.set(to: updated_array_value, inScopes: scopes, duringExecution: updated_execution)
   }
 
   public func check(
     to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
   ) -> Common.Result<()> {
 
-    if !self.type.value_type().eq(to.type()) {
-      return .Error(
+    return switch self.type.value_type().assignableFromType(to.type()) {
+    case TypeCheckResults.IncompatibleTypes:
+      .Error(
         Error(
           withMessage:
             "Cannot assign value of type \(to.type()) to array with values of type \(self.name.type())"
         ))
+    case TypeCheckResults.ReadOnly:
+      .Error(
+        Error(
+          withMessage: "Cannot assign value of type \(to.type()) to array \(self) that is read only"
+        ))
+    case TypeCheckResults.WrongDirection:
+      .Error(
+        Error(
+          withMessage:
+            "Cannot assign value of type \(to.type()) to array \(self) that is in parameter"))
+    case TypeCheckResults.Ok:
+      // Now, check the type of the array itself.
+      switch self.name.type().assignable() {
+      case TypeCheckResults.ReadOnly:
+        .Error(Error(withMessage: "Cannot assign to array \(self) that is read only"))
+      case TypeCheckResults.WrongDirection:
+        .Error(Error(withMessage: "Cannot assign to array \(self) that is in parameter"))
+      case TypeCheckResults.Ok: .Ok(())
+      default: .Error(Error(withMessage: "Cannot assign to array \(self)"))
+      }
     }
-    return .Ok(())
   }
 }
 
 extension FieldAccessExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
 
-    let maybe_struct = self.strct.evaluate(execution: execution)
-    guard case Result.Ok(let strct) = maybe_struct else {
+    let updated_execution = execution
+    let maybe_struct = self.strct.evaluate(execution: updated_execution)
+    guard case (.Ok(let strct), let updated_execution) = maybe_struct else {
       return maybe_struct
     }
 
     guard let struct_strct = strct.dataValue() as? P4StructValue else {
-      return Result.Error(Error(withMessage: "\(strct) does not identify a struct"))
+      return (.Error(Error(withMessage: "\(strct) does not identify a struct")), updated_execution)
     }
 
     // TODO: Create a default value?
     guard let value = struct_strct.get(field: self.field) else {
-      return .Error(Error(withMessage: "Missing value"))
+      return (.Error(Error(withMessage: "Missing value")), updated_execution)
     }
 
-    return .Ok(value)
+    return (.Ok(value), updated_execution)
   }
 
   public func type() -> P4Type {
@@ -335,15 +356,16 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
     // where strct_id expands to
     // (identifier.field_id1.field_id2...).field_id = new_field_value
 
+    let updated_execution = execution
     // First, evaluate strct_id and make sure that it names a struct.
-    let maybe_value = self.strct.evaluate(execution: execution)
-    guard case .Ok(let value) = maybe_value else {
-      return Result.Error(
-        Error(withMessage: "\(self.strct) cannot be evaluated: \(maybe_value.error()!)"))
+    let maybe_value = self.strct.evaluate(execution: updated_execution)
+    guard case (.Ok(let value), let updated_execution) = maybe_value else {
+      return .Error(
+        Error(withMessage: "\(self.strct) cannot be evaluated: \(maybe_value.0.error()!)"))
     }
 
     guard let struct_value = value.dataValue() as? P4StructValue else {
-      return Result.Error(Error(withMessage: "\(self.strct) does not identify a struct"))
+      return .Error(Error(withMessage: "\(self.strct) does not identify a struct"))
     }
 
     // Now we know that struct_id identifies a structure value.
@@ -363,25 +385,47 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
     // We use recursion here -- ultimately finding our way to a TypedIdentifier that
     // will update the scope. Pretty cool!
     let struct_lvalue = self.strct as! EvaluatableLValueExpression
-    return struct_lvalue.set(to: new_struct_value, inScopes: scopes, duringExecution: execution)
+    return struct_lvalue.set(to: new_struct_value, inScopes: scopes, duringExecution: updated_execution)
   }
 
   public func check(
     to: any Common.EvaluatableExpression, inScopes scopes: Common.VarTypeScopes
   ) -> Common.Result<()> {
-
-    if !self.field.type.eq(to.type()) {
-      return .Error(
+    return switch self.field.type().assignableFromType(to.type()) {
+    case TypeCheckResults.IncompatibleTypes:
+      .Error(
         Error(
           withMessage:
-            "Cannot assign value of type \(to.type()) to field with type \(self.field.type)"))
+            "Cannot assign value of type \(to.type()) to field \(self.field) of type \(self.type())"
+        ))
+    case TypeCheckResults.ReadOnly:
+      .Error(
+        Error(
+          withMessage:
+            "Cannot assign value of type \(to.type()) to field \(self.field) that is read only"
+        ))
+    case TypeCheckResults.Ok:
+      // Now, check the type of the struct itself.
+      switch self.strct.type().assignable() {
+      case TypeCheckResults.ReadOnly:
+        .Error(
+          Error(
+            withMessage: "Cannot assign to field \(self.field) of \(self.strct) that is read only"))
+      case TypeCheckResults.WrongDirection:
+        .Error(
+          Error(
+            withMessage:
+              "Cannot assign to field \(self.field) of \(self.strct) that is in parameter"))
+      case TypeCheckResults.Ok: .Ok(())
+      default: .Error(Error(withMessage: "Cannot assign to field \(self.field) of \(self.strct)"))
+      }
+    default: .Error(Error(withMessage: "Cannot assign to field \(self.field) of \(self.strct)"))
     }
-    return .Ok(())
   }
 }
 
 extension KeysetExpression: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Result<P4Value> {
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
     return self.key.evaluate(execution: execution)
   }
 
@@ -391,38 +435,24 @@ extension KeysetExpression: EvaluatableExpression {
 }
 
 extension FunctionCall: EvaluatableExpression {
-  public func evaluate(execution: Common.ProgramExecution) -> Common.Result<P4Value> {
+  public func evaluate(execution: Common.ProgramExecution) -> (Common.Result<P4Value>, ProgramExecution) {
 
     guard let body = self.callee.body else {
-      return .Error(Error(withMessage: "No body for called function (\(self.callee.name))"))
+      return (.Error(Error(withMessage: "No body for called function (\(self.callee.name))")), execution)
     }
 
-    // Put the arguments into scope
-
-    var called_execution = execution.enter_scope()
-    for (parameter, argument) in zip(self.callee.params.parameters, arguments.arguments) {
-      let arg_idx = argument.index
-      let arg_value = argument.argument
-      let maybe_argument_value = arg_value.evaluate(execution: called_execution)
-      guard case .Ok(let argument_value) = maybe_argument_value else {
-        return .Error(Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)"))
+    let call_body: (ProgramExecution) -> (Result<P4Value>, ProgramExecution) = { (execution: ProgramExecution) in 
+      let (control_flow, updated_execution) = body.evaluate(execution: execution)
+      return switch control_flow {
+      case ControlFlow.Return(.some(let value)): (.Ok(value), updated_execution)
+      default:
+          (.Error(Error(withMessage: "No value returned from called function (\(self.callee.name))")), execution)
       }
-      called_execution = called_execution.declare(
-        identifier: parameter.name, withValue: argument_value)
     }
 
-    let (control_flow, _) = body.evaluate(execution: called_execution)
-
-    return switch control_flow {
-    case ControlFlow.Return(let value):
-      if let value = value {
-        .Ok(value)
-      } else {
-        .Error(Error(withMessage: "No value returned from called function (\(self.callee.name))"))
-      }
-    default:
-      .Error(Error(withMessage: "No value returned from called function (\(self.callee.name))"))
-    }
+    return Call(
+        body: call_body, withArguments: self.arguments, withParameters: self.callee.params,
+        inExecution: execution)
   }
 
   public func type() -> P4Type {
@@ -431,7 +461,7 @@ extension FunctionCall: EvaluatableExpression {
 }
 
 extension P4Value: EvaluatableExpression {
-  public func evaluate(execution: ProgramExecution) -> Result<P4Value> {
-    return .Ok(self)
+  public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
+    return (.Ok(self), execution)
   }
 }

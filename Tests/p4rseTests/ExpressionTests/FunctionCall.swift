@@ -83,6 +83,35 @@ import TreeSitterP4
   #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
 }
 
+@Test func test_function_call_scoped_name_collision_inout() async throws {
+  let simple_parser_declaration = """
+      bool functionb(inout bool c) {
+        c = true;
+        return c;
+      };
+      parser main_parser() {
+        state start {
+          bool c = false;
+          bool b = functionb(c);
+          transition select (c) {
+            false: reject;
+            true: accept;
+          };
+        }
+      };
+    """
+
+  let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
+  let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let (state_result, _) = try! #UseOkResult(runtime.run())
+
+  #expect(parser.states.count() == 1)
+
+  #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
+}
+
+
 @Test func test_function_call_integer_return_value() async throws {
   let simple_parser_declaration = """
       int functionb(int c) {
