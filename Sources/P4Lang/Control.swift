@@ -23,13 +23,13 @@ public struct Action: CustomStringConvertible {
       + "\(self.name) with parameters \(self.params) and body \(String(describing: self.body))"
   }
 
-  public var body: EvaluatableStatement?
+  public var body: BlockStatement?
   public var params: ParameterList
   public var name: Identifier
 
   public init(
     named name: Identifier, withParameters parameters: ParameterList,
-    withBody body: EvaluatableStatement?
+    withBody body: BlockStatement?
   ) {
     self.name = name
     self.params = parameters
@@ -181,6 +181,7 @@ public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertib
   let table: Table
   let _parameters: ParameterList
   let _name: Identifier
+  let apply: ApplyStatement
 
   public var parameters: ParameterList {
     _parameters
@@ -192,12 +193,13 @@ public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertib
 
   public init(
     named: Identifier, withParameters parameters: ParameterList, withTable table: Table,
-    withActions actions: Actions
+    withActions actions: Actions, withApply apply: ApplyStatement
   ) {
     self._name = named
     self._parameters = parameters
     self.actions = actions
     self.table = table
+    self.apply = apply
   }
 
   public func def() -> any P4DataValue {
@@ -207,7 +209,7 @@ public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertib
       withTable: Table(
         withName: Identifier(name: "empty"),
         withPropertyList: TablePropertyList(withActions: TableActions(), withKeys: TableKeys())),
-      withActions: Actions(withActions: []))
+      withActions: Actions(withActions: []), withApply: ApplyStatement())
   }
 
 }
