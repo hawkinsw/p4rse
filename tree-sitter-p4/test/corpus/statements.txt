@@ -15,12 +15,10 @@ control T() {
    (parameters)
    (apply_statement
     (apply)
-    (statement
-     (blockStatement
-      (statements
-       (statement
-        (exit_statement)
-       )
+    (blockStatement
+     (statements
+      (statement
+       (exit_statement)
       )
      )
     )
