@@ -105,8 +105,13 @@ extension ConditionalStatement: EvaluatableStatement {
 
 extension ExpressionStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
-    // TODO: Should this do something? Side effects?
-    return (ControlFlow.Next, execution)
+
+    // Evaluate, there might be side effects!
+    return switch self.expression.evaluate(execution: execution) {
+    case (.Ok(_), let updated_context): (ControlFlow.Next, updated_context)
+    case (.Error(let e), let updated_context):
+      (ControlFlow.Next, updated_context.setError(error: e))
+    }
   }
 }
 

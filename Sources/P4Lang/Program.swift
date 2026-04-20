@@ -18,7 +18,11 @@
 import Common
 
 public struct ExpressionStatement {
-  public init() {}
+  public let expression: EvaluatableExpression
+
+  public init(_ expr: EvaluatableExpression) {
+    self.expression = expr
+  }
 }
 
 public struct Program {

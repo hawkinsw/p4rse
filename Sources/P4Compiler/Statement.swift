@@ -244,9 +244,12 @@ extension ExpressionStatement: CompilableStatement {
     #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
       node: node, type: "expressionStatement", nice_type_name: "expression statement")
 
-    let _ = node.child(at: 0)
+    let expression_node = node.child(at: 0)!
 
-    return Result.Ok((ExpressionStatement(), context))
+    return switch Expression.Compile(node: expression_node, withContext: context) {
+      case .Ok(let expression): .Ok((ExpressionStatement(expression), context))
+      case .Error(let e): .Error(e)
+    }
   }
 }
 
