@@ -351,3 +351,25 @@ extension Argument: Compilable {
     }
   }
 }
+
+func ContainsInvalidStatements(
+  statement: EvaluatableStatement, invalids: [EvaluatableStatement.Type]
+) -> Bool {
+  for es in invalids {
+    if type(of: statement) == es {
+      return true
+    }
+  }
+  return false
+}
+
+func ContainsInvalidStatements(block: BlockStatement, invalids: [EvaluatableStatement.Type]) -> Bool {
+  return block.statements.contains() { statement in
+    for es in invalids {
+      if type(of: statement) == es {
+        return true
+      }
+    }
+    return false
+  }
+}
