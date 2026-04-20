@@ -37,6 +37,8 @@ import P4Lang
           true: exact;
         }
       }
+      apply {
+      }
     };
     """
   let x = { (tipe: P4Type) -> Bool in
@@ -61,6 +63,8 @@ import P4Lang
           true: exact;
         }
       }
+      apply {
+      }
     };
     control complex() {
       action b() {
@@ -69,6 +73,8 @@ import P4Lang
         key = {
           true: exact;
         }
+      }
+      apply {
       }
     };
     """
@@ -94,6 +100,8 @@ import P4Lang
           y: exact;
         }
       }
+      apply {
+      }
     };
     """
   #expect(#RequireOkResult(Program.Compile(simple_parser_declaration)))
@@ -110,6 +118,8 @@ import P4Lang
           x: exact;
           y: exact;
         }
+      }
+      apply {
       }
     };
     """
@@ -128,13 +138,15 @@ import P4Lang
           y: exact;
         }
       }
+      apply {
+      }
     };
     """
   #expect(
     #RequireErrorResult(
       Error(
         withMessage:
-          "{51, 20}: Failed to parse a statement element: {57, 10}: Failed to parse a statement element: {57, 1}: Cannot assign value with type Boolean to identifier z with type Int"
+          "{57, 10}: Failed to parse a statement element: {57, 1}: Cannot assign value with type Boolean to identifier z with type Int"
       ),
       Program.Compile(simple_parser_declaration))
   )

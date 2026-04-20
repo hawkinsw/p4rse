@@ -452,6 +452,7 @@ extension Control: CompilableDeclaration {
 
     var actions: [Action] = Array()
     var tables: [Table] = Array()
+    var apply: ApplyStatement? = .none
 
     //                                                       Because the final child
     //                                                       is the '}'.
@@ -478,6 +479,20 @@ extension Control: CompilableDeclaration {
         }
         tables.append(table_declaration)
         local_context = updated_context
+      } else if currentChild.nodeType == "apply_statement" {
+        // When we see an apply, that is it for the actions and the tables.
+        let maybe_apply_statement = ApplyStatement.Compile(
+          node: currentChild, withContext: local_context)
+        guard
+          case .Ok((let apply_statement, let updated_context)) = maybe_apply_statement
+        else {
+          return .Error(maybe_apply_statement.error()!)
+        }
+        local_context = updated_context
+        apply = (apply_statement as! ApplyStatement)
+
+        // The apply is the last thing in a control declaration.
+        break;
       } else {
         return .Error(
           ErrorOnNode(node: currentChild, withError: "Uknown node type in control declaration"))
@@ -494,10 +509,16 @@ extension Control: CompilableDeclaration {
         ErrorOnNode(node: node, withError: "More than one table in control declaration"))
     }
 
+    // Check to make sure that there is an apply.
+    guard let apply = apply else {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Missing apply in control declaration"))
+    }
+
     let declared_control =
       (Control(
         named: control_name, withParameters: control_parameters, withTable: tables[0],
-        withActions: Actions(withActions: actions))
+        withActions: Actions(withActions: actions), withApply: apply)
         as P4DataType)
 
     // Don't forget to add the newly declared Control to the instance that we were given
@@ -572,15 +593,17 @@ extension Action: Compilable {
         identifier: parameter.name, withValue: parameter.type)
     }
 
-    let maybe_action_body = Parser.Statement.Compile(
+    let maybe_action_body = BlockStatement.Compile(
       node: currentChild!, withContext: context.update(newInstances: function_scope))
     guard case .Ok((let action_body, _)) = maybe_action_body else {
       return .Error(maybe_action_body.error()!)
     }
 
+    // TODO: Actions cannot contain switches!
+
     return .Ok(
       (
-        Action(named: action_name, withParameters: action_parameters, withBody: action_body),
+        Action(named: action_name, withParameters: action_parameters, withBody: (action_body as! BlockStatement)),
         current_context
       ))
   }

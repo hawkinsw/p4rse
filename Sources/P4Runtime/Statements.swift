@@ -123,3 +123,9 @@ extension ReturnStatement: EvaluatableStatement {
     }
   }
 }
+
+extension ApplyStatement: EvaluatableStatement {
+  public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
+    return (ControlFlow.Next, execution)
+  }
+}

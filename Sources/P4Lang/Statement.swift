@@ -63,3 +63,12 @@ public struct ReturnStatement {
     self.value = value
   }
 }
+
+public struct ApplyStatement {
+  public let body: BlockStatement?
+
+  public init() { self.body = .none }
+  public init(_ body: BlockStatement) {
+    self.body = body
+  }
+}
