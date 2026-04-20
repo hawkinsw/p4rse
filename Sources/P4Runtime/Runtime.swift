@@ -55,7 +55,8 @@ public struct ParserRuntime: CustomStringConvertible {
 
   }
 
-  public func run(withArguments arguments: ArgumentList) -> Result<(ParserState, ProgramExecution)> {
+  public func run(withArguments arguments: ArgumentList) -> Result<(ParserState, ProgramExecution)>
+  {
     let pe =
       if let initial = initialValues {
         ProgramExecution(withGlobalValues: initial)
@@ -67,14 +68,16 @@ public struct ParserRuntime: CustomStringConvertible {
   }
 
   /// Run the P4 parser on a given packet
-  public func run(withArguments arguments: ArgumentList, inExecution pe: ProgramExecution) -> Result<(ParserState, ProgramExecution)>
-  {
+  public func run(
+    withArguments arguments: ArgumentList, inExecution pe: ProgramExecution
+  ) -> Result<(ParserState, ProgramExecution)> {
 
-    let pe = if let globals = initialValues {
-      pe.setGlobalValues(globals)
-    } else {
-      pe
-    }
+    let pe =
+      if let globals = initialValues {
+        pe.setGlobalValues(globals)
+      } else {
+        pe
+      }
 
     let (end_state, execution) = parser.call(execution: pe, arguments: arguments)
     if let error = execution.getError() {

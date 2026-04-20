@@ -16,7 +16,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 public typealias StatementInterloper = (EvaluatableStatement, ControlFlow, ProgramExecution) -> Void
-public typealias ExpressionInterloper = (EvaluatableExpression, Result<P4Value>, ProgramExecution) -> Void
+public typealias ExpressionInterloper = (EvaluatableExpression, Result<P4Value>, ProgramExecution)
+  -> Void
 
 open class ProgramExecution: CustomStringConvertible {
   public var scopes: VarValueScopes = VarValueScopes()
@@ -75,7 +76,9 @@ open class ProgramExecution: CustomStringConvertible {
     return self.statement_interloper
   }
 
-  public func setStatementInterloper(_ interloper: @escaping StatementInterloper) -> ProgramExecution {
+  public func setStatementInterloper(
+    _ interloper: @escaping StatementInterloper
+  ) -> ProgramExecution {
     let pe = ProgramExecution(copy: self)
     pe.statement_interloper = interloper
     return pe
@@ -85,7 +88,9 @@ open class ProgramExecution: CustomStringConvertible {
     return self.expression_interloper
   }
 
-  public func setExpressionInterloper(_ interloper: @escaping ExpressionInterloper) -> ProgramExecution {
+  public func setExpressionInterloper(
+    _ interloper: @escaping ExpressionInterloper
+  ) -> ProgramExecution {
     let pe = ProgramExecution(copy: self)
     pe.expression_interloper = interloper
     return pe
@@ -137,7 +142,6 @@ open class ProgramExecution: CustomStringConvertible {
     new_pe.globalValues = global_values
     return new_pe
   }
-
 
 }
 

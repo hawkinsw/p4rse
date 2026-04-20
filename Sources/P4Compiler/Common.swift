@@ -363,8 +363,9 @@ func ContainsInvalidStatements(
   return false
 }
 
-func ContainsInvalidStatements(block: BlockStatement, invalids: [EvaluatableStatement.Type]) -> Bool {
-  return block.statements.contains() { statement in
+func ContainsInvalidStatements(block: BlockStatement, invalids: [EvaluatableStatement.Type]) -> Bool
+{
+  return block.statements.contains { statement in
     for es in invalids {
       if type(of: statement) == es {
         return true

@@ -44,7 +44,8 @@ extension VariableDeclarationStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     guard
       //case (.Ok(let initial_value), let execution) = self.initializer.evaluate(execution: execution)
-      case (.Ok(let initial_value), let execution) = EvaluateExpression(self.initializer, inExecution: execution)
+      case (.Ok(let initial_value), let execution) = EvaluateExpression(
+        self.initializer, inExecution: execution)
     else {
       return (
         ControlFlow.Error,
@@ -61,7 +62,8 @@ extension ConditionalStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     guard
       //case (.Ok(let evaluated_condition), let execution) = self.condition.evaluate(execution: execution)
-      case (.Ok(let evaluated_condition), let execution) = EvaluateExpression(self.condition, inExecution: execution)
+      case (.Ok(let evaluated_condition), let execution) = EvaluateExpression(
+        self.condition, inExecution: execution)
     else {
       return (
         ControlFlow.Error,

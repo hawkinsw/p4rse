@@ -33,7 +33,8 @@ extension SelectExpression: EvaluatableExpression {
     switch EvaluateExpression(self.selector, inExecution: execution) {
     case (.Ok(let selector_value), let updated_execution):
       for sce in self.case_expressions {
-        if case (.Ok(let kse), let updated_execution) = EvaluateExpression(sce.key, inExecution: updated_execution),
+        if case (.Ok(let kse), let updated_execution) = EvaluateExpression(
+          sce.key, inExecution: updated_execution),
           kse.eq(selector_value)
         {
           //let result = sce.evaluate(execution: updated_execution)

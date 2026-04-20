@@ -247,8 +247,8 @@ extension ExpressionStatement: CompilableStatement {
     let expression_node = node.child(at: 0)!
 
     return switch Expression.Compile(node: expression_node, withContext: context) {
-      case .Ok(let expression): .Ok((ExpressionStatement(expression), context))
-      case .Error(let e): .Error(e)
+    case .Ok(let expression): .Ok((ExpressionStatement(expression), context))
+    case .Error(let e): .Error(e)
     }
   }
 }
@@ -340,7 +340,8 @@ extension ApplyStatement: CompilableStatement {
     let expression_node = node.child(at: 1)!
 
     return switch BlockStatement.Compile(node: expression_node, withContext: context) {
-    case .Ok((let statement, let updated_context)): .Ok((ApplyStatement(statement as! BlockStatement), updated_context))
+    case .Ok((let statement, let updated_context)):
+      .Ok((ApplyStatement(statement as! BlockStatement), updated_context))
     case .Error(let e): .Error(e)
     }
   }

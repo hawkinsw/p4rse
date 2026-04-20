@@ -492,7 +492,7 @@ extension Control: CompilableDeclaration {
         apply = (apply_statement as! ApplyStatement)
 
         // The apply is the last thing in a control declaration.
-        break;
+        break
       } else {
         return .Error(
           ErrorOnNode(node: currentChild, withError: "Uknown node type in control declaration"))
@@ -603,7 +603,9 @@ extension Action: Compilable {
 
     return .Ok(
       (
-        Action(named: action_name, withParameters: action_parameters, withBody: (action_body as! BlockStatement)),
+        Action(
+          named: action_name, withParameters: action_parameters,
+          withBody: (action_body as! BlockStatement)),
         current_context
       ))
   }

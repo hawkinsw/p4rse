@@ -84,7 +84,9 @@ public func Call<T>(
   return (.Ok(call_result), updated_execution.replaceScopes(inout_scopes))
 }
 
-public typealias ExecuteStatementResultHandler = (ControlFlow, ProgramExecution) -> (ControlFlow, ProgramExecution)
+public typealias ExecuteStatementResultHandler = (ControlFlow, ProgramExecution) -> (
+  ControlFlow, ProgramExecution
+)
 
 public func ExecuteStatement(
   _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
@@ -119,7 +121,8 @@ public func ExecuteStatement(
 
 public func ExecuteStatement(
   _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
-  inExecution execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
+  inExecution execution: ProgramExecution
+) -> (ControlFlow, ProgramExecution) {
   return ExecuteStatement([statement], handleResult: handler, inExecution: execution)
 }
 
