@@ -59,12 +59,12 @@ public protocol ProgramExecutionEvaluator {
   func ExecuteStatement(
     _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
     inExecution execution: ProgramExecution,
-  ) -> (ControlFlow, ProgramExecution);
+  ) -> (ControlFlow, ProgramExecution)
 
   func ExecuteStatement(
     _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
     inExecution execution: ProgramExecution
-  ) -> (ControlFlow, ProgramExecution);
+  ) -> (ControlFlow, ProgramExecution)
 
   func EvaluateExpression(
     _ expression: EvaluatableExpression, inExecution execution: ProgramExecution,

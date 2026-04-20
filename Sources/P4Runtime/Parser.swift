@@ -22,7 +22,8 @@ extension ParserAssignmentStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     let updated_execution = execution
     //let result = self.value.evaluate(execution: updated_execution)
-    let result = updated_execution.evaluator.EvaluateExpression(self.value, inExecution: updated_execution)
+    let result = updated_execution.evaluator.EvaluateExpression(
+      self.value, inExecution: updated_execution)
     guard case (.Ok(let value), let updated_execution) = result else {
       return (ControlFlow.Error, execution.setError(error: result.0.error()!))
     }

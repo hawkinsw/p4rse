@@ -33,7 +33,8 @@ public func Call<T>(
     let arg_idx = argument.index
     let arg_value = argument.argument
     //let maybe_argument_value = arg_value.evaluate(execution: called_execution)
-    let maybe_argument_value = called_execution.evaluator.EvaluateExpression(arg_value, inExecution: called_execution)
+    let maybe_argument_value = called_execution.evaluator.EvaluateExpression(
+      arg_value, inExecution: called_execution)
     guard case (.Ok(let argument_value), let updated_execution) = maybe_argument_value else {
       return (
         .Error(Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)")),
@@ -83,4 +84,3 @@ public func Call<T>(
   }
   return (.Ok(call_result), updated_execution.replaceScopes(inout_scopes))
 }
-
