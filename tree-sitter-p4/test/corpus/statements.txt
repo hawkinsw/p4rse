@@ -1,4 +1,39 @@
 =========================
+Return Statement
+=========================
+int fun() {
+  return 1;
+};
+---
+(p4program
+ (declaration
+  (function_declaration
+   (typeRef
+    (baseType
+     (int)
+    )
+   )
+   (identifier)
+   (parameters)
+   (statement
+    (blockStatement
+     (statements
+      (statement
+       (return_statement
+        (expression
+         (simple_expression
+          (integer)
+         )
+        )
+       )
+      )
+     )
+    )
+   )
+  )
+ )
+)
+=========================
 Simple If Statement (No Else)
 =========================
 parser simple() {

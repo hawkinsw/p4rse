@@ -105,7 +105,7 @@ export default grammar({
         conditionalStatement: $ => choice(prec(1, seq($.if, '(', $.expression, ')', $.statement)), prec(2, seq($.if, '(', $.expression, ')', $.statement, $.else, $.statement))),
         expressionStatement: $=> seq($.expression, $._semicolon),
         assignmentStatement: $=> seq($.expression, $.assignment, $.expression, $._semicolon),
-        return_statement: $=> seq($.return, $.expression, $._semicolon),
+        return_statement: $=> seq($._return, $.expression, $._semicolon),
 
         // Parser statements
         parserStatements: $ => repeat1($.parserStatement),
@@ -189,7 +189,7 @@ export default grammar({
         parser: $ => "parser",
         package: $ => "package",
         pragma: $ => "pragma",
-        return: $ => "return",
+        _return: $ => "return",
         select: $ => "select",
         state: $ => "state",
         string: $ => "string",
