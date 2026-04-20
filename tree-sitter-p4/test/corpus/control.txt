@@ -49,9 +49,11 @@ control simple() {
      )
     )
    )
-   (apply)
-   (statement
-    (blockStatement)
+   (apply_statement
+    (apply)
+    (statement
+     (blockStatement)
+    )
    )
   )
  )

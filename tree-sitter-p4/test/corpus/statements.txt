@@ -13,12 +13,14 @@ control T() {
    (control)
    (identifier)
    (parameters)
-   (apply)
-   (statement
-    (blockStatement
-     (statements
-      (statement
-       (exit_statement)
+   (apply_statement
+    (apply)
+    (statement
+     (blockStatement
+      (statements
+       (statement
+        (exit_statement)
+       )
       )
      )
     )
