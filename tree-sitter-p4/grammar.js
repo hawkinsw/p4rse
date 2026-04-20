@@ -100,12 +100,13 @@ export default grammar({
 
         // General statements
         statements: $ => repeat1($.statement),
-        statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement, $.assignmentStatement, $.variableDeclaration, $.return_statement),// Limited, so far.
+        statement: $ => choice($.conditionalStatement, $.blockStatement, $.expressionStatement, $.assignmentStatement, $.variableDeclaration, $.return_statement, $.exit_statement),// Limited, so far.
         blockStatement: $ => seq(optional($.annotations), '{', optional($.statements), '}'),
         conditionalStatement: $ => choice(prec(1, seq($.if, '(', $.expression, ')', $.statement)), prec(2, seq($.if, '(', $.expression, ')', $.statement, $.else, $.statement))),
         expressionStatement: $=> seq($.expression, $._semicolon),
         assignmentStatement: $=> seq($.expression, $.assignment, $.expression, $._semicolon),
         return_statement: $=> seq($._return, $.expression, $._semicolon),
+        exit_statement: $=> seq($._exit, $._semicolon),
 
         // Parser statements
         parserStatements: $ => repeat1($.parserStatement),
@@ -172,7 +173,7 @@ export default grammar({
         entries: $ => "entries",
         enum: $ => "enum",
         error: $ => "error",
-        exit: $ => "exit",
+        _exit: $ => "exit",
         exact: $ => "exact",
         extern: $ => "extern",
         false: $ => "false",

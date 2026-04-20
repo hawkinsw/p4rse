@@ -1,4 +1,32 @@
 =========================
+Exit Statement
+=========================
+control T() {
+  apply {
+    exit;
+  }
+};
+---
+(p4program
+ (declaration
+  (control_declaration
+   (control)
+   (identifier)
+   (parameters)
+   (apply)
+   (statement
+    (blockStatement
+     (statements
+      (statement
+       (exit_statement)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+=========================
 Return Statement
 =========================
 int fun() {
