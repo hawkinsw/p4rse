@@ -87,6 +87,21 @@ where `<component>` is one of:
 
 where `<subcomponent>` can be more free-form and `<change>` is a pithy description of the changes in the commit.
 
+#### Notes To Self
+
+While coding, it may be useful to leave ourselves notes. Every note is formatted like:
+
+
+```Swift
+/// NOTE: note text
+```
+
+where `NOTE` can be:
+
+1. `TODO`: Remind us `TODO` something.
+2. `ASSUME`: Remind us that we are making an assumption.
+3. `NB`: Remind us that we need to remember something when reading this code.
+
 #### Testing
 
 To run the P4RSE tests:
