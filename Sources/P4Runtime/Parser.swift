@@ -22,7 +22,7 @@ extension ParserAssignmentStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     let updated_execution = execution
     //let result = self.value.evaluate(execution: updated_execution)
-    let result = EvaluateExpression(self.value, inExecution: updated_execution)
+    let result = updated_execution.evaluator.EvaluateExpression(self.value, inExecution: updated_execution)
     guard case (.Ok(let value), let updated_execution) = result else {
       return (ControlFlow.Error, execution.setError(error: result.0.error()!))
     }
@@ -44,7 +44,7 @@ extension ParserStateDirectTransition: EvaluatableParserState {
   ) -> (any EvaluatableParserState, Common.ProgramExecution) {
     var program = program.enter_scope()
 
-    let (control_flow, next_execution) = ExecuteStatement(
+    let (control_flow, next_execution) = program.evaluator.ExecuteStatement(
       statements,
       handleResult: { (control_flow, execution) in
         return (control_flow, execution)
@@ -105,7 +105,7 @@ extension ParserStateSelectTransition: EvaluatableParserState {
   ) -> (any EvaluatableParserState, Common.ProgramExecution) {
     var program = program.enter_scope()
 
-    let (control_flow, next_execution) = ExecuteStatement(
+    let (control_flow, next_execution) = program.evaluator.ExecuteStatement(
       statements,
       handleResult: { (control_flow, execution) in
         return (control_flow, execution)
@@ -123,7 +123,7 @@ extension ParserStateSelectTransition: EvaluatableParserState {
     }
 
     //switch self.selectExpression.evaluate(execution: program) {
-    switch EvaluateExpression(self.selectExpression, inExecution: program) {
+    switch program.evaluator.EvaluateExpression(self.selectExpression, inExecution: program) {
     case (.Ok(let value), let program):
       if value.type().dataType().eq(rhs: self) {
         return (value.dataValue() as! EvaluatableParserState, program.exit_scope())

@@ -51,11 +51,11 @@ import TreeSitterP4
 
   var statements_executed: [String] = Array()
 
-  let pe = ProgramExecution().setStatementInterloper({ (statement, cf, execution) in
+  let ev = InterloperEvaluator().setStatementInterloper() { (statement, cf, execution) in
     statements_executed.append("\(statement)")
-  })
+  }
 
-  let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: ArgumentList(), inExecution: pe))
+  let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: ArgumentList(), inExecution: ProgramExecution(ev)))
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 
@@ -90,12 +90,11 @@ import TreeSitterP4
 
   var expressions_evaluated: [String] = Array()
 
-  let pe = ProgramExecution().setExpressionInterloper() { expression, result, execution in 
-    print("Expression: \(expression)")
+  let ev = InterloperEvaluator().setExpressionInterloper() { expression, result, execution in 
     expressions_evaluated.append("\(expression)")
   }
 
-  let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: ArgumentList(), inExecution: pe))
+  let (state_result, _) = try! #UseOkResult(runtime.run(withArguments: ArgumentList(), inExecution: ProgramExecution(ev)))
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
 

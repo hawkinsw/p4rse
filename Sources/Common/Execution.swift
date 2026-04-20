@@ -15,6 +15,137 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
+
+public typealias ExecuteStatementResultHandler = (ControlFlow, ProgramExecution) -> (
+  ControlFlow, ProgramExecution
+)
+
+public struct ClassicEvaluator: ProgramExecutionEvaluator {
+  public func ExecuteStatement(
+    _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
+    inExecution execution: ProgramExecution,
+  ) -> (ControlFlow, ProgramExecution) {
+
+    var execution = execution
+    for s in statements {
+      let (control_flow, next_execution) = s.evaluate(execution: execution)
+
+      switch handler(control_flow, next_execution) {
+      case (ControlFlow.Next, let handled_next_execution): execution = handled_next_execution
+      case (ControlFlow.Return(let value), let handled_next_execution):
+        return (ControlFlow.Return(value), handled_next_execution)
+      case (let handled_control_flow, let handled_next_execution):
+        return (handled_control_flow, handled_next_execution)
+      }
+    }
+    return (ControlFlow.Next, execution)
+  }
+
+  public func ExecuteStatement(
+    _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
+    inExecution execution: ProgramExecution
+  ) -> (ControlFlow, ProgramExecution) {
+    return ExecuteStatement([statement], handleResult: handler, inExecution: execution)
+  }
+
+  public func EvaluateExpression(
+    _ expression: EvaluatableExpression, inExecution execution: ProgramExecution,
+  ) -> (Result<P4Value>, ProgramExecution) {
+    return expression.evaluate(execution: execution)
+  }
+}
+
+public struct InterloperEvaluator: ProgramExecutionEvaluator {
+  var statement_interloper: StatementInterloper?
+  var expression_interloper: ExpressionInterloper?
+
+  public init() {}
+
+  public func getStatementInterloper() -> StatementInterloper? {
+    return self.statement_interloper
+  }
+
+  public func setStatementInterloper(
+    _ interloper: @escaping StatementInterloper
+  ) -> InterloperEvaluator {
+    var pe = self
+    pe.statement_interloper = interloper
+    return pe
+  }
+
+  public func getExpressionInterloper() -> ExpressionInterloper? {
+    return self.expression_interloper
+  }
+
+  public func setExpressionInterloper(
+    _ interloper: @escaping ExpressionInterloper
+  ) -> InterloperEvaluator {
+    var pe = self
+    pe.expression_interloper = interloper
+    return pe
+  }
+
+  public func ExecuteStatement(
+    _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
+    inExecution execution: ProgramExecution,
+  ) -> (ControlFlow, ProgramExecution) {
+
+    var debugger: StatementInterloper? = .none
+    var hasDebugInterloper = false
+    if let found_deb = self.getStatementInterloper() {
+      debugger = found_deb
+      hasDebugInterloper = true
+    }
+
+    var execution = execution
+    for s in statements {
+      let (control_flow, next_execution) = s.evaluate(execution: execution)
+
+      if hasDebugInterloper {
+        debugger!(s, control_flow, next_execution)
+      }
+
+      switch handler(control_flow, next_execution) {
+      case (ControlFlow.Next, let handled_next_execution): execution = handled_next_execution
+      case (ControlFlow.Return(let value), let handled_next_execution):
+        return (ControlFlow.Return(value), handled_next_execution)
+      case (let handled_control_flow, let handled_next_execution):
+        return (handled_control_flow, handled_next_execution)
+      }
+    }
+    return (ControlFlow.Next, execution)
+  }
+
+  public func ExecuteStatement(
+    _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
+    inExecution execution: ProgramExecution
+  ) -> (ControlFlow, ProgramExecution) {
+    return ExecuteStatement([statement], handleResult: handler, inExecution: execution)
+  }
+
+  public func EvaluateExpression(
+    _ expression: EvaluatableExpression, inExecution execution: ProgramExecution,
+  ) -> (Result<P4Value>, ProgramExecution) {
+
+    var debugger: ExpressionInterloper? = .none
+    var hasDebugInterloper = false
+    if let found_deb = self.getExpressionInterloper() {
+      debugger = found_deb
+      hasDebugInterloper = true
+    }
+
+    let (result, execution) = expression.evaluate(execution: execution)
+
+    if hasDebugInterloper {
+      debugger!(expression, result, execution)
+    }
+
+    return (result, execution)
+
+  }
+}
+
 public typealias StatementInterloper = (EvaluatableStatement, ControlFlow, ProgramExecution) -> Void
 public typealias ExpressionInterloper = (EvaluatableExpression, Result<P4Value>, ProgramExecution)
   -> Void
@@ -24,24 +155,24 @@ open class ProgramExecution: CustomStringConvertible {
   var globalValues: VarValueScopes?
   var error: Error?
   var debug: DebugLevel = DebugLevel.Error
-  var statement_interloper: StatementInterloper?
-  var expression_interloper: ExpressionInterloper?
+  public let evaluator: ProgramExecutionEvaluator
 
   init(copy: ProgramExecution) {
     self.scopes = copy.scopes
     self.globalValues = copy.globalValues
     self.error = copy.error
     self.debug = copy.debug
-    self.statement_interloper = copy.statement_interloper
-    self.expression_interloper = copy.expression_interloper
+    self.evaluator = copy.evaluator
   }
 
   public init() {
     globalValues = .none
+    evaluator = ClassicEvaluator()
   }
 
-  public init(withGlobalValues values: VarValueScopes) {
-    globalValues = values
+  public init(_ evaluator: ProgramExecutionEvaluator) {
+    globalValues = .none
+    self.evaluator = evaluator
   }
 
   open var description: String {
@@ -69,30 +200,6 @@ open class ProgramExecution: CustomStringConvertible {
   public func setDebugLevel(_ dl: DebugLevel) -> ProgramExecution {
     let pe = ProgramExecution(copy: self)
     pe.debug = dl
-    return pe
-  }
-
-  public func getStatementInterloper() -> StatementInterloper? {
-    return self.statement_interloper
-  }
-
-  public func setStatementInterloper(
-    _ interloper: @escaping StatementInterloper
-  ) -> ProgramExecution {
-    let pe = ProgramExecution(copy: self)
-    pe.statement_interloper = interloper
-    return pe
-  }
-
-  public func getExpressionInterloper() -> ExpressionInterloper? {
-    return self.expression_interloper
-  }
-
-  public func setExpressionInterloper(
-    _ interloper: @escaping ExpressionInterloper
-  ) -> ProgramExecution {
-    let pe = ProgramExecution(copy: self)
-    pe.expression_interloper = interloper
     return pe
   }
 

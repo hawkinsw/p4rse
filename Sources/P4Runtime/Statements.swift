@@ -20,7 +20,7 @@ import P4Lang
 
 extension BlockStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
-    return ExecuteStatement(
+    return execution.evaluator.ExecuteStatement(
       self.statements,
       handleResult: { (cf, execution) in
         switch cf {
@@ -43,7 +43,7 @@ extension VariableDeclarationStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     guard
       //case (.Ok(let initial_value), let execution) = self.initializer.evaluate(execution: execution)
-      case (.Ok(let initial_value), let execution) = EvaluateExpression(
+      case (.Ok(let initial_value), let execution) = execution.evaluator.EvaluateExpression(
         self.initializer, inExecution: execution)
     else {
       return (
@@ -61,7 +61,7 @@ extension ConditionalStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     guard
       //case (.Ok(let evaluated_condition), let execution) = self.condition.evaluate(execution: execution)
-      case (.Ok(let evaluated_condition), let execution) = EvaluateExpression(
+      case (.Ok(let evaluated_condition), let execution) = execution.evaluator.EvaluateExpression(
         self.condition, inExecution: execution)
     else {
       return (
@@ -111,7 +111,7 @@ extension ExpressionStatement: EvaluatableStatement {
 
     // Evaluate, there might be side effects!
     //return switch self.expression.evaluate(execution: execution) {
-    return switch EvaluateExpression(self.expression, inExecution: execution) {
+    return switch execution.evaluator.EvaluateExpression(self.expression, inExecution: execution) {
     case (.Ok(_), let updated_context): (ControlFlow.Next, updated_context)
     case (.Error(let e), let updated_context):
       (ControlFlow.Next, updated_context.setError(error: e))
@@ -122,7 +122,7 @@ extension ExpressionStatement: EvaluatableStatement {
 extension ReturnStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     //return switch self.value.evaluate(execution: execution) {
-    return switch EvaluateExpression(self.value, inExecution: execution) {
+    return switch execution.evaluator.EvaluateExpression(self.value, inExecution: execution) {
     case (.Ok(let v), let execution): (ControlFlow.Return(v), execution)
     case (.Error(let e), let execution): (ControlFlow.Error, execution.setError(error: e))
     }

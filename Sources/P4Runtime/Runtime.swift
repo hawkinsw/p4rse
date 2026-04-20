@@ -59,7 +59,7 @@ public struct ParserRuntime: CustomStringConvertible {
   {
     let pe =
       if let initial = initialValues {
-        ProgramExecution(withGlobalValues: initial)
+        ProgramExecution().setGlobalValues(initial)
       } else {
         ProgramExecution()
       }

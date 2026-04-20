@@ -30,15 +30,15 @@ extension SelectCaseExpression: EvaluatableExpression {
 
 extension SelectExpression: EvaluatableExpression {
   public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
-    switch EvaluateExpression(self.selector, inExecution: execution) {
+    switch execution.evaluator.EvaluateExpression(self.selector, inExecution: execution) {
     case (.Ok(let selector_value), let updated_execution):
       for sce in self.case_expressions {
-        if case (.Ok(let kse), let updated_execution) = EvaluateExpression(
+        if case (.Ok(let kse), let updated_execution) = updated_execution.evaluator.EvaluateExpression(
           sce.key, inExecution: updated_execution),
           kse.eq(selector_value)
         {
           //let result = sce.evaluate(execution: updated_execution)
-          let result = EvaluateExpression(sce, inExecution: updated_execution)
+          let result = updated_execution.evaluator.EvaluateExpression(sce, inExecution: updated_execution)
           return result
         }
       }
@@ -212,13 +212,13 @@ extension BinaryOperatorExpression: EvaluatableExpression {
   public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
     let updated_execution = execution
     //let maybe_evaluated_left = self.left.evaluate(execution: updated_execution)
-    let maybe_evaluated_left = EvaluateExpression(self.left, inExecution: updated_execution)
+    let maybe_evaluated_left = updated_execution.evaluator.EvaluateExpression(self.left, inExecution: updated_execution)
     guard case (.Ok(let evaluated_left), let updated_execution) = maybe_evaluated_left else {
       return maybe_evaluated_left
     }
 
     //let maybe_evaluated_right = self.right.evaluate(execution: updated_execution)
-    let maybe_evaluated_right = EvaluateExpression(self.right, inExecution: updated_execution)
+    let maybe_evaluated_right = updated_execution.evaluator.EvaluateExpression(self.right, inExecution: updated_execution)
     guard case (.Ok(let evaluated_right), let updated_execution) = maybe_evaluated_right else {
       return maybe_evaluated_right
     }
@@ -235,13 +235,13 @@ extension ArrayAccessExpression: EvaluatableExpression {
   public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
     let updated_execution = execution
     //let maybe_name = self.name.evaluate(execution: updated_execution)
-    let maybe_name = EvaluateExpression(self.name, inExecution: updated_execution)
+    let maybe_name = updated_execution.evaluator.EvaluateExpression(self.name, inExecution: updated_execution)
     guard case (.Ok(let name), let updated_execution) = maybe_name else {
       return maybe_name
     }
 
     //let maybe_indexor = self.indexor.evaluate(execution: updated_execution)
-    let maybe_indexor = EvaluateExpression(self.indexor, inExecution: updated_execution)
+    let maybe_indexor = updated_execution.evaluator.EvaluateExpression(self.indexor, inExecution: updated_execution)
     guard case (.Ok(let indexor), let updated_execution) = maybe_indexor else {
       return maybe_indexor
     }
@@ -271,7 +271,7 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
 
     let updated_execution = execution
     //let maybe_value = self.name.evaluate(execution: updated_execution)
-    let maybe_value = EvaluateExpression(self.name, inExecution: updated_execution)
+    let maybe_value = updated_execution.evaluator.EvaluateExpression(self.name, inExecution: updated_execution)
     guard case (.Ok(let value), let updated_execution) = maybe_value else {
       return .Error(
         Error(withMessage: "\(self.name) cannot be evaluated: \(maybe_value.0.error()!)"))
@@ -282,7 +282,7 @@ extension ArrayAccessExpression: EvaluatableLValueExpression {
 
     // Now, get the indexor!
     //let maybe_indexor_value = self.indexor.evaluate(execution: updated_execution)
-    let maybe_indexor_value = EvaluateExpression(self.indexor, inExecution: updated_execution)
+    let maybe_indexor_value = updated_execution.evaluator.EvaluateExpression(self.indexor, inExecution: updated_execution)
     guard case (.Ok(let indexor_value), let updated_execution) = maybe_indexor_value else {
       return Result.Error(
         Error(withMessage: "\(self.indexor) cannot be evaluated: \(maybe_indexor_value.0.error()!)")
@@ -349,7 +349,7 @@ extension FieldAccessExpression: EvaluatableExpression {
 
     let updated_execution = execution
     //let maybe_struct = self.strct.evaluate(execution: updated_execution)
-    let maybe_struct = EvaluateExpression(self.strct, inExecution: updated_execution)
+    let maybe_struct = updated_execution.evaluator.EvaluateExpression(self.strct, inExecution: updated_execution)
     guard case (.Ok(let strct), let updated_execution) = maybe_struct else {
       return maybe_struct
     }
@@ -384,7 +384,7 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
     let updated_execution = execution
     // First, evaluate strct_id and make sure that it names a struct.
     //let maybe_value = self.strct.evaluate(execution: updated_execution)
-    let maybe_value = EvaluateExpression(self.strct, inExecution: updated_execution)
+    let maybe_value = updated_execution.evaluator.EvaluateExpression(self.strct, inExecution: updated_execution)
     guard case (.Ok(let value), let updated_execution) = maybe_value else {
       return .Error(
         Error(withMessage: "\(self.strct) cannot be evaluated: \(maybe_value.0.error()!)"))
@@ -454,7 +454,7 @@ extension FieldAccessExpression: EvaluatableLValueExpression {
 extension KeysetExpression: EvaluatableExpression {
   public func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution) {
     //return self.key.evaluate(execution: execution)
-    return EvaluateExpression(self.key, inExecution: execution)
+    return execution.evaluator.EvaluateExpression(self.key, inExecution: execution)
   }
 
   public func type() -> P4Type {

@@ -54,3 +54,19 @@ public protocol EvaluatableLValueExpression: EvaluatableExpression {
   ) -> Result<(VarValueScopes, P4Value)>
   func check(to: EvaluatableExpression, inScopes scopes: VarTypeScopes) -> Result<()>
 }
+
+public protocol ProgramExecutionEvaluator {
+  func ExecuteStatement(
+    _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
+    inExecution execution: ProgramExecution,
+  ) -> (ControlFlow, ProgramExecution);
+
+  func ExecuteStatement(
+    _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
+    inExecution execution: ProgramExecution
+  ) -> (ControlFlow, ProgramExecution);
+
+  func EvaluateExpression(
+    _ expression: EvaluatableExpression, inExecution execution: ProgramExecution,
+  ) -> (Result<P4Value>, ProgramExecution)
+}

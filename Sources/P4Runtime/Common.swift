@@ -33,7 +33,7 @@ public func Call<T>(
     let arg_idx = argument.index
     let arg_value = argument.argument
     //let maybe_argument_value = arg_value.evaluate(execution: called_execution)
-    let maybe_argument_value = EvaluateExpression(arg_value, inExecution: called_execution)
+    let maybe_argument_value = called_execution.evaluator.EvaluateExpression(arg_value, inExecution: called_execution)
     guard case (.Ok(let argument_value), let updated_execution) = maybe_argument_value else {
       return (
         .Error(Error(withMessage: "Cannot evaluate argument \(arg_idx): \(argument)")),
@@ -84,65 +84,3 @@ public func Call<T>(
   return (.Ok(call_result), updated_execution.replaceScopes(inout_scopes))
 }
 
-public typealias ExecuteStatementResultHandler = (ControlFlow, ProgramExecution) -> (
-  ControlFlow, ProgramExecution
-)
-
-public func ExecuteStatement(
-  _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
-  inExecution execution: ProgramExecution,
-) -> (ControlFlow, ProgramExecution) {
-
-  var debugger: StatementInterloper? = .none
-  var hasDebugInterloper = false
-  if let found_deb = execution.getStatementInterloper() {
-    debugger = found_deb
-    hasDebugInterloper = true
-  }
-
-  var execution = execution
-  for s in statements {
-    let (control_flow, next_execution) = s.evaluate(execution: execution)
-
-    if hasDebugInterloper {
-      debugger!(s, control_flow, next_execution)
-    }
-
-    switch handler(control_flow, next_execution) {
-    case (ControlFlow.Next, let handled_next_execution): execution = handled_next_execution
-    case (ControlFlow.Return(let value), let handled_next_execution):
-      return (ControlFlow.Return(value), handled_next_execution)
-    case (let handled_control_flow, let handled_next_execution):
-      return (handled_control_flow, handled_next_execution)
-    }
-  }
-  return (ControlFlow.Next, execution)
-}
-
-public func ExecuteStatement(
-  _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
-  inExecution execution: ProgramExecution
-) -> (ControlFlow, ProgramExecution) {
-  return ExecuteStatement([statement], handleResult: handler, inExecution: execution)
-}
-
-public func EvaluateExpression(
-  _ expression: EvaluatableExpression, inExecution execution: ProgramExecution,
-) -> (Result<P4Value>, ProgramExecution) {
-
-  var debugger: ExpressionInterloper? = .none
-  var hasDebugInterloper = false
-  if let found_deb = execution.getExpressionInterloper() {
-    debugger = found_deb
-    hasDebugInterloper = true
-  }
-
-  let (result, execution) = expression.evaluate(execution: execution)
-
-  if hasDebugInterloper {
-    debugger!(expression, result, execution)
-  }
-
-  return (result, execution)
-
-}
