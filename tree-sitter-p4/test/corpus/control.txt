@@ -9,6 +9,8 @@ control simple() {
       x: exact;
     }
   }
+  apply {
+  }
 };
 
 ---
@@ -46,6 +48,10 @@ control simple() {
       )  
      )
     )
+   )
+   (apply)
+   (statement
+    (blockStatement)
    )
   )
  )

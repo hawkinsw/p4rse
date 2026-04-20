@@ -83,7 +83,7 @@ export default grammar({
         variableDeclaration: $ => seq(optional($.annotations), $.typeRef, field('variable_name', $.identifier), optional(seq($.assignment, $.expression)), $._semicolon),
 
         // Control declarations
-        control_declaration: $ => seq($.control, $.identifier, $.parameters, '{', repeat(choice($.table_declaration, $.action_declaration)), '}'),
+        control_declaration: $ => seq($.control, $.identifier, $.parameters, '{', repeat(choice($.table_declaration, $.action_declaration)), $.apply, $.statement, '}'),
         action_declaration: $ => seq($.action, $.identifier, $.parameters, $.statement),
         table_declaration: $ => seq($.table, $.identifier, '{', optional($.table_property_list), '}'),
 
