@@ -93,7 +93,7 @@ While coding, it may be useful to leave ourselves notes. Every note is formatted
 
 
 ```Swift
-/// NOTE: note text
+// NOTE: note text
 ```
 
 where `NOTE` can be:
