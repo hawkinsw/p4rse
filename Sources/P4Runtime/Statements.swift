@@ -20,7 +20,6 @@ import P4Lang
 
 extension BlockStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
-    print("I am going to evaluate a block statement?")
     return ExecuteStatement(
       self.statements,
       handleResult: { (cf, execution) in
