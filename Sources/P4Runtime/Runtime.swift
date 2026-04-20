@@ -29,22 +29,22 @@ public struct ParserRuntime: CustomStringConvertible {
     self.initialValues = .none
   }
 
-  init(parser: Parser, withInitialValues initial: VarValueScopes?) {
+  init(parser: Parser, withGlobalValues initial: VarValueScopes?) {
     self.parser = parser
     self.initialValues = initial
   }
 
   /// Create a parser runtime from a P4 program
   public static func create(program: P4Lang.Program) -> Result<ParserRuntime> {
-    return ParserRuntime.create(program: program, withInitialValues: .none)
+    return ParserRuntime.create(program: program, withGlobalValues: .none)
   }
 
   public static func create(
-    program: P4Lang.Program, withInitialValues initial: VarValueScopes?
+    program: P4Lang.Program, withGlobalValues initial: VarValueScopes?
   ) -> Result<ParserRuntime> {
     return switch program.starting_parser() {
     case .Ok(let parser):
-      .Ok(P4Runtime.ParserRuntime(parser: parser, withInitialValues: initial))
+      .Ok(P4Runtime.ParserRuntime(parser: parser, withGlobalValues: initial))
     case .Error(let error): .Error(error)
     }
   }
@@ -52,18 +52,29 @@ public struct ParserRuntime: CustomStringConvertible {
   /// Run a P4 parser with no arguments
   public func run() -> Result<(ParserState, ProgramExecution)> {
     return self.run(withArguments: ArgumentList([]))
+
   }
 
-  /// Run the P4 parser on a given packet
-  public func run(withArguments arguments: ArgumentList) -> Result<(ParserState, ProgramExecution)>
-  {
-
+  public func run(withArguments arguments: ArgumentList) -> Result<(ParserState, ProgramExecution)> {
     let pe =
       if let initial = initialValues {
         ProgramExecution(withGlobalValues: initial)
       } else {
         ProgramExecution()
       }
+
+    return self.run(withArguments: arguments, inExecution: pe)
+  }
+
+  /// Run the P4 parser on a given packet
+  public func run(withArguments arguments: ArgumentList, inExecution pe: ProgramExecution) -> Result<(ParserState, ProgramExecution)>
+  {
+
+    let pe = if let globals = initialValues {
+      pe.setGlobalValues(globals)
+    } else {
+      pe
+    }
 
     let (end_state, execution) = parser.call(execution: pe, arguments: arguments)
     if let error = execution.getError() {

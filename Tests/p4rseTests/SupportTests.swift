@@ -35,10 +35,15 @@ struct StringConvertible: CustomStringConvertible {
 
 @Test func test_result_type_description_not_convertible() async throws {
     let result: Result<NotStringConvertible> = Result.Ok(NotStringConvertible());
-    #expect(result.description == "Ok")
+    #expect("\(result)" == "Ok(Tests.NotStringConvertible())")
 }
 
 @Test func test_result_type_description_convertible() async throws {
     let result: Result<StringConvertible> = Result.Ok(StringConvertible());
-    #expect(result.description == "CONVERTED")
+    #expect("\(result)" == "Ok: CONVERTED")
+}
+
+@Test func test_result_type_p4value_convertible() async throws {
+    let result = Result.Ok(P4Value(P4IntValue(withValue: 5)))
+    #expect("\(result)" == "Ok: Value: 5 of Int type of type Int")
 }

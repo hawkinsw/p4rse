@@ -90,7 +90,7 @@ public struct ParameterList: CustomStringConvertible, Equatable {
 public struct ArgumentList {
   public let arguments: [Argument]
 
-  public init(_ arguments: [Argument]) {
+  public init(_ arguments: [Argument] = []) {
     self.arguments = arguments
   }
 

@@ -21,7 +21,8 @@ import P4Lang
 extension ParserAssignmentStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
     let updated_execution = execution
-    let result = self.value.evaluate(execution: updated_execution)
+    //let result = self.value.evaluate(execution: updated_execution)
+    let result = EvaluateExpression(self.value, inExecution: updated_execution)
     guard case (.Ok(let value), let updated_execution) = result else {
       return (ControlFlow.Error, execution.setError(error: result.0.error()!))
     }
@@ -43,19 +44,23 @@ extension ParserStateDirectTransition: EvaluatableParserState {
   ) -> (any EvaluatableParserState, Common.ProgramExecution) {
     var program = program.enter_scope()
 
-    for statement in statements {
-      let (control_flow, next_program) = statement.evaluate(execution: program)
-      switch control_flow {
-      case .Next: program = next_program  // Ok!
-      case .Error: return (reject, next_program)
-      default:
-        return (
-          reject,
-          next_program.setError(
-            error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)"))
-        )
-      }
+
+    let (control_flow, next_execution) = ExecuteStatement(statements, handleResult: { (control_flow, execution) in
+      return (control_flow, execution)
+      }, inExecution: program)
+
+
+    switch control_flow {
+    case .Next: program = next_execution
+    case .Error: return (reject, next_execution.exit_scope())
+    default:
+      return (
+        reject,
+        next_execution.exit_scope().setError(
+          error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)"))
+      )
     }
+
     let res = program.scopes.lookup(identifier: get_next_state())
 
     if case .Ok(let value) = res {
@@ -79,7 +84,6 @@ extension ParserStateDirectTransition: EvaluatableParserState {
 }
 
 extension ParserStateNoTransition: EvaluatableParserState {
-
   public func execute(
     program: Common.ProgramExecution
   ) -> (any EvaluatableParserState, Common.ProgramExecution) {
@@ -96,28 +100,30 @@ extension ParserStateNoTransition: EvaluatableParserState {
 }
 
 extension ParserStateSelectTransition: EvaluatableParserState {
-
   public func execute(
     program: Common.ProgramExecution
   ) -> (any EvaluatableParserState, Common.ProgramExecution) {
     var program = program.enter_scope()
 
-    // First, evaluate the statements.
-    for statement in statements {
-      let (control_flow, next_program) = statement.evaluate(execution: program)
-      switch control_flow {
-      case .Next: program = next_program  // Ok!
-      case .Error: return (reject, next_program)
-      default:
-        return (
-          reject,
-          next_program.setError(
-            error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)"))
-        )
-      }
+    let (control_flow, next_execution) = ExecuteStatement(statements, handleResult: { (control_flow, execution) in
+      return (control_flow, execution)
+      }, inExecution: program)
+
+
+    switch control_flow {
+    case .Next: program = next_execution
+    case .Error: return (reject, next_execution.exit_scope())
+    default:
+      return (
+        reject,
+        next_execution.exit_scope().setError(
+          error: Error(withMessage: "Invalid control flow (\(control_flow) in parser)"))
+      )
     }
 
-    switch self.selectExpression.evaluate(execution: program) {
+
+    //switch self.selectExpression.evaluate(execution: program) {
+    switch EvaluateExpression(self.selectExpression, inExecution: program) {
     case (.Ok(let value), let program):
       if value.type().dataType().eq(rhs: self) {
         return (value.dataValue() as! EvaluatableParserState, program.exit_scope())
@@ -156,10 +162,8 @@ extension Parser: LibraryCallable {
       withValue: P4Value(reject, P4Type.ReadOnly(reject.type())))
 
     // Add initial values to the global scope
-    if let initial = execution.initial_values() {
-      for (name, value) in initial {
-        execution = execution.declare(identifier: name, withValue: value)
-      }
+    for (name, value) in execution.getGlobalValues() {
+      execution = execution.declare(identifier: name, withValue: value)
     }
 
     // First, add every state to the scope!

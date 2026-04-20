@@ -49,7 +49,7 @@ import TreeSitterP4
     ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withGlobalValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
@@ -101,7 +101,7 @@ import TreeSitterP4
     ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withGlobalValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
@@ -128,7 +128,7 @@ import TreeSitterP4
     ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withGlobalValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
@@ -155,7 +155,7 @@ import TreeSitterP4
     ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withGlobalValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
@@ -187,7 +187,7 @@ import TreeSitterP4
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withGlobalValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
@@ -216,7 +216,7 @@ import TreeSitterP4
     ])))
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withGlobalValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)
@@ -249,7 +249,7 @@ import TreeSitterP4
 
   let program = try #UseOkResult(
     Program.Compile(simple_parser_declaration, withGlobalInstances: test_declarations))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withInitialValues: test_values))
+  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program, withGlobalValues: test_values))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(AsInstantiatedParserState(state_result) == P4Lang.accept)

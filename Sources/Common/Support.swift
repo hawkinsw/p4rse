@@ -117,24 +117,13 @@ public enum Result<OKT>: Equatable {
   }
 }
 
-extension Result where OKT: CustomStringConvertible {
+extension Result: CustomStringConvertible where OKT: CustomStringConvertible {
   public var description: String {
     switch self {
     case Result.Error(let e):
       return e.msg
     case Result.Ok(let o):
-      return "\(o)"
-    }
-  }
-}
-
-extension Result: CustomStringConvertible {
-  public var description: String {
-    switch self {
-    case Result.Error(let e):
-      return e.msg
-    case Result.Ok(_):
-      return "Ok"
+      return "Ok: \(o)"
     }
   }
 }

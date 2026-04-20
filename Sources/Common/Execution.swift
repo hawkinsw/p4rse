@@ -15,25 +15,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+public typealias StatementInterloper = (EvaluatableStatement, ControlFlow, ProgramExecution) -> Void
+public typealias ExpressionInterloper = (EvaluatableExpression, Result<P4Value>, ProgramExecution) -> Void
+
 open class ProgramExecution: CustomStringConvertible {
   public var scopes: VarValueScopes = VarValueScopes()
-  let initialValues: VarValueScopes?
+  var globalValues: VarValueScopes?
   var error: Error?
   var debug: DebugLevel = DebugLevel.Error
+  var statement_interloper: StatementInterloper?
+  var expression_interloper: ExpressionInterloper?
 
   init(copy: ProgramExecution) {
     self.scopes = copy.scopes
-    self.initialValues = copy.initialValues
+    self.globalValues = copy.globalValues
     self.error = copy.error
     self.debug = copy.debug
+    self.statement_interloper = copy.statement_interloper
+    self.expression_interloper = copy.expression_interloper
   }
 
   public init() {
-    initialValues = .none
+    globalValues = .none
   }
 
   public init(withGlobalValues values: VarValueScopes) {
-    initialValues = values
+    globalValues = values
   }
 
   open var description: String {
@@ -61,6 +68,26 @@ open class ProgramExecution: CustomStringConvertible {
   public func setDebugLevel(_ dl: DebugLevel) -> ProgramExecution {
     let pe = ProgramExecution(copy: self)
     pe.debug = dl
+    return pe
+  }
+
+  public func getStatementInterloper() -> StatementInterloper? {
+    return self.statement_interloper
+  }
+
+  public func setStatementInterloper(_ interloper: @escaping StatementInterloper) -> ProgramExecution {
+    let pe = ProgramExecution(copy: self)
+    pe.statement_interloper = interloper
+    return pe
+  }
+
+  public func getExpressionInterloper() -> ExpressionInterloper? {
+    return self.expression_interloper
+  }
+
+  public func setExpressionInterloper(_ interloper: @escaping ExpressionInterloper) -> ProgramExecution {
+    let pe = ProgramExecution(copy: self)
+    pe.expression_interloper = interloper
     return pe
   }
 
@@ -101,9 +128,17 @@ open class ProgramExecution: CustomStringConvertible {
     return new_pe
   }
 
-  public func initial_values() -> VarValueScopes? {
-    return self.initialValues
+  public func getGlobalValues() -> VarValueScopes {
+    return self.globalValues ?? VarValueScopes()
   }
+
+  public func setGlobalValues(_ global_values: VarValueScopes) -> ProgramExecution {
+    let new_pe = ProgramExecution(copy: self)
+    new_pe.globalValues = global_values
+    return new_pe
+  }
+
+
 }
 
 /// A scope that resolves variable identifiers to their values.

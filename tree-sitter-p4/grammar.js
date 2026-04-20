@@ -111,8 +111,7 @@ export default grammar({
 
         // Parser statements
         parserStatements: $ => repeat1($.parserStatement),
-        parserStatement: $ => choice($.conditionalStatement, $.parserBlockStatement, $.expressionStatement, $.assignmentStatement, $.variableDeclaration), // Limited, so far.
-        parserBlockStatement: $ => seq(optional($.annotations), '{', $.parserStatements, '}'),
+        parserStatement: $ => choice($.conditionalStatement, $.expressionStatement, $.assignmentStatement, $.variableDeclaration), // Limited, so far.
         parserTransitionStatement: $ => seq($.transition, $.transitionSelectionExpression, $._semicolon),
 
         // Expressions
