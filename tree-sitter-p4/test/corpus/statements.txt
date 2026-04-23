@@ -43,15 +43,13 @@ int fun() {
    )
    (identifier)
    (parameters)
-   (statement
-    (blockStatement
-     (statements
-      (statement
-       (return_statement
-        (expression
-         (simple_expression
-          (integer)
-         )
+   (blockStatement
+    (statements
+     (statement
+      (return_statement
+       (expression
+        (simple_expression
+         (integer)
         )
        )
       )

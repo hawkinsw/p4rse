@@ -282,18 +282,16 @@ bool functionb() {
    )
    (identifier)
    (parameters)
-   (statement
-    (blockStatement
-     (statements
-      (statement
-       (variableDeclaration
-        (typeRef
-         (baseType
-          (string)
-         )
+   (blockStatement
+    (statements
+     (statement
+      (variableDeclaration
+       (typeRef
+        (baseType
+         (string)
         )
-       (identifier)
        )
+      (identifier)
       )
      )
     )
@@ -340,18 +338,16 @@ bool functionb(bool a, int b) {
      )
     )
    )
-   (statement
-    (blockStatement
-     (statements
-      (statement
-       (variableDeclaration
-        (typeRef
-         (baseType
-          (string)
-         )
+   (blockStatement
+    (statements
+     (statement
+      (variableDeclaration
+       (typeRef
+        (baseType
+         (string)
         )
-       (identifier)
        )
+      (identifier)
       )
      )
     )
@@ -416,17 +412,78 @@ bool functionb(in bool a, out int b, inout string c) {
      )
     )
    )
-   (statement
-    (blockStatement
-     (statements
-      (statement
-       (variableDeclaration
+   (blockStatement
+    (statements
+     (statement
+      (variableDeclaration
+       (typeRef
+        (baseType
+         (string)
+        )
+       )
+      (identifier)
+      )
+     )
+    )
+   )
+  )
+ )
+)
+=========================
+Extern Function Declaration
+=========================
+extern bool functionb(in bool a, out int b, inout string c);
+---
+(p4program
+ (declaration
+  (extern_declaration
+   (extern)
+   (declaration
+    (function_declaration
+     (typeRef
+      (baseType
+       (bool)
+      )
+     )
+     (identifier)
+     (parameters
+      (parameter_list
+       (parameter_list
+        (parameter_list
+         (parameter
+          (direction
+           (in)
+          )
+          (typeRef
+           (baseType
+           (bool)
+           )
+          )
+          (identifier)
+         )
+        )
+        (parameter
+         (direction
+          (out)
+         )
+         (typeRef
+          (baseType
+           (int)
+          )
+         )
+         (identifier)
+        )
+       )
+       (parameter
+        (direction
+         (inout)
+        )
         (typeRef
          (baseType
           (string)
          )
         )
-       (identifier)
+        (identifier)
        )
       )
      )

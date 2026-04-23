@@ -68,13 +68,16 @@ export default grammar({
         instantiation: $ => seq($.typeRef, '(', optional($.parameter_list), ')', $.identifier),
 
         // Declarations
-        declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration, $.type_declaration, $.function_declaration, $.control_declaration)),
+        declaration: $ => seq(choice($.parserDeclaration, $.parserTypeDeclaration, $.type_declaration, $.function_declaration, $.control_declaration, $.extern_declaration)),
 
         type_declaration: $=> choice($.struct_declaration),
         struct_declaration: $ => seq($.struct, $.identifier, '{', optional($.struct_declaration_fields), '}'),
         struct_declaration_fields: $=> repeat1(seq($.variableDeclaration)),
 
-        function_declaration: $=> seq($.typeRef, $.identifier, $.parameters, $.statement),
+        extern_declaration: $=> seq($.extern, $.declaration),
+
+        // The body is truly optional only in the extern case. This check is handled by the compiler.
+        function_declaration: $=> seq($.typeRef, $.identifier, $.parameters, optional($.blockStatement)),
 
         // Make separate productions for the parser type and the parser type declaration because the latter can have type parameters.
         parserTypeDeclaration: $ => seq(optional($.annotations), $.parser, field('parser_name', $.identifier), optional($.typeParameters), $.parameters),
