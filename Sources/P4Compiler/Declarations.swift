@@ -25,12 +25,13 @@ import TreeSitterP4
 extension Declaration: CompilableDeclaration {
   public static func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4DataType, CompilerContext)?> {
+  ) -> Result<(Declaration, CompilerContext)?> {
 
     let declaration_compilers: [String: CompilableDeclaration.Type] = [
       "function_declaration": FunctionDeclaration.self,
       "control_declaration": Control.self,
-      "type_declaration": StructDeclaration.self,  // ASSUME: Type declarations are struct declarations.
+      "type_declaration": P4Struct.self,  // ASSUME: Type declarations are struct declarations.
+      "extern_declaration": ExternDeclaration.self,
     ]
 
     guard let declaration_compiler = declaration_compilers[node.nodeType!] else {
@@ -44,7 +45,7 @@ extension Declaration: CompilableDeclaration {
 extension FunctionDeclaration: CompilableDeclaration {
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
-  ) -> Common.Result<(any Common.P4DataType, CompilerContext)?> {
+  ) -> Common.Result<(Declaration, CompilerContext)?> {
     let function_declaration_node = node
     #RequireNodeType<Node, (ParameterList, CompilerContext)>(
       node: function_declaration_node, type: "function_declaration",
@@ -96,52 +97,69 @@ extension FunctionDeclaration: CompilableDeclaration {
     }
     context = updated_context
 
+    var function_body: BlockStatement? = .none
+
     currentChildIdx += 1
     currentChildIdxSafe += 1
-    if function_declaration_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(
-          node: function_declaration_node, withError: "Missing function declaration component"))
-    }
-    currentChild = function_declaration_node.child(at: currentChildIdx)
+    if currentChildIdxSafe <= function_declaration_node.childCount {
+      currentChild = function_declaration_node.child(at: currentChildIdx)
 
-    // Add the parameters into scope.
-    var function_scope = context.instances.enter()
-    for parameter in function_parameters.parameters {
-      function_scope = function_scope.declare(
-        identifier: parameter.name, withValue: parameter.type)
+      // Add the parameters into scope.
+      var function_scope = context.instances.enter()
+      for parameter in function_parameters.parameters {
+        function_scope = function_scope.declare(
+          identifier: parameter.name, withValue: parameter.type)
+      }
+
+      let maybe_function_body = BlockStatement.Compile(
+        node: currentChild!,
+        withContext: context.update(newInstances: function_scope).update(
+          newExpectation: function_type))
+
+      guard case .Ok((let parsed_function_body, _)) = maybe_function_body else {
+        return .Error(maybe_function_body.error()!)
+      }
+      function_body = (parsed_function_body as! BlockStatement)
+    } else {
+
+      // If we are in an extern context, no body is okay!
+
+      if !context.extern_context {
+        return Result.Error(
+          ErrorOnNode(
+            node: function_declaration_node, withError: "Missing function declaration component"))
+      }
     }
 
-    let maybe_function_body = Parser.Statement.Compile(
-      node: currentChild!,
-      withContext: context.update(newInstances: function_scope).update(
-        newExpectation: function_type))
-    guard case .Ok((let function_body, _)) = maybe_function_body else {
-      return .Error(maybe_function_body.error()!)
-    }
-
-    let function_declaration = FunctionDeclaration(
-      named: function_name, ofType: function_type, withParameters: function_parameters,
-      withBody: function_body)
+    let function_declaration = Declaration(
+      TypedIdentifier(
+        id: function_name,
+        withType: P4Type(
+          FunctionDeclaration(
+            named: function_name, ofType: function_type, withParameters: function_parameters,
+            withBody: function_body))))
 
     // Do not use the updated context returned by parsing the body
     // and do not use the function_scope, either.
+    // And, do not update the context if we are compiling in an
+    // extern context.
     return .Ok(
       (
         function_declaration,
-        context.update(
-          newTypes: context.types.declare(
-            identifier: function_name, withValue: function_declaration))
+        context.extern_context
+          ? context
+          : context.update(
+            newTypes: context.types.declare(
+              identifier: function_name, withValue: function_declaration.identifier.type.dataType())
+          )
       ))
   }
 }
 
-struct StructDeclaration {}
-
-extension StructDeclaration: CompilableDeclaration {
-  static func Compile(
+extension P4Struct: CompilableDeclaration {
+  static public func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4DataType, CompilerContext)?> {
+  ) -> Result<(Declaration, CompilerContext)?> {
 
     let struct_declaration_node = node.child(at: 0)!
     var currentChildIdx = 0
@@ -195,12 +213,18 @@ extension StructDeclaration: CompilableDeclaration {
 
     // If there are no fields, it will be a "}"
     if currentChild!.nodeType == "}" {
-      let struc = P4Struct(withName: struct_identifier, andFields: P4StructFields([]))
+      let struc = Declaration(
+        TypedIdentifier(
+          id: struct_identifier,
+          withType: P4Type(P4Struct(withName: struct_identifier, andFields: P4StructFields([])))))
       return Result.Ok(
         (
           struc,
-          context.update(
-            newTypes: context.types.declare(identifier: struct_identifier, withValue: struc))
+          context.extern_context
+            ? context
+            : context.update(
+              newTypes: context.types.declare(
+                identifier: struct_identifier, withValue: struc.identifier.type.dataType()))
         ))
     }
 
@@ -234,14 +258,20 @@ extension StructDeclaration: CompilableDeclaration {
             }.joined(separator: ";"))))
     }
 
-    let declared_struct = P4Struct(
-      withName: struct_identifier, andFields: P4StructFields(parsed_fields))
+    let declared_struct = Declaration(
+      TypedIdentifier(
+        id: struct_identifier,
+        withType: P4Type(
+          P4Struct(
+            withName: struct_identifier, andFields: P4StructFields(parsed_fields)))))
     return .Ok(
       (
         declared_struct,
-        current_context.update(
-          newTypes: current_context.types.declare(
-            identifier: struct_identifier, withValue: declared_struct))
+        current_context.extern_context
+          ? current_context
+          : current_context.update(
+            newTypes: current_context.types.declare(
+              identifier: struct_identifier, withValue: declared_struct.identifier.type.dataType()))
       ))
   }
 }
@@ -249,7 +279,7 @@ extension StructDeclaration: CompilableDeclaration {
 extension P4Lang.Parser: CompilableDeclaration {
   public static func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4DataType, CompilerContext)?> {
+  ) -> Result<(Declaration, CompilerContext)?> {
     let parser_node = node
     #SkipUnlessNodeType<Node, (P4DataType, CompilerContext)?>(
       node: parser_node, type: "parserDeclaration")
@@ -369,13 +399,17 @@ extension P4Lang.Parser: CompilableDeclaration {
       withContext: current_context)
     {
     case Result.Ok((let parser, let updated_context)):
+      let parser_declaration = Declaration(
+        TypedIdentifier(id: parser.name, withType: P4Type(parser)))
       // Create a new context with the name of the parser that was just compiled in scope.
       return .Ok(
         (
-          parser,
-          context.update(
-            newInstances: updated_context.instances.declare(
-              identifier: parser.name, withValue: P4Type(parser)))
+          parser_declaration,
+          context.extern_context
+            ? context
+            : context.update(
+              newInstances: updated_context.instances.declare(
+                identifier: parser.name, withValue: parser_declaration.identifier.type))
         ))
     case Result.Error(let error): return .Error(error)
     }
@@ -385,7 +419,7 @@ extension P4Lang.Parser: CompilableDeclaration {
 extension Control: CompilableDeclaration {
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
-  ) -> Common.Result<(any Common.P4DataType, CompilerContext)?> {
+  ) -> Common.Result<(Declaration, CompilerContext)?> {
 
     #SkipUnlessNodeType<Node, (P4DataType, CompilerContext)?>(
       node: node, type: "control_declaration")
@@ -516,19 +550,24 @@ extension Control: CompilableDeclaration {
     }
 
     let declared_control =
-      (Control(
-        named: control_name, withParameters: control_parameters, withTable: tables[0],
-        withActions: Actions(withActions: actions), withApply: apply)
-        as P4DataType)
+      Declaration(
+        TypedIdentifier(
+          id: control_name,
+          withType: P4Type(
+            Control(
+              named: control_name, withParameters: control_parameters, withTable: tables[0],
+              withActions: Actions(withActions: actions), withApply: apply))))
 
     // Don't forget to add the newly declared Control to the instance that we were given
     // (and not the one that we entered to do the parsing of this Control).
     return .Ok(
       (
         declared_control,
-        context.update(
-          newInstances: context.instances.declare(
-            identifier: control_name, withValue: P4Type(declared_control)))
+        context.extern_context
+          ? context
+          : context.update(
+            newInstances: context.instances.declare(
+              identifier: control_name, withValue: declared_control.identifier.type))
       ))
   }
 }
@@ -821,5 +860,56 @@ extension Table: Compilable {
 
     return .Ok(
       (Table(withName: table_name, withPropertyList: table_property_list), current_context))
+  }
+}
+
+extension ExternDeclaration: CompilableDeclaration {
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(Declaration, CompilerContext)?> {
+    let extern_declaration_node = node
+    #RequireNodeType<Node, (Declaration, CompilerContext)>(
+      node: extern_declaration_node, type: "extern_declaration",
+      nice_type_name: "Extern Declaration")
+    let declaration_node = extern_declaration_node.child(at: 1)!
+    #RequireNodeType<Node, (Declaration, CompilerContext)>(
+      node: declaration_node, type: "declaration", nice_type_name: "Declaration")
+    let declarationed_node = declaration_node.child(at: 0)!
+
+    let maybe_declared = Declaration.Compile(
+      node: declarationed_node, withContext: context.update(newExtern: true))
+
+    guard case .Ok(let maybe_declared) = maybe_declared else {
+      return .Error(maybe_declared.error()!)
+    }
+
+    guard case .some((let declared, _)) = maybe_declared else {
+      return .Ok(.none)
+    }
+
+    // Before we are okay with this declaration, it must already be registered as an extern
+    // with the matching "stuff".
+
+    let found_ffi = context.ffis.first { ffi in
+      ffi.type().dataType().eq(rhs: declared.identifier.type.dataType())
+    }
+
+    guard let found_ffi = found_ffi else {
+      return .Error(
+        ErrorOnNode(
+          node: declarationed_node,
+          withError:
+            "Could not find a foreign function that matches the extern declaration (\(declared))"))
+    }
+
+    let extern_declaration = Declaration(extern: declared, ffi: found_ffi)
+
+    return .Ok(
+      (
+        extern_declaration,
+        context.update(
+          newExterns: context.externs.declare(
+            identifier: declared.identifier, withValue: extern_declaration))
+      ))
   }
 }

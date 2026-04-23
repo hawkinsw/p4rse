@@ -98,7 +98,7 @@ import P4Lang
     #RequireErrorResult<(EvaluatableStatement, CompilerContext)>(
       Error(withMessage: "{2, 154}: Did not find assignment statement"),
       ParserAssignmentStatement.Compile( // Note: Calling ParserAssignmentStatement compilation directly.
-        node: result.rootNode!, withContext: CompilerContext(withInstances: VarTypeScopes()))))
+        node: result.rootNode!, withContext: CompilerContext())))
 }
 
 @Test func test_simple_compiler_parser_with_parameters() async throws {

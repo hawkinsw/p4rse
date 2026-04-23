@@ -176,7 +176,7 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-        "{56, 21}: Failed to parse a statement element: {63, 9}: Failed to parse a statement element: {63, 1}: Cannot assign value with type Boolean to identifier x that is in parameter"
+        "{63, 9}: Failed to parse a statement element: {63, 1}: Cannot assign value with type Boolean to identifier x that is in parameter"
       ),
       Program.Compile(simple_parser_declaration))
   )
@@ -196,7 +196,7 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-        "{113, 27}: Failed to parse a statement element: {120, 15}: Failed to parse a statement element: {120, 7}: Cannot assign to field yesno of x that is in parameter"
+        "{120, 15}: Failed to parse a statement element: {120, 7}: Cannot assign to field yesno of x that is in parameter"
       ),
       Program.Compile(simple_parser_declaration))
   )

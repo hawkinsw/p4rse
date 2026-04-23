@@ -27,12 +27,13 @@ public struct ExpressionStatement {
 
 public struct Program {
   public var types: [P4DataType] = Array()
+  public var externs: [P4DataType] = Array()
   public var instances: [P4Type] = Array()
 
   /// Type of closure for filtering results from ``Program/InstancesWithTypes(_:)``
-  public typealias AttributedTypeFilter = (P4Type) -> Bool
+  public typealias TypeFilter = (P4Type) -> Bool
   /// Type of closure for filtering results from ``Program/TypesWithTypes(_:)``
-  public typealias TypeFilter = (P4DataType) -> Bool
+  public typealias DataTypeFilter = (P4DataType) -> Bool
 
   /// Retrieve global instances in the compiled P4 program.
   public func InstancesWithTypes() -> [P4Type] {
@@ -51,7 +52,7 @@ public struct Program {
   ///
   /// @Snippet(path: "use-program-instanceswithtypes", slice: "include")
   ///
-  public func InstancesWithTypes(_ filter: AttributedTypeFilter) -> [P4Type] {
+  public func InstancesWithTypes(_ filter: TypeFilter) -> [P4Type] {
     return self.instances.filter { instance in
       filter(instance)
     }
@@ -74,8 +75,31 @@ public struct Program {
   ///
   /// @Snippet(path: "use-program-typeswithtypes", slice: "include")
   ///
-  public func TypesWithTypes(_ filter: TypeFilter) -> [P4DataType] {
+  public func TypesWithTypes(_ filter: DataTypeFilter) -> [P4DataType] {
     return self.types.filter { instance in
+      filter(instance)
+    }
+  }
+
+  /// Retrieve extern types in the compiled P4 program.
+  public func Externs() -> [P4DataType] {
+    return self.externs
+  }
+
+  /// Retrieve extern types declared in the compiled P4 program.
+  ///
+  /// Use the given filter to select which of the extern types
+  /// declared in the compiled P4 program to retrieve.
+  ///
+  /// If the compiled P4 program (from the source in the
+  /// string `p4_program_with_struct_decl`) has two extern structs declared and
+  /// you only want to select the one named `agg`, you could
+  /// use a filter like
+  ///
+  /// @Snippet(path: "use-program-typeswithtypes", slice: "include")
+  ///
+  public func Externs(_ filter: DataTypeFilter) -> [P4DataType] {
+    return self.externs.filter { instance in
       filter(instance)
     }
   }

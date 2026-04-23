@@ -24,18 +24,19 @@ import TreeSitterP4
 
 public struct Program {
   public static func Compile(_ source: String) -> Result<P4Lang.Program> {
-    return Program.Compile(source, withGlobalInstances: .none, withGlobalTypes: .none)
+    return Program.Compile(source, withGlobalInstances: .none, withGlobalTypes: .none, withFFIs: [])
   }
 
   public static func Compile(
     _ source: String, withGlobalInstances globalInstances: VarTypeScopes
   ) -> Result<P4Lang.Program> {
-    return Program.Compile(source, withGlobalInstances: globalInstances, withGlobalTypes: .none)
+    return Program.Compile(
+      source, withGlobalInstances: globalInstances, withGlobalTypes: .none, withFFIs: [])
   }
 
   public static func Compile(
     _ source: String, withGlobalInstances globalInstances: VarTypeScopes?,
-    withGlobalTypes globalTypes: TypeTypeScopes?
+    withGlobalTypes globalTypes: TypeTypeScopes?, withFFIs ffis: [P4FFI] = Array()
   ) -> Result<P4Lang.Program> {
 
     let maybe_parser = ConfigureP4Parser()
@@ -54,8 +55,10 @@ public struct Program {
     var program = P4Lang.Program()
 
     // Set up a context for parsing.
-    var compilation_context = CompilerContext(
-      withInstances: VarTypeScopes().enter(), withTypes: TypeTypeScopes().enter())
+    var compilation_context = CompilerContext()
+
+    // Add our FFIs
+    compilation_context = compilation_context.update(newFFIs: ffis)
 
     var errors: [Error] = Array()
 
@@ -120,6 +123,13 @@ public struct Program {
       compilation_context.types.map { (_, v) in
         v
       })
+
+    // Any of the extern types that are in the top-level scope should go into the program!
+    program.externs = Array(
+      compilation_context.externs.map { (_, v) in
+        v
+      })
+
     return Result.Ok(program)
   }
 }

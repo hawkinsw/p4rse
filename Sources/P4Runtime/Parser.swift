@@ -45,11 +45,8 @@ extension ParserStateDirectTransition: EvaluatableParserState {
   ) -> (any EvaluatableParserState, Common.ProgramExecution) {
     var program = program.enter_scope()
 
-    let (control_flow, next_execution) = program.evaluator.ExecuteStatement(
-      statements,
-      handleResult: { (control_flow, execution) in
-        return (control_flow, execution)
-      }, inExecution: program)
+    let (control_flow, next_execution) = program.evaluator.ExecuteStatements(
+      statements, inExecution: program)
 
     switch control_flow {
     case .Next: program = next_execution
@@ -106,12 +103,8 @@ extension ParserStateSelectTransition: EvaluatableParserState {
   ) -> (any EvaluatableParserState, Common.ProgramExecution) {
     var program = program.enter_scope()
 
-    let (control_flow, next_execution) = program.evaluator.ExecuteStatement(
-      statements,
-      handleResult: { (control_flow, execution) in
-        return (control_flow, execution)
-      }, inExecution: program)
-
+    let (control_flow, next_execution) = program.evaluator.ExecuteStatements(
+      statements, inExecution: program)
     switch control_flow {
     case .Next: program = next_execution
     case .Error: return (reject, next_execution.exit_scope())
@@ -151,7 +144,7 @@ extension ParserStateSelectTransition: EvaluatableParserState {
 extension Parser: LibraryCallable {
   public typealias T = InstantiatedParserState
   public func call(
-    execution: Common.ProgramExecution, arguments: P4Lang.ArgumentList
+    execution: Common.ProgramExecution, arguments: ArgumentList
   ) -> (P4Lang.InstantiatedParserState, Common.ProgramExecution) {
     var execution = execution.enter_scope()
 

@@ -128,11 +128,20 @@ public struct FieldAccessExpression {
 }
 
 public struct FunctionCall {
-  public let callee: FunctionDeclaration
+  public let callee: (FunctionDeclaration?, P4FFI?)
   public let arguments: ArgumentList
+  public let return_type: P4DataType
 
   public init(_ callee: FunctionDeclaration, withArguments arguments: ArgumentList) {
-    self.callee = callee
+    self.callee = (callee, .none)
     self.arguments = arguments
+    self.return_type = callee.tipe.dataType()
+  }
+
+  public init(_ callee: P4FFI, withArguments arguments: ArgumentList) {
+    self.callee = (.none, callee)
+    self.arguments = arguments
+    // ASSUME: That the FFI has been checked and the type is always a function declaration.
+    self.return_type = (callee.type().dataType() as! FunctionDeclaration).tipe.dataType()
   }
 }

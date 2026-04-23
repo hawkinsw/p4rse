@@ -39,9 +39,13 @@ public protocol CompilableType {
 }
 
 public protocol CompilableDeclaration {
+  /// Info
+  ///
+  /// Extensions should update the context with the newly declared item _unless_
+  /// they are in an extern context (``CompilerContext.extern_context``).
   static func Compile(
     node: Node, withContext context: CompilerContext
-  ) -> Result<(P4DataType, CompilerContext)?>
+  ) -> Result<(Declaration, CompilerContext)?>
 }
 
 public protocol Compilable<T> {

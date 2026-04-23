@@ -17,7 +17,46 @@
 
 import Common
 
-public struct Declaration {}
+public struct Declaration: P4DataType {
+  public let identifier: TypedIdentifier
+  public let extern: Bool
+  public let ffi: P4FFI?
+
+  public init(_ id: TypedIdentifier) {
+    identifier = id
+    ffi = .none
+    self.extern = false
+  }
+
+  public init(extern: Declaration, ffi: P4FFI) {
+    identifier = extern.identifier
+    self.ffi = ffi
+    self.extern = true
+  }
+
+  public func eq(rhs: any Common.P4DataType) -> Bool {
+    return switch rhs {
+    case let rrhs as Declaration:
+      self.identifier.type.dataType().eq(rhs: rrhs.identifier.type.dataType())
+        && self.extern == rrhs.extern
+    default: false
+    }
+  }
+
+  public func def() -> any Common.P4DataValue {
+    // TODO: Is a default of the extern'd type the right way to go?
+    return self.identifier.type.dataType().def()
+  }
+
+  public func type() -> any Common.P4DataType {
+    return self
+  }
+  public var description: String {
+    return "Extern \(self.identifier)"
+  }
+}
+
+public struct ExternDeclaration {}
 
 public struct FunctionDeclaration: P4DataType, P4DataValue {
   public func type() -> any Common.P4DataType {
@@ -25,6 +64,7 @@ public struct FunctionDeclaration: P4DataType, P4DataValue {
   }
 
   public func eq(rhs: any Common.P4DataType) -> Bool {
+    print("Checking a type: me: \(self) vs them: \(rhs)!")
     switch rhs {
     case let frhs as FunctionDeclaration:
       return frhs.tipe.eq(self.tipe) && frhs.params == self.params
@@ -79,14 +119,14 @@ public struct FunctionDeclaration: P4DataType, P4DataValue {
     return "Function named \(self.name) that returns \(self.tipe) with parameters \(self.params)"
   }
 
-  public var body: EvaluatableStatement?
+  public var body: BlockStatement?
   public var params: ParameterList
   public var name: Identifier
   public var tipe: P4Type
 
   public init(
     named name: Identifier, ofType type: P4Type, withParameters parameters: ParameterList,
-    withBody body: EvaluatableStatement?
+    withBody body: BlockStatement?
   ) {
     self.name = name
     self.tipe = type

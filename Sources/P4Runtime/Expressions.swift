@@ -477,33 +477,55 @@ extension FunctionCall: EvaluatableExpression {
     execution: Common.ProgramExecution
   ) -> (Common.Result<P4Value>, ProgramExecution) {
 
-    guard let body = self.callee.body else {
-      return (
-        .Error(Error(withMessage: "No body for called function (\(self.callee.name))")), execution
-      )
+    let body_params:
+      Result<((ProgramExecution) -> (ControlFlow, ProgramExecution), ParameterList)> =
+        switch self.callee {
+        case (.some(let callee), .none):
+          switch callee.body {
+          case .some(let body):
+            .Ok(
+              (
+                { (execution: ProgramExecution) -> (ControlFlow, ProgramExecution) in
+                  return body.evaluate(execution: execution)
+                }, callee.params
+              ))
+          case .none: .Error(Error(withMessage: "No body for called function (\(callee.name))"))
+          }
+        case (.none, .some(let callee)):
+          .Ok(
+            (
+              { (execution: ProgramExecution) -> (ControlFlow, ProgramExecution) in
+                return callee.execute(execution: execution)
+              }, callee.parameters()
+            ))
+        default: .Error(Error(withMessage: "No callee found for function call"))
+        }
+
+    guard case .Ok(let body) = body_params else {
+      return (.Error(body_params.error()!), execution)
     }
 
     let call_body: (ProgramExecution) -> (Result<P4Value>, ProgramExecution) = {
       (execution: ProgramExecution) in
-      let (control_flow, updated_execution) = body.evaluate(execution: execution)
+      let (control_flow, updated_execution) = body.0(execution)
       return switch control_flow {
       case ControlFlow.Return(.some(let value)): (.Ok(value), updated_execution)
       default:
         (
           .Error(
-            Error(withMessage: "No value returned from called function (\(self.callee.name))")),
+            Error(withMessage: "No value returned from called function")),
           execution
         )
       }
     }
 
     return Call(
-      body: call_body, withArguments: self.arguments, withParameters: self.callee.params,
+      body: call_body, withArguments: self.arguments, withParameters: body.1,
       inExecution: execution)
   }
 
   public func type() -> P4Type {
-    return self.callee.tipe
+    return P4Type(self.return_type)
   }
 }
 

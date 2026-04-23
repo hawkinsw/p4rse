@@ -52,60 +52,111 @@ public func ErrorOnNode(node: Node, withError error: String) -> Error {
 public struct CompilerContext {
   let instances: VarTypeScopes
   let types: TypeTypeScopes
+  let externs: TypeTypeScopes
+  let ffis: [P4FFI]
   let expected_type: P4Type?
+  let extern_context: Bool
 
-  public init(withInstances _instances: VarTypeScopes) {
-    instances = _instances
-    types = TypeTypeScopes()
+  public init() {
+    instances = VarTypeScopes().enter()
+    types = TypeTypeScopes().enter()
+    externs = TypeTypeScopes().enter()
     expected_type = .none
+    extern_context = false
+    ffis = Array()
   }
 
   public init(withInstances _instances: VarTypeScopes, withTypes _types: TypeTypeScopes) {
     instances = _instances
     types = _types
+    externs = TypeTypeScopes().enter()
     expected_type = .none
+    extern_context = false
+    ffis = Array()
   }
 
   public init(
     withInstances _instances: VarTypeScopes, withTypes _types: TypeTypeScopes,
-    withExpectation expectation: P4Type?
+    withExpectation expectation: P4Type?, withExtern extern: Bool,
+    withExterns externs: TypeTypeScopes, withFFIs foreigns: [P4FFI]
   ) {
     instances = _instances
     types = _types
     expected_type = expectation
+    extern_context = extern
+    self.externs = externs
+    ffis = foreigns
   }
 
   /// Update a compiler context
   ///
-  /// Create a new compiler context based on the current with the same types and new names.
+  /// Create a new compiler context based on the current but new instances.
   ///
   /// - Parameter instances: a ``VarTypeScopes`` with the updated instances for the newly created compiler context.
-  /// - Returns: A new compiler context based on the current with the same types and new names.
+  /// - Returns: A new compiler context based on the current but new instances.
   public func update(newInstances instances: VarTypeScopes) -> CompilerContext {
     return CompilerContext(
-      withInstances: instances, withTypes: self.types, withExpectation: self.expected_type)
+      withInstances: instances, withTypes: self.types, withExpectation: self.expected_type,
+      withExtern: self.extern_context, withExterns: self.externs, withFFIs: self.ffis)
   }
 
   /// Update a compiler context
   ///
-  /// Create a new compiler context based on the current with the same names and new types.
+  /// Create a new compiler context based on the current but new types.
   ///
   /// - Parameter types: a ``TypeTypeScopes`` with the updated types for the newly created compiler context.
-  /// - Returns: A new compiler context based on the current with the same names and new types.
+  /// - Returns: A new compiler context based on the current but new types.
   public func update(newTypes types: TypeTypeScopes) -> CompilerContext {
     return CompilerContext(
-      withInstances: self.instances, withTypes: types, withExpectation: self.expected_type)
+      withInstances: self.instances, withTypes: types, withExpectation: self.expected_type,
+      withExtern: self.extern_context, withExterns: self.externs, withFFIs: self.ffis)
   }
 
   /// Update a compiler context
   ///
-  /// Create a new compiler context based on the current with the same names and types but new expected type.
+  /// Create a new compiler context based on the current but new expected type.
   ///
   /// - Parameter expectation: a ``P4Type?`` to (re)set the type the compiler is expecting.
-  /// - Returns: A new compiler context based on the current with the same names and types but new expected type.
+  /// - Returns: A new compiler context based on the current but new expected type.
   public func update(newExpectation expectation: P4Type?) -> CompilerContext {
     return CompilerContext(
-      withInstances: self.instances, withTypes: self.types, withExpectation: expectation)
+      withInstances: self.instances, withTypes: self.types, withExpectation: expectation,
+      withExtern: self.extern_context, withExterns: self.externs, withFFIs: self.ffis)
   }
 
+  /// Update a compiler context
+  ///
+  /// Create a new compiler context based on the current but new extern context value.
+  ///
+  /// - Parameter extern: a ``Bool`` to (re)set whether the compiler is compiling in an extern context.
+  /// - Returns: A new compiler context based on the current but new extern context value.
+  public func update(newExtern extern: Bool) -> CompilerContext {
+    return CompilerContext(
+      withInstances: self.instances, withTypes: self.types, withExpectation: self.expected_type,
+      withExtern: extern, withExterns: self.externs, withFFIs: self.ffis)
+  }
+
+  /// Update a compiler context
+  ///
+  /// Create a new compiler context based on the current but new externs.
+  ///
+  /// - Parameter externs: a ``TypeTypeScopes`` to (re)set the list of extern-al declarations.
+  /// - Returns: A new compiler context based on the current but new list of external-al declarations.
+  public func update(newExterns externs: TypeTypeScopes) -> CompilerContext {
+    return CompilerContext(
+      withInstances: self.instances, withTypes: self.types, withExpectation: self.expected_type,
+      withExtern: self.extern_context, withExterns: externs, withFFIs: self.ffis)
+  }
+
+  /// Update a compiler context
+  ///
+  /// Create a new compiler context based on the current but new FFIs.
+  ///
+  /// - Parameter foreigns: an array of ``P4FFI`` to (re)set the list of foreign functions.
+  /// - Returns: A new compiler context based on the current but with a new list of foreign functions.
+  public func update(newFFIs foreigns: [P4FFI]) -> CompilerContext {
+    return CompilerContext(
+      withInstances: self.instances, withTypes: self.types, withExpectation: self.expected_type,
+      withExtern: self.extern_context, withExterns: externs, withFFIs: foreigns)
+  }
 }

@@ -670,6 +670,7 @@ extension FunctionCall: CompilableExpression {
   static func compile(
     node: Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
+
     let expression = node.child(at: 0)!
     #SkipUnlessNodeType<Node, EvaluatableExpression?>(
       node: expression, type: "function_call")
@@ -691,16 +692,33 @@ extension FunctionCall: CompilableExpression {
       return Result.Error(maybe_callee_name.error()!)
     }
 
-    let maybe_callee =
+    var maybe_callee: Result<(FunctionDeclaration?, Declaration?)> =
       switch context.types.lookup(identifier: callee_name) {
       case .Ok(let looked_up):
         switch looked_up {
-        case let callee as FunctionDeclaration: Result.Ok(callee)  // What we found is actually a function declaration
+        case let callee as FunctionDeclaration:
+          Result<(FunctionDeclaration?, Declaration?)>.Ok((callee, .none))  // What we found is actually a function declaration
         default:
-          Result<FunctionDeclaration>.Error(
+          Result<(FunctionDeclaration?, Declaration?)>.Error(
             ErrorOnNode(node: currentChild!, withError: "\(callee_name) is not a function"))
         }
-      case .Error(let e): Result<FunctionDeclaration>.Error(e)
+      case .Error(let e): Result<(FunctionDeclaration?, Declaration?)>.Error(e)
+      }
+
+    maybe_callee =
+      if case .Error(let e) = maybe_callee {
+        switch context.externs.lookup(identifier: callee_name) {
+        case .Ok(let callee as Declaration):
+          // Now, make sure that it is a function declaration!
+          switch callee.identifier.type.dataType() {
+          case is FunctionDeclaration: Result.Ok((.none, callee))
+          default:
+            .Error(ErrorOnNode(node: currentChild!, withError: "\(callee_name) is not a function"))
+          }
+        default: .Error(e)
+        }
+      } else {
+        maybe_callee
       }
 
     guard case .Ok(let callee) = maybe_callee else {
@@ -723,12 +741,35 @@ extension FunctionCall: CompilableExpression {
 
     // Now, compare the arguments with the parameters:
 
-    if case .Error(let e) = arguments.compatible(callee.params) {
+    let params =
+      switch callee {
+      case (.some(let callee), .none): Optional<ParameterList>.some(callee.params)
+      case (.none, .some(let callee)):
+        Optional<ParameterList>.some((callee.ffi!.type().dataType() as! FunctionDeclaration).params)
+      default: Optional<ParameterList>.none
+      }
+
+    guard case .some(let params) = params else {
+      return Result.Error(
+        ErrorOnNode(
+          node: node,
+          withError: "Could not lookup the parameters for the called function (\(callee_name))"))
+    }
+
+    if case .Error(let e) = arguments.compatible(params) {
       return .Error(e)
     }
 
     // All good!
 
-    return .Ok(FunctionCall(callee, withArguments: arguments))
+    return switch callee {
+    case (.some(let callee), .none): .Ok(FunctionCall(callee, withArguments: arguments))
+    case (.none, .some(let callee)): .Ok(FunctionCall(callee.ffi!, withArguments: arguments))
+    default:
+      Result.Error(
+        ErrorOnNode(
+          node: node, withError: "Unexpected error occurred calling function named (\(callee_name))"
+        ))
+    }
   }
 }
