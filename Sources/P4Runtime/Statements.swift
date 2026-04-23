@@ -20,22 +20,21 @@ import P4Lang
 
 extension BlockStatement: EvaluatableStatement {
   public func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution) {
-    return execution.evaluator.ExecuteStatement(
-      self.statements,
-      handleResult: { (cf, execution) in
-        switch cf {
-        case ControlFlow.Return(let value): return (ControlFlow.Return(value), execution)
-        case ControlFlow.Next: return (cf, execution)
-        case ControlFlow.Error: return (ControlFlow.Error, execution)
-        default:
-          return (
-            ControlFlow.Error,
-            execution.setError(
-              error: Error(withMessage: "Invalid control flow \(cf) in block statement"))
-          )
-        }
-      },
-      inExecution: execution)
+    return execution.evaluator.ExecuteStatements(
+      self.statements, inExecution: execution
+    ) { (cf, execution) in
+      switch cf {
+      case ControlFlow.Return(let value): return (ControlFlow.Return(value), execution)
+      case ControlFlow.Next: return (cf, execution)
+      case ControlFlow.Error: return (ControlFlow.Error, execution)
+      default:
+        return (
+          ControlFlow.Error,
+          execution.setError(
+            error: Error(withMessage: "Invalid control flow \(cf) in block statement"))
+        )
+      }
+    }
   }
 }
 

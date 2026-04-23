@@ -56,17 +56,24 @@ public protocol EvaluatableLValueExpression: EvaluatableExpression {
 }
 
 public protocol ProgramExecutionEvaluator {
-  func ExecuteStatement(
-    _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
-    inExecution execution: ProgramExecution,
+  func ExecuteStatements(
+    _ statements: [EvaluatableStatement], inExecution execution: ProgramExecution,
+    _ handler: ExecuteStatementResultHandlerT?
   ) -> (ControlFlow, ProgramExecution)
 
-  func ExecuteStatement(
-    _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
-    inExecution execution: ProgramExecution
+  func ExecuteStatements(
+    _ statements: [EvaluatableStatement], inExecution execution: ProgramExecution
   ) -> (ControlFlow, ProgramExecution)
 
   func EvaluateExpression(
     _ expression: EvaluatableExpression, inExecution execution: ProgramExecution,
   ) -> (Result<P4Value>, ProgramExecution)
+}
+
+extension ProgramExecutionEvaluator {
+  public func ExecuteStatements(
+    _ statements: [EvaluatableStatement], inExecution execution: ProgramExecution
+  ) -> (ControlFlow, ProgramExecution) {
+    return ExecuteStatements(statements, inExecution: execution, .none)
+  }
 }

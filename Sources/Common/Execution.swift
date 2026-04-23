@@ -15,36 +15,47 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-public typealias ExecuteStatementResultHandler = (ControlFlow, ProgramExecution) -> (
+public typealias ExecuteStatementResultHandlerT = (ControlFlow, ProgramExecution) -> (
   ControlFlow, ProgramExecution
 )
 
-public struct ClassicEvaluator: ProgramExecutionEvaluator {
-  public func ExecuteStatement(
-    _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
-    inExecution execution: ProgramExecution,
-  ) -> (ControlFlow, ProgramExecution) {
+public typealias ExecuteStatementT = (EvaluatableStatement, ProgramExecution) -> (
+  ControlFlow, ProgramExecution
+)
 
-    var execution = execution
-    for s in statements {
-      let (control_flow, next_execution) = s.evaluate(execution: execution)
-
-      switch handler(control_flow, next_execution) {
-      case (ControlFlow.Next, let handled_next_execution): execution = handled_next_execution
-      case (ControlFlow.Return(let value), let handled_next_execution):
-        return (ControlFlow.Return(value), handled_next_execution)
-      case (let handled_control_flow, let handled_next_execution):
-        return (handled_control_flow, handled_next_execution)
-      }
+func CanonicalExecuteStatements(
+  _ statements: [EvaluatableStatement], inExecution execution: ProgramExecution,
+  _ executor: ExecuteStatementT
+) -> (ControlFlow, ProgramExecution) {
+  var execution = execution
+  for s in statements {
+    // Execute the statement with the user-provided statement executor.
+    switch executor(s, execution) {
+    // And decide what to do next!
+    case (ControlFlow.Next, let handled_next_execution): execution = handled_next_execution
+    case (ControlFlow.Return(let value), let handled_next_execution):
+      return (ControlFlow.Return(value), handled_next_execution)
+    case (let handled_control_flow, let handled_next_execution):
+      return (handled_control_flow, handled_next_execution)
     }
-    return (ControlFlow.Next, execution)
   }
+  return (ControlFlow.Next, execution)
+}
 
-  public func ExecuteStatement(
-    _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
-    inExecution execution: ProgramExecution
+public struct ClassicEvaluator: ProgramExecutionEvaluator {
+  public func ExecuteStatements(
+    _ statements: [EvaluatableStatement], inExecution execution: ProgramExecution,
+    _ handler: ExecuteStatementResultHandlerT?
   ) -> (ControlFlow, ProgramExecution) {
-    return ExecuteStatement([statement], handleResult: handler, inExecution: execution)
+
+    return CanonicalExecuteStatements(statements, inExecution: execution) { statement, execution in
+      let (cf, value) = statement.evaluate(execution: execution)
+      // Apply the user-specified handler before continuing.
+      guard let handler = handler else {
+        return (cf, value)
+      }
+      return handler(cf, value)
+    }
   }
 
   public func EvaluateExpression(
@@ -84,9 +95,9 @@ public struct InterloperEvaluator: ProgramExecutionEvaluator {
     return pe
   }
 
-  public func ExecuteStatement(
-    _ statements: [EvaluatableStatement], handleResult handler: ExecuteStatementResultHandler,
-    inExecution execution: ProgramExecution,
+  public func ExecuteStatements(
+    _ statements: [EvaluatableStatement], inExecution execution: ProgramExecution,
+    _ handler: ExecuteStatementResultHandlerT?
   ) -> (ControlFlow, ProgramExecution) {
 
     var debugger: StatementInterloper? = .none
@@ -96,30 +107,20 @@ public struct InterloperEvaluator: ProgramExecutionEvaluator {
       hasDebugInterloper = true
     }
 
-    var execution = execution
-    for s in statements {
-      let (control_flow, next_execution) = s.evaluate(execution: execution)
+    return CanonicalExecuteStatements(statements, inExecution: execution) { statement, execution in
+      let (cf, value) = statement.evaluate(execution: execution)
+      let (handled_cf, handled_value) =
+        if let handler = handler {
+          handler(cf, value)
+        } else {
+          (cf, value)
+        }
 
       if hasDebugInterloper {
-        debugger!(s, control_flow, next_execution)
+        debugger!(statement, handled_cf, handled_value)
       }
-
-      switch handler(control_flow, next_execution) {
-      case (ControlFlow.Next, let handled_next_execution): execution = handled_next_execution
-      case (ControlFlow.Return(let value), let handled_next_execution):
-        return (ControlFlow.Return(value), handled_next_execution)
-      case (let handled_control_flow, let handled_next_execution):
-        return (handled_control_flow, handled_next_execution)
-      }
+      return (handled_cf, handled_value)
     }
-    return (ControlFlow.Next, execution)
-  }
-
-  public func ExecuteStatement(
-    _ statement: EvaluatableStatement, handleResult handler: ExecuteStatementResultHandler,
-    inExecution execution: ProgramExecution
-  ) -> (ControlFlow, ProgramExecution) {
-    return ExecuteStatement([statement], handleResult: handler, inExecution: execution)
   }
 
   public func EvaluateExpression(
