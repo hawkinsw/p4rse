@@ -611,7 +611,7 @@ public class P4ArrayValue: P4DataValue {
   }
 
   public func set(index: Int, to: P4Value) -> Result<P4ArrayValue> {
-    // TODO: Check for OOB
+    /// TODO: Check for OOB
     var updated_values = self.value
     updated_values[index] = to
     return Result.Ok(P4ArrayValue(withType: self.vtype, withValue: updated_values))
@@ -621,7 +621,7 @@ public class P4ArrayValue: P4DataValue {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
-    // TODO!!
+    /// TODO
     return true
   }
 
@@ -629,7 +629,7 @@ public class P4ArrayValue: P4DataValue {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
-    // TODO!!
+    /// TODO
     return true
   }
 
@@ -637,7 +637,7 @@ public class P4ArrayValue: P4DataValue {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
-    // TODO!!
+    /// TODO
     return true
   }
 
@@ -645,7 +645,7 @@ public class P4ArrayValue: P4DataValue {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
-    // TODO!!
+    /// TODO
     return true
   }
 
@@ -653,7 +653,7 @@ public class P4ArrayValue: P4DataValue {
     guard rhs as? P4ArrayValue != nil else {
       return false
     }
-    // TODO!!
+    /// TODO
     return true
   }
 

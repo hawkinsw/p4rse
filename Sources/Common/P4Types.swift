@@ -204,7 +204,7 @@ public struct P4Value: CustomStringConvertible {
   }
 
   public func update(withNewValue value: P4DataValue) -> Result<P4Value> {
-    // TODO: Check that the types match.
+    /// TODO: Check that the types match.
     return .Ok(P4Value(value, self._type))
   }
 

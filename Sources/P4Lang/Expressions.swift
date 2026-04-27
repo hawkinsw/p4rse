@@ -141,7 +141,7 @@ public struct FunctionCall {
   public init(_ callee: P4FFI, withArguments arguments: ArgumentList) {
     self.callee = (.none, callee)
     self.arguments = arguments
-    // ASSUME: That the FFI has been checked and the type is always a function declaration.
+    /// ASSUME: That the FFI has been checked and the type is always a function declaration.
     self.return_type = (callee.type().dataType() as! FunctionDeclaration).tipe.dataType()
   }
 }

@@ -30,7 +30,7 @@ extension Declaration: CompilableDeclaration {
     let declaration_compilers: [String: CompilableDeclaration.Type] = [
       "function_declaration": FunctionDeclaration.self,
       "control_declaration": Control.self,
-      "type_declaration": P4Struct.self,  // ASSUME: Type declarations are struct declarations.
+      "type_declaration": P4Struct.self,  /// ASSUME: Type declarations are struct declarations.
       "extern_declaration": ExternDeclaration.self,
     ]
 
@@ -273,7 +273,7 @@ extension P4Lang.Parser: CompilableDeclaration {
     let type_node = current_node
     var parser_name: Common.Identifier? = .none
 
-    // TODO: Handle parser parameter lists.
+    /// TODO: Handle parser parameter lists.
     var parameter_list = ParameterList()
 
     do {

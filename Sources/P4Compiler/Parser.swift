@@ -275,7 +275,7 @@ public struct Parser {
     var error: Error? = .none
 
     var current_context = context
-    // TODO: Assert that there is only one.
+    /// TODO: Assert that there is only one.
     node.enumerateNamedChildren { parser_state in
       if parser_state.nodeType != "parserState" {
         return

@@ -44,7 +44,7 @@ public struct Declaration: P4DataType {
   }
 
   public func def() -> any Common.P4DataValue {
-    // TODO: Is a default of the extern'd type the right way to go?
+    /// TODO: Is a default of the extern'd type the right way to go?
     return self.identifier.type.dataType().def()
   }
 

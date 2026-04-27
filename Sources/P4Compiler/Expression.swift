@@ -352,7 +352,7 @@ extension BinaryOperatorExpression: CompilableExpression {
         ErrorOnNode(
           node: node, withError: "Malformed binary operator expression")))
 
-    // TODO: This macro cannot handle new lines in the arrays
+    /// TODO: This macro cannot handle new lines in the arrays
     // swift-format-ignore
     #RequireNodesType<Node, EvaluatableExpression?>(
       nodes: binary_operator_expression_node,
