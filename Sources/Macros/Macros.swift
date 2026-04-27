@@ -225,10 +225,38 @@ public struct SkipUnlessNodeType: CodeItemMacro {
   }
 }
 
+public struct MustOr: CodeItemMacro {
+  public static func expansion(
+    of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext
+  ) throws -> [CodeBlockItemSyntax] {
+    let arguments = node.arguments.indices
+
+    var arg_index = arguments.startIndex
+    let result = node.arguments[arg_index].expression
+
+    arg_index = arguments.index(after: arg_index)
+    let thing = node.arguments[arg_index].expression
+
+    arg_index = arguments.index(after: arg_index)
+    let or = node.arguments[arg_index].expression
+
+    return [
+      CodeBlockItemSyntax(
+        """
+        if let __thing = \(thing) {
+          \(result) = __thing 
+        } else {
+          return \(or)
+        }
+        """)
+    ]
+  }
+}
+
 @main
 struct P4Macros: CompilerPlugin {
   var providingMacros: [Macro.Type] = [
     RequireResult.self, RequireErrorResult.self, UseOkResult.self, UseErrorResult.self,
-    RequireNodeType.self, SkipUnlessNodeType.self, RequireNodesType.self,
+    RequireNodeType.self, SkipUnlessNodeType.self, RequireNodesType.self, MustOr.self,
   ]
 }

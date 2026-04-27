@@ -26,9 +26,8 @@ func parameter_list_compiler(
   node: SwiftTreeSitter.Node, withContext context: CompilerContext
 ) -> Common.Result<(ParameterList, CompilerContext)> {
 
-  var currentChildIdx = 0
-  var currentChildIdxSafe = 1
-  var currentChild: Node? = .none
+  var walker = Walker(node: node)
+  var current_node: Node? = .none
 
   if node.text == ")" {
     // There are no parameters!
@@ -40,49 +39,45 @@ func parameter_list_compiler(
 
   var parameters: ParameterList = ParameterList([])
 
-  if node.childCount < currentChildIdxSafe {
-    return Result.Error(
-      ErrorOnNode(node: node, withError: "Missing parameter list component"))
-  }
+  #MustOr(
+    result: current_node, thing: walker.getNext(),
+    or: Result<(ParameterList, CompilerContext)>.Error(
+      ErrorOnNode(
+        node: node, withError: "Missing parameter list component")))
 
-  currentChild = node.child(at: currentChildIdx)
-  if currentChild?.nodeType == "parameter_list" {
-    switch parameter_list_compiler(node: currentChild!, withContext: context) {
+  if current_node?.nodeType == "parameter_list" {
+    switch parameter_list_compiler(node: current_node!, withContext: context) {
     case .Ok(let (ps, _)):
       parameters = ps
     case .Error(let e): return Result.Error(e)
     }
-
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
+    walker.next()
   }
 
-  // We may have moved nodes, check/reset currentChild.
-  if node.childCount < currentChildIdxSafe {
-    return Result.Error(
-      ErrorOnNode(node: node, withError: "Missing parameter list component"))
-  }
-  currentChild = node.child(at: currentChildIdx)
+  #MustOr(
+    result: current_node, thing: walker.getNext(),
+    or: Result<(ParameterList, CompilerContext)>.Error(
+      ErrorOnNode(
+        node: node, withError: "Missing parameter list component")))
 
   // If this is a ')', we are done.
-  if currentChild?.text == ")" {
+  if current_node?.text == ")" {
     return Result.Ok((parameters, context))
   }
 
   // If this is a comma, we skip it!
-  if currentChild?.text == "," {
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
+  if current_node?.text == "," {
+    walker.next()
   }
 
-  if node.childCount < currentChildIdxSafe {
-    return Result.Error(
-      ErrorOnNode(node: node, withError: "Missing parameter list component"))
-  }
-  currentChild = node.child(at: currentChildIdx)
+  #MustOr(
+    result: current_node, thing: walker.getNext(),
+    or: Result<(ParameterList, CompilerContext)>.Error(
+      ErrorOnNode(
+        node: node, withError: "Missing parameter list component")))
 
   // Otherwise, there should be one parameter left!
-  switch Parameter.Compile(node: currentChild!, withContext: context) {
+  switch Parameter.Compile(node: current_node!, withContext: context) {
   case .Ok(let (parsed_parameter, updated_context)):
     return Result.Ok((parameters.addParameter(parsed_parameter), updated_context))
   case .Error(let e): return Result.Error(e)
@@ -99,24 +94,24 @@ extension ParameterList: Compilable {
     #RequireNodeType<Node, (ParameterList, CompilerContext)>(
       node: parameter_node, type: "parameters", nice_type_name: "Parameters")
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
+    var walker = Walker(node: parameter_node)
 
-    // Let's eat the '(' before we start ...
-    if parameter_node.childCount < currentChildIdxSafe {
-      return .Error(
-        ErrorOnNode(node: parameter_node, withError: "Missing '(' in parameter list component"))
-    }
+    var current_node: Node? = .none
 
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
-    if parameter_node.childCount < currentChildIdxSafe {
-      return .Error(
-        ErrorOnNode(node: parameter_node, withError: "Missing parameter list component"))
-    }
-    let currentChild = parameter_node.child(at: currentChildIdx)
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(ParameterList, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing '(' in parameter list component")))
 
-    return parameter_list_compiler(node: currentChild!, withContext: context)
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(ParameterList, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing parameter list component")))
+
+    return parameter_list_compiler(node: current_node!, withContext: context)
   }
 }
 
@@ -153,74 +148,80 @@ extension Parameter: Compilable {
     #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
       node: node, type: "parameter", nice_type_name: "parameter")
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
-    var currentChild: Node? = .none
+    var walker = Walker(node: node)
+    var current_node: Node? = .none
 
-    if node.childCount < currentChildIdxSafe {
-      return .Error(
-        ErrorOnNode(node: node, withError: "Missing parameter declaration component"))
-    }
-
-    currentChild = node.child(at: currentChildIdx)
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(Parameter, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing parameter declaration component")))
 
     // Annotation?
-    if currentChild!.nodeType == "annotations" {
+    if current_node!.nodeType == "annotations" {
       return .Error(
         ErrorOnNode(
-          node: currentChild!,
+          node: current_node!,
           withError: "Annotations in parameter declarations are not yet handled"))
       // Will increment indexes here.
     }
-    currentChild = node.child(at: currentChildIdx)
+
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(Parameter, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing parameter declaration component")))
 
     var direction: Direction? = .none
     // Direction?
-    if currentChild!.nodeType == "direction" {
+    if current_node!.nodeType == "direction" {
 
-      let maybe_parsed_direction = Direction.Compile(node: currentChild!, withContext: context)
+      let maybe_parsed_direction = Direction.Compile(node: current_node!, withContext: context)
       guard case .Ok((let parsed_direction, _)) = maybe_parsed_direction else {
         return .Error(maybe_parsed_direction.error()!)
       }
       direction = parsed_direction
 
-      currentChildIdx += 1
-      currentChildIdxSafe += 1
+      walker.next()
     }
-    currentChild = node.child(at: currentChildIdx)
 
-    if currentChild!.nodeType != "typeRef" {
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(Parameter, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing parameter declaration component")))
+
+    if current_node!.nodeType != "typeRef" {
       return Result.Error(
         ErrorOnNode(
           node: node, withError: "Did not find type name for parameter declaration"))
     }
 
     guard
-      case .Ok(let parameter_type) = Types.CompileType(type: currentChild!, withContext: context)
+      case .Ok(let parameter_type) = Types.CompileType(type: current_node!, withContext: context)
     else {
       return Result.Error(
-        Error(withMessage: "Could not parse a P4 type from \(currentChild!.text!)"))
+        Error(withMessage: "Could not parse a P4 type from \(current_node!.text!)"))
     }
 
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
-    if node.childCount < currentChildIdxSafe {
-      return .Error(
-        ErrorOnNode(node: node, withError: "Missing parameter declaration component"))
-    }
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(Parameter, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing parameter declaration component")))
 
-    currentChild = node.child(at: currentChildIdx)
-    if currentChild!.nodeType != "identifier" {
+    if current_node!.nodeType != "identifier" {
       return Result.Error(
         ErrorOnNode(
           node: node, withError: "Did not find identifier for parameter statement"))
     }
 
     guard
-      case .Ok(let parameter_name) = Identifier.Compile(node: currentChild!, withContext: context)
+      case .Ok(let parameter_name) = Identifier.Compile(node: current_node!, withContext: context)
     else {
       return Result.Error(
-        Error(withMessage: "Could not parse a parameter name from \(currentChild!.text!)"))
+        Error(withMessage: "Could not parse a parameter name from \(current_node!.text!)"))
     }
 
     return Result.Ok(
@@ -239,9 +240,8 @@ func argument_list_compiler(
   node: SwiftTreeSitter.Node, withContext context: CompilerContext
 ) -> Common.Result<(ArgumentList, CompilerContext)> {
 
-  var currentChildIdx = 0
-  var currentChildIdxSafe = 1
-  var currentChild: Node? = .none
+  var walker = Walker(node: node)
+  var current_node: Node? = .none
 
   if node.text == ")" {
     // There are no arguments!
@@ -253,49 +253,47 @@ func argument_list_compiler(
 
   var arguments: ArgumentList = ArgumentList([])
 
-  if node.childCount < currentChildIdxSafe {
-    return Result.Error(
-      ErrorOnNode(node: node, withError: "Missing argument list component"))
-  }
+  #MustOr(
+    result: current_node, thing: walker.getNext(),
+    or: Result<(ArgumentList, CompilerContext)>.Error(
+      ErrorOnNode(
+        node: node, withError: "Missing argument list component")))
 
-  currentChild = node.child(at: currentChildIdx)
-  if currentChild?.nodeType == "argument_list" {
-    switch argument_list_compiler(node: currentChild!, withContext: context) {
+  if current_node?.nodeType == "argument_list" {
+    switch argument_list_compiler(node: current_node!, withContext: context) {
     case .Ok(let (ps, _)):
       arguments = ps
     case .Error(let e): return Result.Error(e)
     }
 
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
+    walker.next()
   }
 
-  // We may have moved nodes, check/reset currentChild.
-  if node.childCount < currentChildIdxSafe {
-    return Result.Error(
-      ErrorOnNode(node: node, withError: "Missing argument list component"))
-  }
-  currentChild = node.child(at: currentChildIdx)
+  // We may have moved nodes, check/reset current_node.
+  #MustOr(
+    result: current_node, thing: walker.getNext(),
+    or: Result<(ArgumentList, CompilerContext)>.Error(
+      ErrorOnNode(
+        node: node, withError: "Missing argument list component")))
 
   // If this is a ')', we are done.
-  if currentChild?.text == ")" {
+  if current_node?.text == ")" {
     return Result.Ok((arguments, context))
   }
 
   // If this is a comma, we skip it!
-  if currentChild?.text == "," {
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
+  if current_node?.text == "," {
+    walker.next()
   }
 
-  if node.childCount < currentChildIdxSafe {
-    return Result.Error(
-      ErrorOnNode(node: node, withError: "Missing argument list component"))
-  }
-  currentChild = node.child(at: currentChildIdx)
+  #MustOr(
+    result: current_node, thing: walker.getNext(),
+    or: Result<(ArgumentList, CompilerContext)>.Error(
+      ErrorOnNode(
+        node: node, withError: "Missing argument list component")))
 
   // Otherwise, there should be one argument left!
-  switch Argument.Compile(node: currentChild!, withContext: context) {
+  switch Argument.Compile(node: current_node!, withContext: context) {
   case .Ok(let (ce, updated_context)):
     return Result.Ok(
       (arguments.addArgument(Argument(ce, atIndex: arguments.count() + 1)), updated_context))
@@ -313,24 +311,24 @@ extension ArgumentList: Compilable {
     #RequireNodeType<Node, (ArgumentList, CompilerContext)>(
       node: argument_node, type: "arguments", nice_type_name: "arguments")
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
+    var walker = Walker(node: argument_node)
+    var current_node: Node? = .none
 
-    // Let's eat the '(' before we start ...
-    if argument_node.childCount < currentChildIdxSafe {
-      return .Error(
-        ErrorOnNode(node: argument_node, withError: "Missing '(' in argument list component"))
-    }
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(ArgumentList, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing '(' in argument list component")))
 
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
-    if argument_node.childCount < currentChildIdxSafe {
-      return .Error(
-        ErrorOnNode(node: argument_node, withError: "Missing argument list component"))
-    }
-    let currentChild = argument_node.child(at: currentChildIdx)
+    walker.next()
 
-    return argument_list_compiler(node: currentChild!, withContext: context)
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(ArgumentList, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing argument list component")))
+
+    return argument_list_compiler(node: current_node!, withContext: context)
   }
 }
 

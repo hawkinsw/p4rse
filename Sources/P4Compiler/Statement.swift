@@ -29,34 +29,32 @@ extension BlockStatement: CompilableStatement {
     #RequireNodeType<Node, (EvaluatableStatement, CompilerContext)>(
       node: node, type: "blockStatement", nice_type_name: "block statement")
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
-    var currentChild: Node? = .none
+    var walker = Walker(node: node)
+    var current_node: Node? = .none
 
-    if node.childCount < currentChildIdxSafe {
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(EvaluatableStatement, CompilerContext)>.Error(
+        ErrorOnNode(node: node, withError: "Malformed block statement")))
+
+    if current_node!.nodeType != "{" {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Malformed block statement"))
+        ErrorOnNode(node: current_node!, withError: "Missing { on block statement"))
     }
-    currentChild = node.child(at: currentChildIdx)
-    if currentChild!.nodeType != "{" {
-      return Result.Error(
-        ErrorOnNode(node: currentChild!, withError: "Missing { on block statement"))
-    }
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
 
     var statements: [EvaluatableStatement] = Array()
     var parse_err: Error? = .none
     var current_context = context
 
-    if node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Malformed block statement"))
-    }
-    currentChild = node.child(at: currentChildIdx)
-    if currentChild!.nodeType == "statements" {
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(EvaluatableStatement, CompilerContext)>.Error(
+        ErrorOnNode(node: node, withError: "Malformed block statement")))
+
+    if current_node!.nodeType == "statements" {
       switch Parser.Statements.Compile(
-        node: currentChild!, withContext: current_context)
+        node: current_node!, withContext: current_context)
       {
       case .Ok(let (parsed_statements, updated_context)):
         current_context = updated_context
@@ -65,22 +63,21 @@ extension BlockStatement: CompilableStatement {
         parse_err = error
       }
 
-      currentChildIdx += 1
-      currentChildIdxSafe += 1
+      walker.next()
     }
 
     if let err = parse_err {
       return .Error(err)
     }
 
-    if node.childCount < currentChildIdxSafe {
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(EvaluatableStatement, CompilerContext)>.Error(
+        ErrorOnNode(node: node, withError: "Malformed block statement")))
+
+    if current_node!.nodeType != "}" {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Malformed block statement"))
-    }
-    currentChild = node.child(at: currentChildIdx)
-    if currentChild!.nodeType != "}" {
-      return Result.Error(
-        ErrorOnNode(node: currentChild!, withError: "Missing } on block statement"))
+        ErrorOnNode(node: current_node!, withError: "Missing } on block statement"))
     }
 
     return .Ok((BlockStatement(statements), current_context))

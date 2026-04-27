@@ -148,5 +148,8 @@ public func Map<T, U>(input: T, block: (T) -> U) -> U {
   nodes: N, type: [String], nice_type_names: [String]
 ) =
   #externalMacro(module: "Macros", type: "RequireNodesType")
-@freestanding(codeItem) public macro SkipUnlessNodeType<N, T>(node: N, type: String) =
+@freestanding(codeItem) public macro SkipUnlessNodeType<N>(node: N, type: String) =
   #externalMacro(module: "Macros", type: "SkipUnlessNodeType")
+
+@freestanding(codeItem) public macro MustOr<E, N>(result: E, thing: E?, or: N) =
+  #externalMacro(module: "Macros", type: "MustOr")

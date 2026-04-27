@@ -39,7 +39,7 @@ extension TypedIdentifier: CompilableExpression {
   ) -> Result<EvaluatableExpression?> {
 
     let node = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<SwiftTreeSitter.Node>(
       node: node, type: "identifier")
 
     guard
@@ -59,7 +59,7 @@ extension TypedIdentifier: CompilableLValueExpression {
   ) -> Result<EvaluatableLValueExpression?> {
 
     let expression = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<SwiftTreeSitter.Node>(
       node: expression, type: "identifier")
 
     let maybe_parsed_expression = TypedIdentifier.compile(node: node, withContext: context)
@@ -78,7 +78,7 @@ extension P4BooleanValue: CompilableExpression {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<SwiftTreeSitter.Node>(
       node: node, type: "booleanLiteralExpression")
 
     if node.text == "false" {
@@ -97,7 +97,7 @@ extension P4IntValue: CompilableExpression {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(node: node, type: "integer")
+    #SkipUnlessNodeType<SwiftTreeSitter.Node>(node: node, type: "integer")
     if let parsed_int = Int(node.text!) {
       return .Ok(P4Value(P4IntValue(withValue: parsed_int)))
     } else {
@@ -111,7 +111,7 @@ extension P4StringValue: CompilableExpression {
     node: SwiftTreeSitter.Node, withContext scopes: CompilerContext
   ) -> Result<EvaluatableExpression?> {
     let node = node.child(at: 0)!
-    #SkipUnlessNodeType<SwiftTreeSitter.Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<SwiftTreeSitter.Node>(
       node: node, type: "string_literal")
     return .Ok(P4Value(P4StringValue(withValue: node.text!)))
   }
@@ -339,20 +339,18 @@ extension BinaryOperatorExpression: CompilableExpression {
   ) -> Result<(EvaluatableExpression)?> {
     let expression = node.child(at: 0)!
 
-    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<Node>(
       node: expression, type: "binaryOperatorExpression")
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
-    var currentChild: Node? = .none
+    let binary_operator_expression_node = expression.child(at: 0)!
+    var walker = Walker(node: binary_operator_expression_node)
 
-    if expression.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Malformed binary operator expression"))
-    }
-    currentChild = expression.child(at: currentChildIdx)
-
-    let binary_operator_expression_node = currentChild!
+    var current_node: Node? = .none
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Malformed binary operator expression")))
 
     // TODO: This macro cannot handle new lines in the arrays
     // swift-format-ignore
@@ -360,32 +358,29 @@ extension BinaryOperatorExpression: CompilableExpression {
       nodes: binary_operator_expression_node,
       type: ["binaryEqualOperatorExpression", "binaryLessThanOperatorExpression", "binaryLessThanEqualOperatorExpression", "binaryGreaterThanOperatorExpression", "binaryGreaterThanEqualOperatorExpression", "binaryAndOperatorExpression", "binaryOrOperatorExpression", "binaryAddOperatorExpression", "binarySubtractOperatorExpression", "binaryMultiplyOperatorExpression", "binaryDivideOperatorExpression"],
       nice_type_names: [ "binary equal operator", "binary less than operator", "binary less than or equal to operator", "binary greater than operator", "binary greater than or equal to operator", "binary and operator", "binary or operator", "binary add operator", "binary subtract operator", "binary multiply operator", "binary divide operator"])
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing LHS for binary operator expression")))
 
-    if binary_operator_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing LHS for binary operator expression"))
-    }
-    currentChild = binary_operator_expression_node.child(at: currentChildIdx)
-    let left_hand_side_raw = currentChild!
+    let left_hand_side_raw = current_node!
 
-    currentChildIdx = currentChildIdx + 1
-    currentChildIdxSafe = currentChildIdxSafe + 1
-    if binary_operator_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression")
-      )
-    }
-    currentChild = binary_operator_expression_node.child(at: currentChildIdx)
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing binary operator for binary operator expression")))
 
-    currentChildIdx = currentChildIdx + 1
-    currentChildIdxSafe = currentChildIdxSafe + 1
-    if binary_operator_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing binary operator for binary operator expression")
-      )
-    }
-    currentChild = binary_operator_expression_node.child(at: currentChildIdx)
-    let right_hand_side_raw = currentChild!
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing RHS for binary operator expression")))
+
+    let right_hand_side_raw = current_node!
 
     let maybe_left_hand_side = Expression.Compile(node: left_hand_side_raw, withContext: context)
     guard case Result.Ok(let left_hand_side) = maybe_left_hand_side else {
@@ -465,54 +460,48 @@ extension BinaryOperatorExpression: CompilableExpression {
 extension ArrayAccessExpression: CompilableExpression {
   static func compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
-  ) -> Common.Result<(any Common.EvaluatableExpression)?> {
+  ) -> Common.Result<EvaluatableExpression?> {
     let expression = node.child(at: 0)!
 
-    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<Node>(
       node: expression, type: "arrayAccessExpression")
 
     let array_access_expression_node = expression
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
-    var currentChild: Node? = .none
+    var walker = Walker(node: array_access_expression_node)
+    var current_node: Node? = .none
 
-    // What is the "name" of the array?
-    if array_access_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Malformed array access expression"))
-    }
-    currentChild = expression.child(at: currentChildIdx)
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Malformed array access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
-      node: currentChild!, type: "expression",
+      node: current_node!, type: "expression",
       nice_type_name: "array identifier expression")
-    let array_access_identifier_node = currentChild!
+    let array_access_identifier_node = current_node!
 
-    // Check for the [
-    currentChildIdx = currentChildIdx + 1
-    currentChildIdxSafe = currentChildIdxSafe + 1
-    if array_access_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing [ for array access expression")
-      )
-    }
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing [ for array access expression")))
 
-    // What is the indexor of the array?
-    currentChildIdx = currentChildIdx + 1
-    currentChildIdxSafe = currentChildIdxSafe + 1
-    if array_access_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing indexor expression for array access expression")
-      )
-    }
-    currentChild = array_access_expression_node.child(at: currentChildIdx)
+    walker.next()
+
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing indexor expression for array access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
-      node: currentChild!, type: "expression",
+      node: current_node!, type: "expression",
       nice_type_name: "array indexor expression")
 
-    let array_access_indexor_node = currentChild!
+    let array_access_indexor_node = current_node!
 
     let maybe_array_identifier = Expression.Compile(
       node: array_access_identifier_node, withContext: context)
@@ -547,51 +536,44 @@ extension FieldAccessExpression: CompilableExpression {
   ) -> Common.Result<(any Common.EvaluatableExpression)?> {
     let expression = node.child(at: 0)!
 
-    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<Node>(
       node: expression, type: "fieldAccessExpression")
 
     let field_access_expression_node = expression
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
-    var currentChild: Node? = .none
+    var walker = Walker(node: field_access_expression_node)
+    var current_node: Node? = .none
 
-    // What is the "name" of the struct?
-    if field_access_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Malformed field access expression"))
-    }
-    currentChild = expression.child(at: currentChildIdx)
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Malformed field access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
-      node: currentChild!, type: "expression",
+      node: current_node!, type: "expression",
       nice_type_name: "struct identifier expression")
-    let struct_identifier_node = currentChild!
+    let struct_identifier_node = current_node!
 
-    // Check for the .
-    currentChildIdx = currentChildIdx + 1
-    currentChildIdxSafe = currentChildIdxSafe + 1
-    if field_access_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing . for field access expression")
-      )
-    }
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing . for field access expression")))
 
-    // What is the field of the struct?
-    currentChildIdx = currentChildIdx + 1
-    currentChildIdxSafe = currentChildIdxSafe + 1
-    if field_access_expression_node.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing field name for field access expression")
-      )
-    }
-    currentChild = field_access_expression_node.child(at: currentChildIdx)
+    walker.next()
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing field name for field access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
-      node: currentChild!, type: "identifier",
+      node: current_node!, type: "identifier",
       nice_type_name: "field name")
 
-    let field_name_node = currentChild!
+    let field_name_node = current_node!
 
     // Make sure that the identifier really identifies a struct.
     let maybe_struct_identifier = Expression.Compile(
@@ -633,7 +615,7 @@ extension FieldAccessExpression: CompilableLValueExpression {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableLValueExpression?> {
     let expression = node.child(at: 0)!
-    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<Node>(
       node: expression, type: "fieldAccessExpression")
 
     let maybe_parsed_expression = FieldAccessExpression.compile(node: node, withContext: context)
@@ -652,7 +634,7 @@ extension ArrayAccessExpression: CompilableLValueExpression {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Result<EvaluatableLValueExpression?> {
     let expression = node.child(at: 0)!
-    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<Node>(
       node: expression, type: "arrayAccessExpression")
 
     let maybe_parsed_expression = ArrayAccessExpression.compile(node: node, withContext: context)
@@ -672,22 +654,20 @@ extension FunctionCall: CompilableExpression {
   ) -> Result<EvaluatableExpression?> {
 
     let expression = node.child(at: 0)!
-    #SkipUnlessNodeType<Node, EvaluatableExpression?>(
+    #SkipUnlessNodeType<Node>(
       node: expression, type: "function_call")
 
-    var currentChildIdx = 0
-    var currentChildIdxSafe = 1
-    var currentChild: Node? = .none
+    var walker = Walker(node: expression)
+    var current_node: Node? = .none
 
-    if expression.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing function call component"))
-    }
-
-    currentChild = expression.child(at: currentChildIdx)
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing function call component")))
 
     let maybe_callee_name = Identifier.Compile(
-      node: currentChild!, withContext: context)
+      node: current_node!, withContext: context)
     guard case .Ok(let callee_name) = maybe_callee_name else {
       return Result.Error(maybe_callee_name.error()!)
     }
@@ -700,7 +680,7 @@ extension FunctionCall: CompilableExpression {
           Result<(FunctionDeclaration?, Declaration?)>.Ok((callee, .none))  // What we found is actually a function declaration
         default:
           Result<(FunctionDeclaration?, Declaration?)>.Error(
-            ErrorOnNode(node: currentChild!, withError: "\(callee_name) is not a function"))
+            ErrorOnNode(node: current_node!, withError: "\(callee_name) is not a function"))
         }
       case .Error(let e): Result<(FunctionDeclaration?, Declaration?)>.Error(e)
       }
@@ -713,7 +693,7 @@ extension FunctionCall: CompilableExpression {
           switch callee.identifier.type.dataType() {
           case is FunctionDeclaration: Result.Ok((.none, callee))
           default:
-            .Error(ErrorOnNode(node: currentChild!, withError: "\(callee_name) is not a function"))
+            .Error(ErrorOnNode(node: current_node!, withError: "\(callee_name) is not a function"))
           }
         default: .Error(e)
         }
@@ -725,15 +705,15 @@ extension FunctionCall: CompilableExpression {
       return .Error(maybe_callee.error()!)
     }
 
-    currentChildIdx += 1
-    currentChildIdxSafe += 1
-    if expression.childCount < currentChildIdxSafe {
-      return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing function call component"))
-    }
-    currentChild = expression.child(at: currentChildIdx)
+    walker.next()
 
-    let maybe_argument_list = ArgumentList.Compile(node: currentChild!, withContext: context)
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<EvaluatableExpression?>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing function call component")))
+
+    let maybe_argument_list = ArgumentList.Compile(node: current_node!, withContext: context)
 
     guard case .Ok((let arguments, _)) = maybe_argument_list else {
       return .Error(maybe_argument_list.error()!)

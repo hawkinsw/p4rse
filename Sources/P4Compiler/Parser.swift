@@ -179,11 +179,9 @@ public struct Parser {
     static func Compile(
       node: Node, withContext context: CompilerContext
     ) -> Result<(InstantiatedParserState, CompilerContext)> {
+      var walker = Walker(node: node)
 
-      var currentChildIdx = 0
-      var currentChildIdxSafe = 1
-
-      var currentChild: Node? = .none
+      var current_node: Node? = .none
 
       guard let node_type = node.nodeType,
         node_type == "parserState"
@@ -192,50 +190,50 @@ public struct Parser {
           ErrorOnNode(node: node, withError: "Did not find a parser state declaration"))
       }
 
-      if node.childCount < currentChildIdxSafe {
-        return Result.Error(
-          ErrorOnNode(node: node, withError: "Missing elements in parser state declaration"))
-      }
+      #MustOr(
+        result: current_node, thing: walker.getNext(),
+        or: Result<(InstantiatedParserState, CompilerContext)>.Error(
+          ErrorOnNode(
+            node: node, withError: "Missing elements in parser state declaration")))
 
-      currentChild = node.child(at: currentChildIdx)
-      if currentChild!.nodeType == "annotations" {
+      if current_node!.nodeType == "annotations" {
         return Result.Error(
           ErrorOnNode(
-            node: currentChild!, withError: "Annotations in parser state are not yet handled."))
+            node: current_node!, withError: "Annotations in parser state are not yet handled."))
 
         // Would increment here.
       }
 
       // Skip the keyword state
-      currentChildIdx += 1
-      currentChildIdxSafe += 1
-      if node.childCount < currentChildIdxSafe {
-        return Result.Error(
-          ErrorOnNode(node: node, withError: "Missing elements in parser state declaration"))
-      }
+      walker.next()
+      #MustOr(
+        result: current_node, thing: walker.getNext(),
+        or: Result<(InstantiatedParserState, CompilerContext)>.Error(
+          ErrorOnNode(
+            node: node, withError: "Missing elements in parser state declaration")))
 
-      currentChild = node.child(at: currentChildIdx)
       let maybe_state_identifier = Identifier.Compile(
-        node: currentChild!, withContext: context)
+        node: current_node!, withContext: context)
       guard case Result.Ok(let state_identifier) = maybe_state_identifier else {
         return Result.Error(maybe_state_identifier.error()!)
       }
 
+      walker.next()
       // Skip the '{'
-      currentChildIdx += 2
-      currentChildIdxSafe += 2
+      walker.next()
+      #MustOr(
+        result: current_node, thing: walker.getNext(),
+        or: Result<(InstantiatedParserState, CompilerContext)>.Error(
+          ErrorOnNode(
+            node: node, withError: "Missing body of state declaration")))
 
       var parse_errs: [Error] = Array()
       var current_context = context
       var parsed_s: [EvaluatableStatement] = Array()
 
-      if node.childCount < currentChildIdxSafe {
-        return Result.Error(ErrorOnNode(node: node, withError: "Missing body of state declaration"))
-      }
-      currentChild = node.child(at: currentChildIdx)
-      if currentChild!.nodeType == "parserStatements" {
+      if current_node!.nodeType == "parserStatements" {
         switch Statements.Compile(
-          node: currentChild!, withContext: current_context)
+          node: current_node!, withContext: current_context)
         {
         case .Ok(let (state_statements, updated_context)):
           parsed_s = state_statements
@@ -243,8 +241,7 @@ public struct Parser {
         case .Error(let error):
           parse_errs.append(error)
         }
-        currentChildIdx += 1
-        currentChildIdxSafe += 1
+        walker.next()
       }
 
       if !parse_errs.isEmpty {
@@ -255,13 +252,14 @@ public struct Parser {
             }.joined(separator: ";")))
       }
 
-      if node.childCount < currentChildIdxSafe {
-        return Result.Error(
-          ErrorOnNode(node: node, withError: "Missing transition statement of state declaration"))
-      }
-      currentChild = node.child(at: currentChildIdx)
+      #MustOr(
+        result: current_node, thing: walker.getNext(),
+        or: Result<(InstantiatedParserState, CompilerContext)>.Error(
+          ErrorOnNode(
+            node: node, withError: "Missing transition statement of state declaration")))
+
       return TransitionStatement.Compile(
-        node: currentChild!, forState: state_identifier, withStatements: parsed_s,
+        node: current_node!, forState: state_identifier, withStatements: parsed_s,
         withContext: current_context)
     }
   }

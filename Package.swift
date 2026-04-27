@@ -75,7 +75,8 @@ let package = Package(
         ),
         .testTarget(
             name: "Tests",
-            dependencies: ["P4Compiler", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common"]
+            dependencies: ["P4Compiler", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common"],
+            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
         ),
     ],
 )

@@ -64,7 +64,6 @@ public struct FunctionDeclaration: P4DataType, P4DataValue {
   }
 
   public func eq(rhs: any Common.P4DataType) -> Bool {
-    print("Checking a type: me: \(self) vs them: \(rhs)!")
     switch rhs {
     case let frhs as FunctionDeclaration:
       return frhs.tipe.eq(self.tipe) && frhs.params == self.params

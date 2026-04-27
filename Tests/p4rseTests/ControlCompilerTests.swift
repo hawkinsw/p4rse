@@ -107,6 +107,36 @@ import P4Lang
   #expect(#RequireOkResult(Program.Compile(simple_parser_declaration)))
 }
 
+@Test func test_simple_control_declaration_with_multiple_tables() async throws {
+  let simple_parser_declaration = """
+    control simple(bool x, bool y, bool a, bool b) {
+      action a() {
+      }
+      table t {
+        key = {
+          x: exact;
+          y: exact;
+        }
+      }
+      table u {
+        key = {
+          a: exact;
+          b: exact;
+        }
+      }
+      apply {
+      }
+    };
+    """
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage: "{0, 215}: More than one table in control declaration"
+      ),
+      Program.Compile(simple_parser_declaration))
+  )
+}
+
 @Test func test_simple_control_declaration_with_action_using_parameter() async throws {
   let simple_parser_declaration = """
     control simple(bool x, bool y) {
@@ -147,6 +177,38 @@ import P4Lang
       Error(
         withMessage:
           "{57, 10}: Failed to parse a statement element: {57, 1}: Cannot assign value with type Boolean to identifier z with type Int"
+      ),
+      Program.Compile(simple_parser_declaration))
+  )
+}
+
+@Test func test_simple_control_declaration_with_element_after_apply() async throws {
+  let simple_parser_declaration = """
+    control simple(bool x, bool y) {
+      action a(int z) {
+        z = false;
+      }
+      table t {
+        key = {
+          x: exact;
+          y: exact;
+        }
+      }
+      apply {
+      }
+      table x {
+        key = {
+          x: exact;
+          y: exact;
+        }
+      }
+    };
+    """
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage:
+          "Could not compile the P4 program"
       ),
       Program.Compile(simple_parser_declaration))
   )
