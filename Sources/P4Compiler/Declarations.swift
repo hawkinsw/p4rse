@@ -30,7 +30,8 @@ extension Declaration: CompilableDeclaration {
     let declaration_compilers: [String: CompilableDeclaration.Type] = [
       "function_declaration": FunctionDeclaration.self,
       "control_declaration": Control.self,
-      "type_declaration": P4Struct.self,  /// ASSUME: Type declarations are struct declarations.
+      "type_declaration": P4Struct.self,
+      /// ASSUME: Type declarations are struct declarations.
       "extern_declaration": ExternDeclaration.self,
     ]
 
