@@ -1,6 +1,8 @@
-## P4RCE: P4 Continuous Evolution
+## P4CE: P4 Continuous Evolution
 
-_P4RCE_ (yes, the acronym is a bit forced) is a P4 parser and runtime written in Swift that supports an _evolved_ version of P4.
+_P4CE_[^pronounce]  is a P4 parser and runtime written in Swift that supports an _evolved_ version of P4.
+
+[^pronounce]: The acronym is pronounced "p force".
 
 ### Evolved How?
 
