@@ -1,6 +1,10 @@
-## P4RSE: P4 Runtime In Swift Environment
+## P4RCE: P4 Continuous Evolution
 
-_P4RSE_ (yes, the acronym is a bit forced) is a P4 parser and runtime written in Swift. The project was started as a means to better learn Swift.
+_P4RCE_ (yes, the acronym is a bit forced) is a P4 parser and runtime written in Swift that supports an _evolved_ version of P4.
+
+### Evolved How?
+
+Coming soon.
 
 ### Status
 
