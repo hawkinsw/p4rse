@@ -17,7 +17,57 @@
 
 import Common
 
-public struct Action: CustomStringConvertible {
+public struct Action: CustomStringConvertible, P4DataType, P4DataValue {
+  public func type() -> any Common.P4DataType {
+    return self
+  }
+
+  public func eq(rhs: any Common.P4DataValue) -> Bool {
+    return switch rhs {
+    case let arhs as Action: self.name == arhs.name
+    default: false
+    }
+  }
+
+  public func eq(rhs: any Common.P4DataType) -> Bool {
+    return switch rhs {
+    case is Action: true
+    default: false
+    }
+  }
+  public func lt(rhs: any Common.P4DataValue) -> Bool {
+    switch rhs {
+    case let arhs as Action: return self.name < arhs.name
+    default: return false
+    }
+  }
+
+  public func lte(rhs: any Common.P4DataValue) -> Bool {
+    switch rhs {
+    case let arhs as Action: return self.name <= arhs.name
+    default: return false
+    }
+
+  }
+
+  public func gt(rhs: any Common.P4DataValue) -> Bool {
+    switch rhs {
+    case let arhs as Action: return self.name > arhs.name
+    default: return false
+    }
+  }
+
+  public func gte(rhs: any Common.P4DataValue) -> Bool {
+    switch rhs {
+    case let arhs as Action: return self.name >= arhs.name
+    default: return false
+    }
+  }
+
+  public func def() -> any Common.P4DataValue {
+    return Action()
+  }
+
   public var description: String {
     return "Action: "
       + "\(self.name) with parameters \(self.params) and body \(String(describing: self.body))"
@@ -28,8 +78,8 @@ public struct Action: CustomStringConvertible {
   public var name: Identifier
 
   public init(
-    named name: Identifier, withParameters parameters: ParameterList,
-    withBody body: BlockStatement?
+    named name: Identifier = Identifier(name: ""), withParameters parameters: ParameterList = ParameterList([]),
+    withBody body: BlockStatement? = .none
   ) {
     self.name = name
     self.params = parameters
@@ -88,15 +138,24 @@ public struct TableKeys: CustomStringConvertible {
   }
 }
 
-/// TODO
-public struct TableActions {
-  public init() {}
+public struct TableActionsProperty: CustomStringConvertible {
+  public let actions: [TypedIdentifier]
+  public init(_ actions: [TypedIdentifier] = []) {
+    self.actions = actions
+  }
+
+  public var description: String {
+    return "Table Actions: "
+      + self.actions.map { action in
+        return action.description
+      }.joined(separator: ";")
+  }
 }
 
 public struct TablePropertyList: CustomStringConvertible {
-  let actions: TableActions
+  let actions: TableActionsProperty
   let keys: TableKeys
-  public init(withActions actions: TableActions, withKeys keys: TableKeys) {
+  public init(withActions actions: TableActionsProperty, withKeys keys: TableKeys) {
     self.actions = actions
     self.keys = keys
   }
@@ -208,7 +267,8 @@ public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertib
       withParameters: ParameterList(),
       withTable: Table(
         withName: Identifier(name: "empty"),
-        withPropertyList: TablePropertyList(withActions: TableActions(), withKeys: TableKeys())),
+        withPropertyList: TablePropertyList(
+          withActions: TableActionsProperty(), withKeys: TableKeys())),
       withActions: Actions(withActions: []), withApply: ApplyStatement())
   }
 

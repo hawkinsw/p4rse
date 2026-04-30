@@ -89,6 +89,113 @@ import P4Lang
   #expect(program.InstancesWithTypes(filter).count == 2)
 }
 
+@Test func test_simple_control_declaration_with_actions() async throws {
+  let simple_parser_declaration = """
+    control simple() {
+      action a() {
+      }
+      table t {
+        key = {
+          true: exact;
+        }
+        actions = {
+          a;
+        }
+      }
+      apply {
+      }
+    };
+    """
+  let x = { (tipe: P4Type) -> Bool in
+    switch tipe.dataType() {
+    case let c as Control: c.name == "simple"
+    default: false
+    }
+  }
+  let program = try! #UseOkResult(Program.Compile(simple_parser_declaration))
+  #expect(program.InstancesWithTypes(x).count == 1)
+}
+
+@Test func test_simple_control_declaration_with_misnamed_actions() async throws {
+  let simple_parser_declaration = """
+    control simple() {
+      action a() {
+      }
+      table t {
+        key = {
+          true: exact;
+        }
+        actions = {
+          b;
+        }
+      }
+      apply {
+      }
+    };
+    """
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage: "{54, 63}: Error(s) parsing property list: {91, 26}: Error(s) parsing table actions: Cannot find b in lexical scope."
+      ),
+      Program.Compile(simple_parser_declaration))
+  )
+}
+
+@Test func test_simple_control_declaration_with_misnamed_actions2() async throws {
+  let simple_parser_declaration = """
+    control simple() {
+      action a() {
+      }
+      table t {
+        key = {
+          true: exact;
+        }
+        actions = {
+          a;
+          b;
+        }
+      }
+      apply {
+      }
+    };
+    """
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage: "{54, 72}: Error(s) parsing property list: {91, 35}: Error(s) parsing table actions: Cannot find b in lexical scope."
+      ),
+      Program.Compile(simple_parser_declaration))
+  )
+}
+
+@Test func test_simple_control_declaration_with_mistyped_actions() async throws {
+  let simple_parser_declaration = """
+    bool a() {
+      return true;
+    };
+    control simple() {
+      table t {
+        key = {
+          true: exact;
+        }
+        actions = {
+          a;
+        }
+      }
+      apply {
+      }
+    };
+    """
+  #expect(
+    #RequireErrorResult(
+      Error(
+        withMessage: "{64, 63}: Error(s) parsing property list: {101, 26}: Error(s) parsing table actions: {101, 26}: a does not name an action"
+      ),
+      Program.Compile(simple_parser_declaration))
+  )
+}
+
 @Test func test_simple_control_declaration_with_parameters() async throws {
   let simple_parser_declaration = """
     control simple(bool x, bool y) {

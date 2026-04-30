@@ -459,6 +459,10 @@ extension Control: CompilableDeclaration {
         }
         actions.append(action_declaration)
         local_context = updated_context
+        // Now, add the declaration into the context.
+        local_context = local_context.update(
+          newTypes: local_context.types.declare(
+            identifier: action_declaration.name, withValue: action_declaration))
       } else if current_node.nodeType == "table_declaration" {
         let maybe_table_declaration = Table.Compile(
           node: current_node, withContext: local_context)
@@ -721,6 +725,58 @@ extension TableKeys: Compilable {
   }
 }
 
+extension TableActionsProperty: Compilable {
+  public typealias T = TableActionsProperty
+  public static func Compile(
+    node: SwiftTreeSitter.Node, withContext context: CompilerContext
+  ) -> Common.Result<(TableActionsProperty, CompilerContext)> {
+    #RequireNodeType<Node, (TableActionsProperty, CompilerContext)>(
+      node: node, type: "table_actions", nice_type_name: "Table Actions")
+
+    var walker = Walker(node: node)
+    // Skip the
+    // actions = {
+    // 1    2 3
+    walker.next()  // 1
+    walker.next()  // 2
+    walker.next()  // 3
+
+    var current_node: Node? = .none
+
+    #MustOr(
+      result: current_node, thing: walker.getNext(),
+      or: Result<(TableActionsProperty, CompilerContext)>.Error(
+        ErrorOnNode(
+          node: node, withError: "Missing table actions declaration component in control declaration"))
+    )
+
+    let (actions, errors) = walker.try_map(n: node.childCount - 1, onlyNamed: true) { current_node in
+      switch Identifier.Compile(node: current_node, withContext: context) {
+      case .Ok(let listed_action):
+        switch context.types.lookup(identifier: listed_action) {
+        case .Ok(let maybe_action):
+          if maybe_action.eq(rhs: Action()) {
+            return .Ok(TypedIdentifier(id: listed_action, withType: P4Type(maybe_action)))
+          }
+          return .Error(
+            ErrorOnNode(node: node, withError: "\(listed_action) does not name an action"))
+        case .Error(let e): return .Error(e)
+        }
+      case .Error(let e): return .Error(e)
+      }
+    }
+
+    if !errors.isEmpty {
+      return .Error(
+        ErrorOnNode(node: node, withError: "Error(s) parsing table actions: "
+            + (errors.map { error in
+              return "\(error.msg)"
+            }.joined(separator: ";"))))
+    }
+
+    return .Ok((TableActionsProperty(actions), context))
+  }
+}
 extension TablePropertyList: Compilable {
   public typealias T = TablePropertyList
   public static func Compile(
@@ -733,7 +789,7 @@ extension TablePropertyList: Compilable {
     var current_context = context
 
     var keys: [TableKeys] = Array()
-    var _: [Action] = Array()  // Actions are not yet supported
+    var actions: [TableActionsProperty] = Array()
     var errors: [Error] = Array()
 
     node.enumerateNamedChildren { child in
@@ -745,9 +801,12 @@ extension TablePropertyList: Compilable {
         case .Error(let e): errors.append(e)
         }
       } else if child.nodeType == "table_actions" {
-        errors.append(
-          ErrorOnNode(
-            node: child, withError: "Actions in table property lists are not yet supported"))
+        switch TableActionsProperty.Compile(node: child, withContext: current_context) {
+        case .Ok((let table_action_property, let updated_context)):
+          current_context = updated_context
+          actions.append(table_action_property)
+        case .Error(let e): errors.append(e)
+        }
       } else {
         errors.append(
           ErrorOnNode(node: child, withError: "Uknown node type in control declaration"))
@@ -756,8 +815,7 @@ extension TablePropertyList: Compilable {
 
     if !errors.isEmpty {
       return .Error(
-        Error(
-          withMessage: "Error(s) parsing property list: "
+        ErrorOnNode(node: node, withError: "Error(s) parsing property list: "
             + (errors.map { error in
               return "\(error.msg)"
             }.joined(separator: ";"))))
@@ -770,7 +828,17 @@ extension TablePropertyList: Compilable {
         ErrorOnNode(node: node, withError: "More than one key set in table property list"))
     }
 
-    return .Ok((TablePropertyList(withActions: TableActions(), withKeys: keys[0]), current_context))
+    // There should be only one table keys!
+    if actions.count > 1 {
+      // Todo: Make this error message better.
+      return .Error(
+        ErrorOnNode(node: node, withError: "More than one actions in table property list"))
+    }
+    if actions.isEmpty {
+      actions.append(TableActionsProperty())
+    }
+
+    return .Ok((TablePropertyList(withActions: actions[0], withKeys: keys[0]), current_context))
 
   }
 }

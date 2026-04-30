@@ -94,7 +94,7 @@ export default grammar({
         table_property_list: $ => repeat1(choice($.table_keys, $.table_actions)),
         table_keys: $=> seq($.key, '=', '{', repeat($.table_key_entry), '}'),
         table_key_entry: $=> seq($.keysetExpression, ':', $.table_key_match_type, $._semicolon),
-        table_actions: $=> seq($.actions, '=', '{', optional(repeat1($.identifier)), '}'),
+        table_actions: $=> seq($.actions, '=', '{', optional(repeat1(seq($.identifier, $._semicolon))), '}'),
 
         // match types
         table_key_match_type: $ => choice($.exact), // support exact only for now.
