@@ -775,3 +775,71 @@ public class P4SetDefaultValue: P4DataValue {
     "Default of P4Set of \(self.type()) type"
   }
 }
+
+public struct P4HitMiss: P4DataType {
+  public func eq(rhs: any P4DataType) -> Bool {
+    return switch rhs {
+    case is P4HitMiss: true
+    default: false
+    }
+  }
+
+  public func def() -> any P4DataValue {
+    return P4TableHitMissValue.Miss
+  }
+
+  public var description: String {
+    return "HitMiss"
+  }
+}
+
+public enum P4TableHitMissValue: P4DataValue, Equatable, Comparable, CustomStringConvertible {
+  public func type() -> any P4DataType {
+    return P4HitMiss()
+  }
+
+  public func eq(rhs: any P4DataValue) -> Bool {
+    return switch rhs {
+    case let hmrhs as P4TableHitMissValue: hmrhs == self
+    default: false
+    }
+  }
+
+  public func lt(rhs: any P4DataValue) -> Bool {
+    return switch rhs {
+    case let hmrhs as P4TableHitMissValue: self < hmrhs
+    default: false
+    }
+  }
+
+  public func lte(rhs: any P4DataValue) -> Bool {
+    return switch rhs {
+    case let hmrhs as P4TableHitMissValue: self <= hmrhs
+    default: false
+    }
+  }
+
+  public func gt(rhs: any P4DataValue) -> Bool {
+    return switch rhs {
+    case let hmrhs as P4TableHitMissValue: self > hmrhs
+    default: false
+    }
+  }
+
+  public func gte(rhs: any P4DataValue) -> Bool {
+    return switch rhs {
+    case let hmrhs as P4TableHitMissValue: self >= hmrhs
+    default: false
+    }
+  }
+
+  case Hit
+  case Miss
+
+  public var description: String {
+    return switch self {
+    case P4TableHitMissValue.Hit: "Hit"
+    case P4TableHitMissValue.Miss: "Miss"
+    }
+  }
+}
