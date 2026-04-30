@@ -38,7 +38,7 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // We should be in the accept state.
@@ -56,7 +56,7 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
   // We should be in the accept state.
   #expect(AsInstantiatedParserState(state_result) == P4Lang.reject)
@@ -73,10 +73,10 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   #expect(
-    #RequireErrorResult<(ParserState, ProgramExecution)>(
+    #RequireErrorResult<(InstantiatedParserState, ProgramExecution)>(
       Error(withMessage: "Could not find the start state"),
       runtime.run()))
 }
@@ -93,7 +93,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   let args = ArgumentList([
     Argument(P4Value(P4BooleanValue(withValue: true)), atIndex: 1), Argument(P4Value(P4StringValue(withValue: "Testing")), atIndex: 2), Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 3),
@@ -115,14 +115,14 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   let args = ArgumentList([
     Argument(P4Value(P4BooleanValue(withValue: true)), atIndex: 1), Argument(P4Value(P4BooleanValue(withValue: false)), atIndex: 2), Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 3),
   ])
 
   #expect(
-    #RequireErrorResult<(ParserState, ProgramExecution)>(
+    #RequireErrorResult<(InstantiatedParserState, ProgramExecution)>(
       Error(withMessage: "Cannot call parser: Argument 2's type (Boolean) is incompatible with the parameter type (String)"),
       runtime.run(withArguments: args)))
 }
@@ -139,14 +139,14 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   let args = ArgumentList([
     Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 1), Argument(P4Value(P4StringValue(withValue: "Testing")), atIndex: 2), Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 3),
   ])
 
   #expect(
-    #RequireErrorResult<(ParserState, ProgramExecution)>(
+    #RequireErrorResult<(InstantiatedParserState, ProgramExecution)>(
       Error(withMessage: "Cannot call parser: Argument 1's type (Int) is incompatible with the parameter type (Boolean)"),
       runtime.run(withArguments: args)))
 }
@@ -163,11 +163,11 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let args = ArgumentList([Argument(P4Value(P4BooleanValue(withValue: true)), atIndex: 0)])
 
   #expect(
-    #RequireErrorResult<(ParserState, ProgramExecution)>(
+    #RequireErrorResult<(InstantiatedParserState, ProgramExecution)>(
       Error(withMessage: "Cannot call parser: 1 arguments found but 3 required"),
       runtime.run(withArguments: args)))
 }

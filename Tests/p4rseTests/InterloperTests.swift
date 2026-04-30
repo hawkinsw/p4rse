@@ -47,7 +47,7 @@ import TreeSitterP4
     """
   
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   var statements_executed: [String] = Array()
 
@@ -86,7 +86,7 @@ import TreeSitterP4
     """
   
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   var expressions_evaluated: [String] = Array()
 

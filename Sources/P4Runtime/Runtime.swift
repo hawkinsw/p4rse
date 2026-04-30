@@ -19,67 +19,61 @@ import Common
 import P4Lang
 
 /// The runtime for a parser
-public struct ParserRuntime: CustomStringConvertible {
-  public var parser: Parser
+public struct Runtime<U, T: LibraryCallable<U>>: CustomStringConvertible {
+  public var callable: T
 
   let initialValues: VarValueScopes?
 
-  init(parser: Parser) {
-    self.parser = parser
+  init(callable: T) {
+    self.callable = callable
     self.initialValues = .none
   }
 
-  init(parser: Parser, withGlobalValues initial: VarValueScopes?) {
-    self.parser = parser
+  init(callable: T, withGlobalValues initial: VarValueScopes?) {
+    self.callable = callable
     self.initialValues = initial
   }
 
   /// Create a parser runtime from a P4 program
-  public static func create(program: P4Lang.Program) -> Result<ParserRuntime> {
-    return ParserRuntime.create(program: program, withGlobalValues: .none)
+  public static func create(program: P4Lang.Program) -> Result<Runtime<InstantiatedParserState, Parser>> {
+    return Runtime.create(program: program, withGlobalValues: .none)
   }
 
   public static func create(
     program: P4Lang.Program, withGlobalValues initial: VarValueScopes?
-  ) -> Result<ParserRuntime> {
+  ) -> Result<Runtime<InstantiatedParserState, Parser>> {
     return switch program.starting_parser() {
     case .Ok(let parser):
-      .Ok(P4Runtime.ParserRuntime(parser: parser, withGlobalValues: initial))
+      .Ok(P4Runtime.Runtime<InstantiatedParserState, Parser>(callable: parser, withGlobalValues: initial))
     case .Error(let error): .Error(error)
     }
   }
 
+  public static func create(
+    control: P4Lang.Control, withGlobalValues initial: VarValueScopes?
+  ) -> Result<Runtime<P4TableHitMissValue, Control>> {
+    return .Ok(P4Runtime.Runtime<P4TableHitMissValue, Control>(callable: control, withGlobalValues: initial))
+  }
+
   /// Run a P4 parser with no arguments
-  public func run() -> Result<(ParserState, ProgramExecution)> {
+  public func run() -> Result<(U, ProgramExecution)> {
     return self.run(withArguments: ArgumentList([]))
 
   }
 
-  public func run(withArguments arguments: ArgumentList) -> Result<(ParserState, ProgramExecution)>
-  {
-    let pe =
-      if let initial = initialValues {
-        ProgramExecution().setGlobalValues(initial)
-      } else {
-        ProgramExecution()
-      }
-
-    return self.run(withArguments: arguments, inExecution: pe)
-  }
-
   /// Run the P4 parser on a given packet
   public func run(
-    withArguments arguments: ArgumentList, inExecution pe: ProgramExecution
-  ) -> Result<(ParserState, ProgramExecution)> {
+    withArguments arguments: ArgumentList, inExecution pe: ProgramExecution = ProgramExecution()
+  ) -> Result<(U, ProgramExecution)> {
 
-    let pe =
+    let npe =
       if let globals = initialValues {
         pe.setGlobalValues(globals)
       } else {
         pe
       }
 
-    let (end_state, execution) = parser.call(execution: pe, arguments: arguments)
+    let (end_state, execution) = callable.call(execution: npe, arguments: arguments)
     if let error = execution.getError() {
       return .Error(error)
     }
@@ -87,6 +81,6 @@ public struct ParserRuntime: CustomStringConvertible {
   }
 
   public var description: String {
-    return "Runtime:\nExecution: \(parser)"
+    return "Runtime:\nExecution: \(callable)"
   }
 }

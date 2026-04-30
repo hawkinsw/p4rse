@@ -41,7 +41,7 @@ import TreeSitterP4
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
@@ -63,7 +63,7 @@ import TreeSitterP4
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
@@ -85,7 +85,7 @@ import TreeSitterP4
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
@@ -107,7 +107,7 @@ import TreeSitterP4
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
@@ -151,7 +151,7 @@ import TreeSitterP4
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
@@ -172,7 +172,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   let args = ArgumentList([
     Argument(P4Value(P4BooleanValue(withValue: false)), atIndex: 1), Argument(P4Value(P4StringValue(withValue: "Testing")), atIndex: 2), Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 3),
@@ -193,7 +193,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   let args = ArgumentList([
     Argument(P4Value(P4BooleanValue(withValue: false)), atIndex: 1), Argument(P4Value(P4StringValue(withValue: "Testing")), atIndex: 2), Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 3),

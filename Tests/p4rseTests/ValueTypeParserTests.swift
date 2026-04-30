@@ -141,7 +141,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // 5 == 5 == true
@@ -163,7 +163,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // 5 == 5 == true
@@ -185,7 +185,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // 6 == 5 == true
@@ -207,7 +207,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // 6 == 5 == false
@@ -229,7 +229,7 @@ import TreeSitterP4
       };
     """
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   // TODO: This test should throw an error.

@@ -41,7 +41,7 @@ import TreeSitterP4
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
@@ -63,7 +63,7 @@ import TreeSitterP4
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
   let parser = try #UseOkResult(program.find_parser(withName: Identifier(name: "main_parser")))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
   let (state_result, _) = try! #UseOkResult(runtime.run())
 
   #expect(parser.states.count() == 1)
@@ -82,10 +82,10 @@ import TreeSitterP4
     """
 
   let program = try #UseOkResult(Program.Compile(simple_parser_declaration))
-  let runtime = try #UseOkResult(P4Runtime.ParserRuntime.create(program: program))
+  let runtime = try #UseOkResult(P4Runtime.Runtime<InstantiatedParserState, P4Lang.Parser>.create(program: program))
 
   #expect(
-    #RequireErrorResult<(ParserState, ProgramExecution)>(
+    #RequireErrorResult<(InstantiatedParserState, ProgramExecution)>(
       Error(withMessage: "No key matched the selector"),
       runtime.run()))
 }
