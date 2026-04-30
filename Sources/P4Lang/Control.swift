@@ -89,7 +89,7 @@ public struct Action: CustomStringConvertible, P4DataType, P4DataValue {
 }
 
 public struct Actions: CustomStringConvertible {
-  let actions: [Action]
+  public let actions: [Action]
   public init(withActions actions: [Action]) {
     self.actions = actions
   }
@@ -107,8 +107,8 @@ public enum TableKeyMatchType {
 }
 
 public struct TableKeyEntry: CustomStringConvertible {
-  let key: KeysetExpression
-  let match_type: TableKeyMatchType
+  public let key: KeysetExpression
+  public let match_type: TableKeyMatchType
 
   public init(_ key: KeysetExpression, _ match: TableKeyMatchType) {
     self.key = key
@@ -121,19 +121,19 @@ public struct TableKeyEntry: CustomStringConvertible {
 }
 
 public struct TableKeys: CustomStringConvertible {
-  let entries: [TableKeyEntry]
+  public let keys: [TableKeyEntry]
 
   public init(withEntries entries: [TableKeyEntry]) {
-    self.entries = entries
+    self.keys = entries
   }
   public init() {
-    self.entries = []
+    self.keys = []
   }
 
   public var description: String {
     return "Table Keys: "
-      + self.entries.map { entry in
-        return "\(entry)"
+      + self.keys.map { key in
+        return "\(key)"
       }.joined(separator: ";")
   }
 }
@@ -153,8 +153,8 @@ public struct TableActionsProperty: CustomStringConvertible {
 }
 
 public struct TablePropertyList: CustomStringConvertible {
-  let actions: TableActionsProperty
-  let keys: TableKeys
+  public let actions: TableActionsProperty
+  public let keys: TableKeys
   public init(withActions actions: TableActionsProperty, withKeys keys: TableKeys) {
     self.actions = actions
     self.keys = keys
@@ -166,16 +166,29 @@ public struct TablePropertyList: CustomStringConvertible {
 }
 
 public struct Table: CustomStringConvertible {
-  let properties: TablePropertyList
+  public let properties: TablePropertyList
   let name: Identifier
+  public let entries: [(P4Value, TypedIdentifier)]
 
-  public init(withName name: Identifier, withPropertyList property_list: TablePropertyList) {
+  public init(
+    withName name: Identifier, withPropertyList property_list: TablePropertyList,
+    withEntries entries: [(P4Value, TypedIdentifier)] = []
+  ) {
     self.name = name
     self.properties = property_list
+    self.entries = entries
   }
 
   public var description: String {
     return "Table named: \(self.name) \(self.properties)"
+  }
+
+  /// When the control is evaluated, the value of the x in the table is
+  /// compared to the entries and the match is assocated with an action
+  /// that is invoked when the match occurs!
+
+  public func update(addEntry entry: (P4Value, TypedIdentifier)) -> Table{
+    return Table(withName: self.name, withPropertyList: self.properties, withEntries: self.entries + [entry])
   }
 }
 
@@ -236,8 +249,8 @@ public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertib
     return "Control named \(self._name) \(self.parameters) \(self.actions) \(self.table)"
   }
 
-  let actions: Actions
-  let table: Table
+  public let actions: Actions
+  public let table: Table
   let _parameters: ParameterList
   let _name: Identifier
   let apply: ApplyStatement
@@ -259,6 +272,12 @@ public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertib
     self.actions = actions
     self.table = table
     self.apply = apply
+  }
+
+  public func updateTable(addEntry entry: (P4Value, TypedIdentifier)) -> Control {
+    let table = self.table.update(addEntry: entry)
+
+    return Control(named: self.name, withParameters: self.parameters, withTable: table, withActions: self.actions, withApply: self.apply)
   }
 
   public func def() -> any P4DataValue {

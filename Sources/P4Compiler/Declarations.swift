@@ -691,7 +691,6 @@ extension TableKeys: Compilable {
     walker.next()  // 3
 
     var current_node: Node? = .none
-    var current_context = context
 
     #MustOr(
       result: current_node, thing: walker.getNext(),
@@ -700,28 +699,22 @@ extension TableKeys: Compilable {
           node: node, withError: "Missing table keys declaration component in control declaration"))
     )
 
-    var entries: [TableKeyEntry] = Array()
-    var errors: [Error] = Array()
-
-    current_node!.enumerateNamedChildren { entry in
-      switch TableKeyEntry.Compile(node: current_node!, withContext: current_context) {
-      case .Ok((let keyset_expression, let updated_context)):
-        entries.append(keyset_expression)
-        current_context = updated_context
-      case .Error(let e): errors.append(e)
+    let (keys, errors) = walker.try_map(n: node.childCount - 1, onlyNamed: true) { current_node in
+      return switch TableKeyEntry.Compile(node: current_node, withContext: context) {
+      case .Ok((let keyset_expression, _)): .Ok(keyset_expression)
+      case .Error(let e): .Error(e)
       }
     }
 
     if !errors.isEmpty {
       return .Error(
-        Error(
-          withMessage: "Error(s) parsing table key: "
+        ErrorOnNode(node: node, withError: "Error(s) parsing table key: "
             + (errors.map { error in
               return "\(error.msg)"
             }.joined(separator: ";"))))
     }
 
-    return .Ok((TableKeys(withEntries: entries), current_context))
+    return .Ok((TableKeys(withEntries: keys), context))
   }
 }
 
@@ -828,7 +821,7 @@ extension TablePropertyList: Compilable {
         ErrorOnNode(node: node, withError: "More than one key set in table property list"))
     }
 
-    // There should be only one table keys!
+    // There should be only one table actions!
     if actions.count > 1 {
       // Todo: Make this error message better.
       return .Error(
