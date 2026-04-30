@@ -55,7 +55,7 @@ extension Control: LibraryCallable {
           // Skip those with mismatching types.
 
           if !val.type().eq(key_val.type()) {
-            continue;
+            continue
           }
 
           /// ASSUME: All matches are exact.
@@ -80,9 +80,13 @@ extension Control: LibraryCallable {
       return (.Ok(P4TableHitMissValue.Miss), control_execution)
     }
 
-    switch Call(body: call_body, withArguments: arguments, withParameters: self.parameters, inExecution: control_execution) {
-      case (.Ok(let r), let updated_execution): return (r, updated_execution)
-      case (.Error(let e), let updated_execution): return (P4TableHitMissValue.Miss, updated_execution.setError(error: e))
+    switch Call(
+      body: call_body, withArguments: arguments, withParameters: self.parameters,
+      inExecution: control_execution)
+    {
+    case (.Ok(let r), let updated_execution): return (r, updated_execution)
+    case (.Error(let e), let updated_execution):
+      return (P4TableHitMissValue.Miss, updated_execution.setError(error: e))
     }
   }
 }

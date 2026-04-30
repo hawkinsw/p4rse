@@ -708,7 +708,9 @@ extension TableKeys: Compilable {
 
     if !errors.isEmpty {
       return .Error(
-        ErrorOnNode(node: node, withError: "Error(s) parsing table key: "
+        ErrorOnNode(
+          node: node,
+          withError: "Error(s) parsing table key: "
             + (errors.map { error in
               return "\(error.msg)"
             }.joined(separator: ";"))))
@@ -740,10 +742,12 @@ extension TableActionsProperty: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(TableActionsProperty, CompilerContext)>.Error(
         ErrorOnNode(
-          node: node, withError: "Missing table actions declaration component in control declaration"))
+          node: node,
+          withError: "Missing table actions declaration component in control declaration"))
     )
 
-    let (actions, errors) = walker.try_map(n: node.childCount - 1, onlyNamed: true) { current_node in
+    let (actions, errors) = walker.try_map(n: node.childCount - 1, onlyNamed: true) {
+      current_node in
       switch Identifier.Compile(node: current_node, withContext: context) {
       case .Ok(let listed_action):
         switch context.types.lookup(identifier: listed_action) {
@@ -761,7 +765,9 @@ extension TableActionsProperty: Compilable {
 
     if !errors.isEmpty {
       return .Error(
-        ErrorOnNode(node: node, withError: "Error(s) parsing table actions: "
+        ErrorOnNode(
+          node: node,
+          withError: "Error(s) parsing table actions: "
             + (errors.map { error in
               return "\(error.msg)"
             }.joined(separator: ";"))))
@@ -808,7 +814,9 @@ extension TablePropertyList: Compilable {
 
     if !errors.isEmpty {
       return .Error(
-        ErrorOnNode(node: node, withError: "Error(s) parsing property list: "
+        ErrorOnNode(
+          node: node,
+          withError: "Error(s) parsing property list: "
             + (errors.map { error in
               return "\(error.msg)"
             }.joined(separator: ";"))))

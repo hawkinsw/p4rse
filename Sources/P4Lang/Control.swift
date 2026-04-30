@@ -78,7 +78,8 @@ public struct Action: CustomStringConvertible, P4DataType, P4DataValue {
   public var name: Identifier
 
   public init(
-    named name: Identifier = Identifier(name: ""), withParameters parameters: ParameterList = ParameterList([]),
+    named name: Identifier = Identifier(name: ""),
+    withParameters parameters: ParameterList = ParameterList([]),
     withBody body: BlockStatement? = .none
   ) {
     self.name = name
@@ -187,8 +188,9 @@ public struct Table: CustomStringConvertible {
   /// compared to the entries and the match is assocated with an action
   /// that is invoked when the match occurs!
 
-  public func update(addEntry entry: (P4Value, TypedIdentifier)) -> Table{
-    return Table(withName: self.name, withPropertyList: self.properties, withEntries: self.entries + [entry])
+  public func update(addEntry entry: (P4Value, TypedIdentifier)) -> Table {
+    return Table(
+      withName: self.name, withPropertyList: self.properties, withEntries: self.entries + [entry])
   }
 }
 
@@ -277,7 +279,9 @@ public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertib
   public func updateTable(addEntry entry: (P4Value, TypedIdentifier)) -> Control {
     let table = self.table.update(addEntry: entry)
 
-    return Control(named: self.name, withParameters: self.parameters, withTable: table, withActions: self.actions, withApply: self.apply)
+    return Control(
+      named: self.name, withParameters: self.parameters, withTable: table,
+      withActions: self.actions, withApply: self.apply)
   }
 
   public func def() -> any P4DataValue {

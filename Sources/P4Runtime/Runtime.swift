@@ -35,7 +35,9 @@ public struct Runtime<U, T: LibraryCallable<U>>: CustomStringConvertible {
   }
 
   /// Create a parser runtime from a P4 program
-  public static func create(program: P4Lang.Program) -> Result<Runtime<InstantiatedParserState, Parser>> {
+  public static func create(
+    program: P4Lang.Program
+  ) -> Result<Runtime<InstantiatedParserState, Parser>> {
     return Runtime.create(program: program, withGlobalValues: .none)
   }
 
@@ -44,7 +46,9 @@ public struct Runtime<U, T: LibraryCallable<U>>: CustomStringConvertible {
   ) -> Result<Runtime<InstantiatedParserState, Parser>> {
     return switch program.starting_parser() {
     case .Ok(let parser):
-      .Ok(P4Runtime.Runtime<InstantiatedParserState, Parser>(callable: parser, withGlobalValues: initial))
+      .Ok(
+        P4Runtime.Runtime<InstantiatedParserState, Parser>(
+          callable: parser, withGlobalValues: initial))
     case .Error(let error): .Error(error)
     }
   }
@@ -52,7 +56,8 @@ public struct Runtime<U, T: LibraryCallable<U>>: CustomStringConvertible {
   public static func create(
     control: P4Lang.Control, withGlobalValues initial: VarValueScopes?
   ) -> Result<Runtime<P4TableHitMissValue, Control>> {
-    return .Ok(P4Runtime.Runtime<P4TableHitMissValue, Control>(callable: control, withGlobalValues: initial))
+    return .Ok(
+      P4Runtime.Runtime<P4TableHitMissValue, Control>(callable: control, withGlobalValues: initial))
   }
 
   /// Run a P4 parser with no arguments

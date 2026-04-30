@@ -52,7 +52,9 @@ public struct Walker {
     return Result.Ok(())
   }
 
-  public func try_map<T>(n: Int, onlyNamed: Bool = false, todo: (Node) -> Result<T>) -> ([T], [Error]) {
+  public func try_map<T>(
+    n: Int, onlyNamed: Bool = false, todo: (Node) -> Result<T>
+  ) -> ([T], [Error]) {
     var errors: [Error] = Array()
     var results: [T] = Array()
 
@@ -62,8 +64,8 @@ public struct Walker {
         continue
       }
       switch todo(currentChild) {
-        case .Ok(let r): results.append(r)
-        case .Error(let e): errors.append(e)
+      case .Ok(let r): results.append(r)
+      case .Error(let e): errors.append(e)
       }
     }
     return (results, errors)
