@@ -21,7 +21,7 @@ public protocol EvaluatableExpression {
   ///  - execution: The execution context in which to evaluate the expression
   /// - Returns: The value of expression
   func evaluate(execution: ProgramExecution) -> (Result<P4Value>, ProgramExecution)
-  func type() -> P4Type
+  func type() -> P4QualifiedType
 }
 
 public protocol EvaluatableStatement {

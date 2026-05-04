@@ -21,10 +21,10 @@ public struct Parameter: CustomStringConvertible, Equatable {
   }
 
   public var name: Identifier
-  public var type: P4Type
+  public var type: P4QualifiedType
 
   public init(
-    identifier: Identifier, withType type: P4Type
+    identifier: Identifier, withType type: P4QualifiedType
   ) {
     self.name = identifier
     self.type = type
@@ -46,7 +46,7 @@ public struct Parameter: CustomStringConvertible, Equatable {
         return false
       }
     }
-    return arg_type.dataType().eq(rhs: self.type.dataType())
+    return arg_type.baseType().eq(rhs: self.type.baseType())
   }
 
 }

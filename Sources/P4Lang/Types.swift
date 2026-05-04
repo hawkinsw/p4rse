@@ -19,9 +19,9 @@ import Common
 
 public struct AttributedP4Type {
   public let type: P4DataType
-  public let attributes: P4Type
+  public let attributes: P4QualifiedType
 
-  public init(_ type: P4DataType, _ attributes: P4Type) {
+  public init(_ type: P4DataType, _ attributes: P4QualifiedType) {
     self.type = type
     self.attributes = attributes
   }

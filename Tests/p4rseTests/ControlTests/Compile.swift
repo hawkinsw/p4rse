@@ -41,8 +41,8 @@ import P4Lang
       }
     };
     """
-  let x = { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let x = { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple"
     default: false
     }
@@ -79,8 +79,8 @@ import P4Lang
     };
     """
 
-  let filter = { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let filter = { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple" || c.name == "complex"
     default: false
     }
@@ -106,8 +106,8 @@ import P4Lang
       }
     };
     """
-  let x = { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let x = { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple"
     default: false
     }

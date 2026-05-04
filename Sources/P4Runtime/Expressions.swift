@@ -23,8 +23,8 @@ extension SelectCaseExpression: EvaluatableExpression {
     return (execution.scopes.lookup(identifier: next_state_identifier), execution)
   }
 
-  public func type() -> P4Type {
-    return P4Type(ParserState())
+  public func type() -> P4QualifiedType {
+    return P4QualifiedType(ParserState())
   }
 }
 
@@ -49,14 +49,14 @@ extension SelectExpression: EvaluatableExpression {
     }
   }
 
-  public func type() -> P4Type {
-    return P4Type(ParserState())
+  public func type() -> P4QualifiedType {
+    return P4QualifiedType(ParserState())
   }
 }
 
 // Variables are evaluatable because they can be looked up by identifiers.
 extension TypedIdentifier: EvaluatableExpression {
-  public func type() -> P4Type {
+  public func type() -> P4QualifiedType {
     return self.type
   }
 
@@ -192,7 +192,7 @@ public func binary_and_or_operator_checker(
   left: EvaluatableExpression, right: EvaluatableExpression
 ) -> Result<()> {
   // Check that both are Boolean-typed things!
-  if !(left.type().dataType().eq(rhs: P4Boolean()) && right.type().dataType().eq(rhs: P4Boolean()))
+  if !(left.type().baseType().eq(rhs: P4Boolean()) && right.type().baseType().eq(rhs: P4Boolean()))
   {
     return .Error(Error(withMessage: "And/Or on operands with non-bool type is not allowed"))
   }
@@ -203,7 +203,7 @@ public func binary_int_math_operator_checker(
   left: EvaluatableExpression, right: EvaluatableExpression
 ) -> Result<()> {
   // Check that both are int-typed things!
-  if !(left.type().dataType().eq(rhs: P4Int()) && right.type().dataType().eq(rhs: P4Int())) {
+  if !(left.type().baseType().eq(rhs: P4Int()) && right.type().baseType().eq(rhs: P4Int())) {
     return .Error(
       Error(withMessage: "Mathematical operation on operands with non-int type is not allowed"))
   }
@@ -230,7 +230,7 @@ extension BinaryOperatorExpression: EvaluatableExpression {
     return (.Ok(P4Value(self.evaluator.2(evaluated_left, evaluated_right))), updated_execution)
   }
 
-  public func type() -> P4Type {
+  public func type() -> P4QualifiedType {
     return self.evaluator.1
   }
 }
@@ -264,7 +264,7 @@ extension ArrayAccessExpression: EvaluatableExpression {
     return (.Ok(accessed), updated_execution)
   }
 
-  public func type() -> P4Type {
+  public func type() -> P4QualifiedType {
     return self.type.value_type()
   }
 }
@@ -375,7 +375,7 @@ extension FieldAccessExpression: EvaluatableExpression {
     return (.Ok(value), updated_execution)
   }
 
-  public func type() -> P4Type {
+  public func type() -> P4QualifiedType {
     return self.field.type
   }
 }
@@ -467,7 +467,7 @@ extension KeysetExpression: EvaluatableExpression {
     return execution.evaluator.EvaluateExpression(self.key, inExecution: execution)
   }
 
-  public func type() -> P4Type {
+  public func type() -> P4QualifiedType {
     return self.key.type()
   }
 }
@@ -524,8 +524,8 @@ extension FunctionCall: EvaluatableExpression {
       inExecution: execution)
   }
 
-  public func type() -> P4Type {
-    return P4Type(self.return_type)
+  public func type() -> P4QualifiedType {
+    return P4QualifiedType(self.return_type)
   }
 }
 

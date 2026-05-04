@@ -392,49 +392,49 @@ extension BinaryOperatorExpression: CompilableExpression {
       return Result.Error(maybe_right_hand_side.error()!)
     }
 
-    let evaluators: [String: (String, P4Type, BinaryOperatorChecker?, BinaryOperatorEvaluator)] = [
+    let evaluators: [String: (String, P4QualifiedType, BinaryOperatorChecker?, BinaryOperatorEvaluator)] = [
       "binaryEqualOperatorExpression": (
-        "Binary Equal", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+        "Binary Equal", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_equal_operator_evaluator
       ),
       "binaryLessThanOperatorExpression": (
-        "Binary Less Than", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+        "Binary Less Than", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_lt_operator_evaluator
       ),
       "binaryLessThanEqualOperatorExpression": (
-        "Binary Less Than Or Equal", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+        "Binary Less Than Or Equal", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_lte_operator_evaluator
       ),
       "binaryGreaterThanOperatorExpression": (
-        "Binary Greater Than", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+        "Binary Greater Than", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_gt_operator_evaluator
       ),
       "binaryGreaterThanEqualOperatorExpression": (
-        "Binary Greater Than Or Equal", P4Type(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+        "Binary Greater Than Or Equal", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
         binary_gte_operator_evaluator
       ),
       "binaryAndOperatorExpression": (
-        "Binary Or", P4Type(P4Boolean()), binary_and_or_operator_checker,
+        "Binary Or", P4QualifiedType(P4Boolean()), binary_and_or_operator_checker,
         binary_and_operator_evaluator
       ),
       "binaryOrOperatorExpression": (
-        "Binary And", P4Type(P4Boolean()), binary_and_or_operator_checker,
+        "Binary And", P4QualifiedType(P4Boolean()), binary_and_or_operator_checker,
         binary_or_operator_evaluator
       ),
       "binaryAddOperatorExpression": (
-        "Binary Add", P4Type(P4Int()), binary_int_math_operator_checker,
+        "Binary Add", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
         binary_add_operator_evaluator
       ),
       "binarySubtractOperatorExpression": (
-        "Binary Subtract", P4Type(P4Int()), binary_int_math_operator_checker,
+        "Binary Subtract", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
         binary_subtract_operator_evaluator
       ),
       "binaryMultiplyOperatorExpression": (
-        "Binary Multiply", P4Type(P4Int()), binary_int_math_operator_checker,
+        "Binary Multiply", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
         binary_multiply_operator_evaluator
       ),
       "binaryDivideOperatorExpression": (
-        "Binary Divide", P4Type(P4Int()), binary_int_math_operator_checker,
+        "Binary Divide", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
         binary_divide_operator_evaluator
       ),
     ]
@@ -510,7 +510,7 @@ extension ArrayAccessExpression: CompilableExpression {
     }
 
     let maybe_array_type = array_identifier.type()
-    guard let array_type = maybe_array_type.dataType() as? P4Array else {
+    guard let array_type = maybe_array_type.baseType() as? P4Array else {
       return Result.Error(
         ErrorOnNode(
           node: array_access_identifier_node,
@@ -581,7 +581,7 @@ extension FieldAccessExpression: CompilableExpression {
     guard case Result.Ok(let struct_identifier) = maybe_struct_identifier else {
       return Result.Error(maybe_struct_identifier.error()!)
     }
-    guard let struct_type = struct_identifier.type().dataType() as? P4Struct else {
+    guard let struct_type = struct_identifier.type().baseType() as? P4Struct else {
       return .Error(
         ErrorOnNode(
           node: struct_identifier_node,
@@ -690,7 +690,7 @@ extension FunctionCall: CompilableExpression {
         switch context.externs.lookup(identifier: callee_name) {
         case .Ok(let callee as Declaration):
           // Now, make sure that it is a function declaration!
-          switch callee.identifier.type.dataType() {
+          switch callee.identifier.type.baseType() {
           case is FunctionDeclaration: Result.Ok((.none, callee))
           default:
             .Error(ErrorOnNode(node: current_node!, withError: "\(callee_name) is not a function"))
@@ -725,7 +725,7 @@ extension FunctionCall: CompilableExpression {
       switch callee {
       case (.some(let callee), .none): Optional<ParameterList>.some(callee.params)
       case (.none, .some(let callee)):
-        Optional<ParameterList>.some((callee.ffi!.type().dataType() as! FunctionDeclaration).params)
+        Optional<ParameterList>.some((callee.ffi!.type().baseType() as! FunctionDeclaration).params)
       default: Optional<ParameterList>.none
       }
 

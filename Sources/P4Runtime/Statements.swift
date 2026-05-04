@@ -69,7 +69,7 @@ extension ConditionalStatement: EvaluatableStatement {
       )
     }
 
-    if !evaluated_condition.type().dataType().eq(rhs: P4Boolean()) {
+    if !evaluated_condition.type().baseType().eq(rhs: P4Boolean()) {
       return (
         ControlFlow.Error,
         execution.setError(error: Error(withMessage: "Condition expression is not a Boolean"))

@@ -118,7 +118,7 @@ import P4Lang
   #expect(parameters.parameters.count == 1)
 
   #expect(parameters.parameters[0].name == Identifier(name: "pmtr"))
-  #expect(parameters.parameters[0].type.dataType().eq(rhs: P4Boolean()))
+  #expect(parameters.parameters[0].type.baseType().eq(rhs: P4Boolean()))
 }
 
 @Test func test_simple_compiler_parser_with_multiple_parameters() async throws {
@@ -138,10 +138,10 @@ import P4Lang
   #expect(parameters.parameters.count == 2)
 
   #expect(parameters.parameters[0].name == Identifier(name: "pmtr"))
-  #expect(parameters.parameters[0].type.dataType().eq(rhs: P4Boolean()))
+  #expect(parameters.parameters[0].type.baseType().eq(rhs: P4Boolean()))
 
   #expect(parameters.parameters[1].name == Identifier(name: "smtr"))
-  #expect(parameters.parameters[1].type.dataType().eq(rhs: P4String()))
+  #expect(parameters.parameters[1].type.baseType().eq(rhs: P4String()))
 }
 
 @Test func test_simple_compiler_parser_with_multiple_parameters2() async throws {
@@ -161,13 +161,13 @@ import P4Lang
   #expect(parameters.parameters.count == 3)
 
   #expect(parameters.parameters[0].name == Identifier(name: "pmtr"))
-  #expect(parameters.parameters[0].type.dataType().eq(rhs: P4Boolean()))
+  #expect(parameters.parameters[0].type.baseType().eq(rhs: P4Boolean()))
 
   #expect(parameters.parameters[1].name == Identifier(name: "smtr"))
-  #expect(parameters.parameters[1].type.dataType().eq(rhs: P4String()))
+  #expect(parameters.parameters[1].type.baseType().eq(rhs: P4String()))
 
   #expect(parameters.parameters[2].name == Identifier(name: "imtr"))
-  #expect(parameters.parameters[2].type.dataType().eq(rhs: P4Int()))
+  #expect(parameters.parameters[2].type.baseType().eq(rhs: P4Int()))
 }
 
 @Test func test_simple_compiler_parser_use_parameters() async throws {

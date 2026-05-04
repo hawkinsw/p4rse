@@ -41,11 +41,11 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -78,8 +78,8 @@ import TreeSitterP4
     """
   var test_types = TypeTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
   test_types = test_types.declare(identifier: Identifier(name: "Testing"), withValue: struct_type)
@@ -108,8 +108,8 @@ import TreeSitterP4
     """
   var test_types = TypeTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
   test_types = test_types.declare(identifier: Identifier(name: "Testing"), withValue: struct_type)
@@ -135,11 +135,11 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -170,11 +170,11 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -204,11 +204,11 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -240,15 +240,15 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4QualifiedType(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
@@ -286,11 +286,11 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(struct_type))
 
   var test_values = VarValueScopes().enter()
   test_values = test_values.declare(
@@ -318,11 +318,11 @@ import TreeSitterP4
     """
   var test_declarations = VarTypeScopes().enter()
   let fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let struct_type = P4Struct(withName: Identifier(name: "Testing"), andFields: fields)
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(struct_type))
 
   #expect(
     #RequireErrorResult(
@@ -349,15 +349,15 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4QualifiedType(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
@@ -397,15 +397,15 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4QualifiedType(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(ts_struct_type))
 
   var test_values = VarValueScopes().enter()
 
@@ -444,15 +444,15 @@ import TreeSitterP4
   var test_declarations = VarTypeScopes().enter()
 
   let ty_fields = P4StructFields([
-    P4StructFieldIdentifier(name: "yesno", withType: P4Type(P4Boolean())),
-    P4StructFieldIdentifier(name: "count", withType: P4Type(P4Int())),
+    P4StructFieldIdentifier(name: "yesno", withType: P4QualifiedType(P4Boolean())),
+    P4StructFieldIdentifier(name: "count", withType: P4QualifiedType(P4Int())),
   ])
   let ty_struct_type = P4Struct(withName: Identifier(name: "nested"), andFields: ty_fields)
 
-  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4Type(ty_struct_type))])
+  let ts_fields = P4StructFields([P4StructFieldIdentifier(name: "ty", withType: P4QualifiedType(ty_struct_type))])
   let ts_struct_type = P4Struct(withName: Identifier(name: "outer"), andFields: ts_fields)
 
-  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4Type(ts_struct_type))
+  test_declarations = test_declarations.declare(identifier: Identifier(name: "ts"), withValue: P4QualifiedType(ts_struct_type))
 
   #expect(
     #RequireErrorResult(

@@ -38,10 +38,10 @@ public struct Return5: P4FFI {
     return ParameterList()
   }
 
-  public func type() -> Common.P4Type {
-    return P4Type(
+  public func type() -> Common.P4QualifiedType {
+    return P4QualifiedType(
       FunctionDeclaration(
-        named: Identifier(name: "externally"), ofType: P4Type(P4Int()),
+        named: Identifier(name: "externally"), ofType: P4QualifiedType(P4Int()),
         withParameters: ParameterList(), withBody: .none?))
   }
 
@@ -59,10 +59,10 @@ public struct Return6: P4FFI {
     return ParameterList()
   }
 
-  public func type() -> Common.P4Type {
-    return P4Type(
+  public func type() -> Common.P4QualifiedType {
+    return P4QualifiedType(
       FunctionDeclaration(
-        named: Identifier(name: "externally"), ofType: P4Type(P4Int()),
+        named: Identifier(name: "externally"), ofType: P4QualifiedType(P4Int()),
         withParameters: ParameterList(), withBody: .none?))
   }
 

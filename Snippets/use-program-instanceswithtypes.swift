@@ -39,8 +39,8 @@ let p4_program_with_control_decl = """
 
 
 // snippet.include
-let flter = { (tipe: P4Type) -> Bool in
-  switch tipe.dataType(){
+let flter = { (tipe: P4QualifiedType) -> Bool in
+  switch tipe.baseType(){
   case let c as Control: c.name == "simple"
   default: false
   }

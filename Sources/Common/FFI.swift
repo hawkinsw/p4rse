@@ -17,6 +17,6 @@
 
 public protocol P4FFI {
   func execute(execution: ProgramExecution) -> (ControlFlow, ProgramExecution)
-  func type() -> P4Type
+  func type() -> P4QualifiedType
   func parameters() -> ParameterList
 }

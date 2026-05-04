@@ -128,7 +128,7 @@ extension FunctionDeclaration: CompilableDeclaration {
     let function_declaration = Declaration(
       TypedIdentifier(
         id: function_name,
-        withType: P4Type(
+        withType: P4QualifiedType(
           FunctionDeclaration(
             named: function_name, ofType: function_type, withParameters: function_parameters,
             withBody: function_body))))
@@ -144,7 +144,7 @@ extension FunctionDeclaration: CompilableDeclaration {
           ? context
           : context.update(
             newTypes: context.types.declare(
-              identifier: function_name, withValue: function_declaration.identifier.type.dataType())
+              identifier: function_name, withValue: function_declaration.identifier.type.baseType())
           )
       ))
   }
@@ -189,7 +189,7 @@ extension P4Struct: CompilableDeclaration {
       let struc = Declaration(
         TypedIdentifier(
           id: struct_identifier,
-          withType: P4Type(P4Struct(withName: struct_identifier, andFields: P4StructFields([])))))
+          withType: P4QualifiedType(P4Struct(withName: struct_identifier, andFields: P4StructFields([])))))
       return Result.Ok(
         (
           struc,
@@ -197,7 +197,7 @@ extension P4Struct: CompilableDeclaration {
             ? context
             : context.update(
               newTypes: context.types.declare(
-                identifier: struct_identifier, withValue: struc.identifier.type.dataType()))
+                identifier: struct_identifier, withValue: struc.identifier.type.baseType()))
         ))
     }
 
@@ -234,7 +234,7 @@ extension P4Struct: CompilableDeclaration {
     let declared_struct = Declaration(
       TypedIdentifier(
         id: struct_identifier,
-        withType: P4Type(
+        withType: P4QualifiedType(
           P4Struct(
             withName: struct_identifier, andFields: P4StructFields(parsed_fields)))))
     return .Ok(
@@ -244,7 +244,7 @@ extension P4Struct: CompilableDeclaration {
           ? current_context
           : current_context.update(
             newTypes: current_context.types.declare(
-              identifier: struct_identifier, withValue: declared_struct.identifier.type.dataType()))
+              identifier: struct_identifier, withValue: declared_struct.identifier.type.baseType()))
       ))
   }
 }
@@ -366,7 +366,7 @@ extension P4Lang.Parser: CompilableDeclaration {
     {
     case Result.Ok((let parser, let updated_context)):
       let parser_declaration = Declaration(
-        TypedIdentifier(id: parser.name, withType: P4Type(parser)))
+        TypedIdentifier(id: parser.name, withType: P4QualifiedType(parser)))
       // Create a new context with the name of the parser that was just compiled in scope.
       return .Ok(
         (
@@ -518,7 +518,7 @@ extension Control: CompilableDeclaration {
       Declaration(
         TypedIdentifier(
           id: control_name,
-          withType: P4Type(
+          withType: P4QualifiedType(
             Control(
               named: control_name, withParameters: control_parameters, withTable: tables[0],
               withActions: Actions(withActions: actions), withApply: apply))))
@@ -753,7 +753,7 @@ extension TableActionsProperty: Compilable {
         switch context.types.lookup(identifier: listed_action) {
         case .Ok(let maybe_action):
           if maybe_action.eq(rhs: Action()) {
-            return .Ok(TypedIdentifier(id: listed_action, withType: P4Type(maybe_action)))
+            return .Ok(TypedIdentifier(id: listed_action, withType: P4QualifiedType(maybe_action)))
           }
           return .Error(
             ErrorOnNode(node: node, withError: "\(listed_action) does not name an action"))
@@ -923,7 +923,7 @@ extension ExternDeclaration: CompilableDeclaration {
     // with the matching "stuff".
 
     let found_ffi = context.ffis.first { ffi in
-      ffi.type().dataType().eq(rhs: declared.identifier.type.dataType())
+      ffi.type().baseType().eq(rhs: declared.identifier.type.baseType())
     }
 
     guard let found_ffi = found_ffi else {

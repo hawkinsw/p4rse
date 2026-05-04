@@ -68,13 +68,13 @@ extension P4Struct: CompilableType {
 public struct Types {
   static func CompileType(
     type: SwiftTreeSitter.Node, withContext context: CompilerContext
-  ) -> Result<P4Type> {
+  ) -> Result<P4QualifiedType> {
     let type_parsers: [CompilableType.Type] = [
       P4Boolean.self, P4Int.self, P4String.self, P4Struct.self,
     ]
     for type_parser in type_parsers {
       switch type_parser.CompileType(type: type, withContext: context) {
-      case .Ok(.some(let type)): return .Ok(P4Type(type))
+      case .Ok(.some(let type)): return .Ok(P4QualifiedType(type))
       case .Ok(.none): continue
       case .Error(let e): return .Error(e)
       }

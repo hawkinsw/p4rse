@@ -37,7 +37,7 @@ public struct Declaration: P4DataType {
   public func eq(rhs: any Common.P4DataType) -> Bool {
     return switch rhs {
     case let rrhs as Declaration:
-      self.identifier.type.dataType().eq(rhs: rrhs.identifier.type.dataType())
+      self.identifier.type.baseType().eq(rhs: rrhs.identifier.type.baseType())
         && self.extern == rrhs.extern
     default: false
     }
@@ -45,7 +45,7 @@ public struct Declaration: P4DataType {
 
   public func def() -> any Common.P4DataValue {
     /// TODO: Is a default of the extern'd type the right way to go?
-    return self.identifier.type.dataType().def()
+    return self.identifier.type.baseType().def()
   }
 
   public func type() -> any Common.P4DataType {
@@ -109,7 +109,7 @@ public struct FunctionDeclaration: P4DataType, P4DataValue {
 
   public func def() -> any Common.P4DataValue {
     return FunctionDeclaration(
-      named: Identifier(name: ""), ofType: P4Type(P4Boolean()),
+      named: Identifier(name: ""), ofType: P4QualifiedType(P4Boolean()),
       withParameters: ParameterList([]),
       withBody: .none)
   }
@@ -121,10 +121,10 @@ public struct FunctionDeclaration: P4DataType, P4DataValue {
   public var body: BlockStatement?
   public var params: ParameterList
   public var name: Identifier
-  public var tipe: P4Type
+  public var tipe: P4QualifiedType
 
   public init(
-    named name: Identifier, ofType type: P4Type, withParameters parameters: ParameterList,
+    named name: Identifier, ofType type: P4QualifiedType, withParameters parameters: ParameterList,
     withBody body: BlockStatement?
   ) {
     self.name = name

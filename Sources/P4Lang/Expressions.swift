@@ -24,8 +24,8 @@ public struct KeysetExpression {
     self.key = key
   }
 
-  public func compatible(type: P4Type) -> Result<()> {
-    if let key_type = self.key.type().dataType() as? P4Set {
+  public func compatible(type: P4QualifiedType) -> Result<()> {
+    if let key_type = self.key.type().baseType() as? P4Set {
       if !key_type.set_type().eq(type) {
         return .Error(
           Error(
@@ -84,7 +84,7 @@ public struct SelectExpression {
   }
 }
 
-public typealias NamedBinaryOperatorEvaluator = (String, P4Type, (P4Value, P4Value) -> P4DataValue)
+public typealias NamedBinaryOperatorEvaluator = (String, P4QualifiedType, (P4Value, P4Value) -> P4DataValue)
 public typealias BinaryOperatorEvaluator = (P4Value, P4Value) -> P4DataValue
 
 public struct BinaryOperatorExpression {
@@ -135,13 +135,13 @@ public struct FunctionCall {
   public init(_ callee: FunctionDeclaration, withArguments arguments: ArgumentList) {
     self.callee = (callee, .none)
     self.arguments = arguments
-    self.return_type = callee.tipe.dataType()
+    self.return_type = callee.tipe.baseType()
   }
 
   public init(_ callee: P4FFI, withArguments arguments: ArgumentList) {
     self.callee = (.none, callee)
     self.arguments = arguments
     /// ASSUME: That the FFI has been checked and the type is always a function declaration.
-    self.return_type = (callee.type().dataType() as! FunctionDeclaration).tipe.dataType()
+    self.return_type = (callee.type().baseType() as! FunctionDeclaration).tipe.baseType()
   }
 }

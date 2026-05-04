@@ -52,27 +52,27 @@ public enum Direction: Equatable, CustomStringConvertible {
   }
 }
 
-public enum P4TypeAttribute: Equatable {
+public enum P4TypeQualifier: Equatable {
   case Direction(Direction)
   case Readonly  // Not yet used -- here to keep Swift warnings at bay
 }
 
-public struct P4TypeAttributes: CustomStringConvertible {
-  let _attributes: [P4TypeAttribute]
+public struct P4TypeQualifiers: CustomStringConvertible {
+  let _qualifiers: [P4TypeQualifier]
 
-  public init(_ attributes: [P4TypeAttribute]) {
-    self._attributes = attributes
+  public init(_ qualifiers: [P4TypeQualifier]) {
+    self._qualifiers = qualifiers
   }
 
   public func direction() -> Direction? {
-    let result = _attributes.firstIndex { attribute in
+    let result = _qualifiers.firstIndex { attribute in
       return switch attribute {
       case .Direction(_): true
       default: false
       }
     }
     return result.flatMap { index in
-      return switch _attributes[index] {
+      return switch _qualifiers[index] {
       case .Direction(let d): d
       default: Optional<Direction>.none
       }
@@ -80,7 +80,7 @@ public struct P4TypeAttributes: CustomStringConvertible {
   }
 
   public func readOnly() -> Bool {
-    return _attributes.contains { attribute in
+    return _qualifiers.contains { attribute in
       return switch attribute {
       case .Readonly: true
       default: false
@@ -88,45 +88,45 @@ public struct P4TypeAttributes: CustomStringConvertible {
     }
   }
 
-  public func update(removeAttribute attributeToRemove: P4TypeAttribute) -> P4TypeAttributes {
-    var new_attributes = self._attributes
+  public func update(removeAttribute attributeToRemove: P4TypeQualifier) -> P4TypeQualifiers {
+    var new_attributes = self._qualifiers
     new_attributes.removeAll { item in
       return item == attributeToRemove
     }
-    return P4TypeAttributes(new_attributes)
+    return P4TypeQualifiers(new_attributes)
   }
 
-  public func update(addAttribute attributeToAdd: P4TypeAttribute) -> P4TypeAttributes {
-    return P4TypeAttributes(self._attributes + [attributeToAdd])
+  public func update(addAttribute attributeToAdd: P4TypeQualifier) -> P4TypeQualifiers {
+    return P4TypeQualifiers(self._qualifiers + [attributeToAdd])
   }
 
   public var description: String {
-    return self._attributes.map { attribute in
-      return "\(attribute)"
+    return self._qualifiers.map { qualifier in
+      return "\(qualifier)"
     }.joined(separator: ",")
   }
 
-  public static func ReadOnly() -> P4TypeAttributes {
-    return P4TypeAttributes([P4TypeAttribute.Readonly])
+  public static func ReadOnly() -> P4TypeQualifiers {
+    return P4TypeQualifiers([P4TypeQualifier.Readonly])
   }
 
 }
 
-public struct P4Type: CustomStringConvertible {
-  let _attributes: P4TypeAttributes
-  let _data_type: P4DataType
+public struct P4QualifiedType: CustomStringConvertible {
+  let _attributes: P4TypeQualifiers
+  let base_type: P4DataType
 
-  public init(_ type: P4DataType, _ attributes: P4TypeAttributes = P4TypeAttributes([])) {
+  public init(_ base_type: P4DataType, _ attributes: P4TypeQualifiers = P4TypeQualifiers([])) {
     self._attributes = attributes
-    self._data_type = type
+    self.base_type = base_type
   }
 
-  public func update(removeAttribute attribute: P4TypeAttribute) -> P4Type {
-    return P4Type(self._data_type, self._attributes.update(removeAttribute: attribute))
+  public func update(removeAttribute attribute: P4TypeQualifier) -> P4QualifiedType {
+    return P4QualifiedType(self.base_type, self._attributes.update(removeAttribute: attribute))
   }
 
-  public func update(addAttribute attribute: P4TypeAttribute) -> P4Type {
-    return P4Type(self._data_type, self._attributes.update(addAttribute: attribute))
+  public func update(addAttribute attribute: P4TypeQualifier) -> P4QualifiedType {
+    return P4QualifiedType(self.base_type, self._attributes.update(addAttribute: attribute))
   }
 
   public func direction() -> Direction? {
@@ -137,17 +137,17 @@ public struct P4Type: CustomStringConvertible {
     return self._attributes.readOnly()
   }
 
-  public func dataType() -> P4DataType {
-    return self._data_type
+  public func baseType() -> P4DataType {
+    return self.base_type
   }
 
   public func def() -> P4Value {
-    return P4Value(self._data_type.def(), self)
+    return P4Value(self.base_type.def(), self)
   }
 
-  public func eq(_ rhs: P4Type) -> Bool {
+  public func eq(_ rhs: P4QualifiedType) -> Bool {
     return self.direction() == rhs.direction() && self.readOnly() == self.readOnly()
-      && self.dataType().eq(rhs: rhs.dataType())
+      && self.baseType().eq(rhs: rhs.baseType())
   }
 
   public func assignable() -> TypeCheckResults {
@@ -163,8 +163,8 @@ public struct P4Type: CustomStringConvertible {
     return TypeCheckResults.Ok
   }
 
-  public func assignableFromType(_ rhs: P4Type) -> TypeCheckResults {
-    if !self.dataType().eq(rhs: rhs.dataType()) {
+  public func assignableFromType(_ rhs: P4QualifiedType) -> TypeCheckResults {
+    if !self.baseType().eq(rhs: rhs.baseType()) {
       return TypeCheckResults.IncompatibleTypes
     }
 
@@ -181,8 +181,8 @@ public struct P4Type: CustomStringConvertible {
     return TypeCheckResults.Ok
   }
 
-  public static func ReadOnly(_ type: P4DataType) -> P4Type {
-    return P4Type(type, P4TypeAttributes.ReadOnly())
+  public static func ReadOnly(_ type: P4DataType) -> P4QualifiedType {
+    return P4QualifiedType(type, P4TypeQualifiers.ReadOnly())
   }
 
   public var description: String {
@@ -190,17 +190,17 @@ public struct P4Type: CustomStringConvertible {
     if !attributes_description.isEmpty {
       attributes_description += " "
     }
-    return "\(attributes_description)\(self._data_type)"
+    return "\(attributes_description)\(self.base_type)"
   }
 }
 
 public struct P4Value: CustomStringConvertible {
   let _value: P4DataValue
-  let _type: P4Type
+  let _type: P4QualifiedType
 
-  public init(_ value: P4DataValue, _ type: P4Type? = .none) {
+  public init(_ value: P4DataValue, _ type: P4QualifiedType? = .none) {
     self._value = value
-    self._type = type != nil ? type! : P4Type(value.type())
+    self._type = type != nil ? type! : P4QualifiedType(value.type())
   }
 
   public func update(withNewValue value: P4DataValue) -> Result<P4Value> {
@@ -212,7 +212,7 @@ public struct P4Value: CustomStringConvertible {
     return "Value: \(self._value) of type \(self._type)"
   }
 
-  public func type() -> P4Type {
+  public func type() -> P4QualifiedType {
     return self._type
   }
 

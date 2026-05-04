@@ -53,24 +53,24 @@ import TreeSitterP4
   let program = try! #UseOkResult(Program.Compile(simple_parser_declaration))
 
   // Pull the control out of the compiled program.
-  let controls = program.InstancesWithTypes() { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let controls = program.InstancesWithTypes() { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple"
     default: false
     }
   }
-  var control = ((controls[0].dataType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4DataType) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
     addEntry: (
       P4Value(P4BooleanValue(withValue: true)),
-      TypedIdentifier(name: "a", withType: P4Type(Action()))
+      TypedIdentifier(name: "a", withType: P4QualifiedType(Action()))
     )
   ).updateTable(
     addEntry: (
       P4Value(P4BooleanValue(withValue: false)),
-      TypedIdentifier(name: "b", withType: P4Type(Action()))
+      TypedIdentifier(name: "b", withType: P4QualifiedType(Action()))
     ))
 
   // Set a variable in the global scope for the inout first parameter.
@@ -79,14 +79,14 @@ import TreeSitterP4
     identifier: Identifier(name: "result_arg"),
     withValue: P4Value(
           P4IntValue(withValue: 0),
-          P4Type(P4Int())))
+          P4QualifiedType(P4Int())))
 
   let runtime = try #UseOkResult(
     P4Runtime.Runtime<P4TableHitMissValue, Control>.create(control: control, withGlobalValues: global_values))
 
   let (hit_miss, updated_execution) = try #UseOkResult(runtime.run(
     withArguments: ArgumentList([
-      Argument(TypedIdentifier(name: "result_arg", withType: P4Type(P4Int())), atIndex: 0),
+      Argument(TypedIdentifier(name: "result_arg", withType: P4QualifiedType(P4Int())), atIndex: 0),
       Argument(P4Value(P4BooleanValue(withValue: true)), atIndex: 1),
     ])))
 
@@ -124,24 +124,24 @@ import TreeSitterP4
   let program = try! #UseOkResult(Program.Compile(simple_parser_declaration))
 
   // Pull the control out of the compiled program.
-  let controls = program.InstancesWithTypes() { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let controls = program.InstancesWithTypes() { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple"
     default: false
     }
   }
-  var control = ((controls[0].dataType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4DataType) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
     addEntry: (
       P4Value(P4BooleanValue(withValue: true)),
-      TypedIdentifier(name: "a", withType: P4Type(Action()))
+      TypedIdentifier(name: "a", withType: P4QualifiedType(Action()))
     )
   ).updateTable(
     addEntry: (
       P4Value(P4BooleanValue(withValue: false)),
-      TypedIdentifier(name: "b", withType: P4Type(Action()))
+      TypedIdentifier(name: "b", withType: P4QualifiedType(Action()))
     ))
 
   // Set a variable in the global scope for the inout first parameter.
@@ -150,14 +150,14 @@ import TreeSitterP4
     identifier: Identifier(name: "result_arg"),
     withValue: P4Value(
           P4IntValue(withValue: 0),
-          P4Type(P4Int())))
+          P4QualifiedType(P4Int())))
 
   let runtime = try #UseOkResult(
     P4Runtime.Runtime<P4TableHitMissValue, Control>.create(control: control, withGlobalValues: global_values))
 
   let (hit_miss, updated_execution) = try #UseOkResult(runtime.run(
     withArguments: ArgumentList([
-      Argument(TypedIdentifier(name: "result_arg", withType: P4Type(P4Int())), atIndex: 0),
+      Argument(TypedIdentifier(name: "result_arg", withType: P4QualifiedType(P4Int())), atIndex: 0),
       Argument(P4Value(P4BooleanValue(withValue: false)), atIndex: 1),
     ])))
 
@@ -195,24 +195,24 @@ import TreeSitterP4
   let program = try! #UseOkResult(Program.Compile(simple_parser_declaration))
 
   // Pull the control out of the compiled program.
-  let controls = program.InstancesWithTypes() { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let controls = program.InstancesWithTypes() { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple"
     default: false
     }
   }
-  var control = ((controls[0].dataType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4DataType) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
     addEntry: (
       P4Value(P4IntValue(withValue: 5)),
-      TypedIdentifier(name: "a", withType: P4Type(Action()))
+      TypedIdentifier(name: "a", withType: P4QualifiedType(Action()))
     )
   ).updateTable(
     addEntry: (
       P4Value(P4IntValue(withValue: 2)),
-      TypedIdentifier(name: "b", withType: P4Type(Action()))
+      TypedIdentifier(name: "b", withType: P4QualifiedType(Action()))
     ))
 
   // Set a variable in the global scope for the inout first parameter.
@@ -221,14 +221,14 @@ import TreeSitterP4
     identifier: Identifier(name: "result_arg"),
     withValue: P4Value(
           P4IntValue(withValue: 0),
-          P4Type(P4Int())))
+          P4QualifiedType(P4Int())))
 
   let runtime = try #UseOkResult(
     P4Runtime.Runtime<P4TableHitMissValue, Control>.create(control: control, withGlobalValues: global_values))
 
   let (hit_miss, updated_execution) = try #UseOkResult(runtime.run(
     withArguments: ArgumentList([
-      Argument(TypedIdentifier(name: "result_arg", withType: P4Type(P4Int())), atIndex: 0),
+      Argument(TypedIdentifier(name: "result_arg", withType: P4QualifiedType(P4Int())), atIndex: 0),
       Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 1),
     ])))
 
@@ -265,24 +265,24 @@ import TreeSitterP4
   let program = try! #UseOkResult(Program.Compile(simple_parser_declaration))
 
   // Pull the control out of the compiled program.
-  let controls = program.InstancesWithTypes() { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let controls = program.InstancesWithTypes() { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple"
     default: false
     }
   }
-  var control = ((controls[0].dataType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4DataType) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
     addEntry: (
       P4Value(P4IntValue(withValue: 1)),
-      TypedIdentifier(name: "a", withType: P4Type(Action()))
+      TypedIdentifier(name: "a", withType: P4QualifiedType(Action()))
     )
   ).updateTable(
     addEntry: (
       P4Value(P4IntValue(withValue: 2)),
-      TypedIdentifier(name: "b", withType: P4Type(Action()))
+      TypedIdentifier(name: "b", withType: P4QualifiedType(Action()))
     ))
 
   // Set a variable in the global scope for the inout first parameter.
@@ -291,14 +291,14 @@ import TreeSitterP4
     identifier: Identifier(name: "result_arg"),
     withValue: P4Value(
           P4IntValue(withValue: 0),
-          P4Type(P4Int())))
+          P4QualifiedType(P4Int())))
 
   let runtime = try #UseOkResult(
     P4Runtime.Runtime<P4TableHitMissValue, Control>.create(control: control, withGlobalValues: global_values))
 
   let (hit_miss, updated_execution) = try #UseOkResult(runtime.run(
     withArguments: ArgumentList([
-      Argument(TypedIdentifier(name: "result_arg", withType: P4Type(P4Int())), atIndex: 0),
+      Argument(TypedIdentifier(name: "result_arg", withType: P4QualifiedType(P4Int())), atIndex: 0),
       Argument(P4Value(P4IntValue(withValue: 3)), atIndex: 1),
     ])))
 
@@ -336,24 +336,24 @@ import TreeSitterP4
   let program = try! #UseOkResult(Program.Compile(simple_parser_declaration))
 
   // Pull the control out of the compiled program.
-  let controls = program.InstancesWithTypes() { (tipe: P4Type) -> Bool in
-    switch tipe.dataType() {
+  let controls = program.InstancesWithTypes() { (tipe: P4QualifiedType) -> Bool in
+    switch tipe.baseType() {
     case let c as Control: c.name == "simple"
     default: false
     }
   }
-  var control = ((controls[0].dataType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4DataType) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
     addEntry: (
       P4Value(P4BooleanValue(withValue: true)),
-      TypedIdentifier(name: "a", withType: P4Type(Action()))
+      TypedIdentifier(name: "a", withType: P4QualifiedType(Action()))
     )
   ).updateTable(
     addEntry: (
       P4Value(P4IntValue(withValue: 5)),
-      TypedIdentifier(name: "b", withType: P4Type(Action()))
+      TypedIdentifier(name: "b", withType: P4QualifiedType(Action()))
     ))
 
   // Set a variable in the global scope for the inout first parameter.
@@ -362,14 +362,14 @@ import TreeSitterP4
     identifier: Identifier(name: "result_arg"),
     withValue: P4Value(
           P4IntValue(withValue: 0),
-          P4Type(P4Int())))
+          P4QualifiedType(P4Int())))
 
   let runtime = try #UseOkResult(
     P4Runtime.Runtime<P4TableHitMissValue, Control>.create(control: control, withGlobalValues: global_values))
 
   let (hit_miss, updated_execution) = try #UseOkResult(runtime.run(
     withArguments: ArgumentList([
-      Argument(TypedIdentifier(name: "result_arg", withType: P4Type(P4Int())), atIndex: 0),
+      Argument(TypedIdentifier(name: "result_arg", withType: P4QualifiedType(P4Int())), atIndex: 0),
       Argument(P4Value(P4BooleanValue(withValue: false)), atIndex: 1),
       Argument(P4Value(P4IntValue(withValue: 5)), atIndex: 2),
     ])))

@@ -54,7 +54,7 @@ public struct CompilerContext {
   let types: TypeTypeScopes
   let externs: TypeTypeScopes
   let ffis: [P4FFI]
-  let expected_type: P4Type?
+  let expected_type: P4QualifiedType?
   let extern_context: Bool
 
   public init() {
@@ -77,7 +77,7 @@ public struct CompilerContext {
 
   public init(
     withInstances _instances: VarTypeScopes, withTypes _types: TypeTypeScopes,
-    withExpectation expectation: P4Type?, withExtern extern: Bool,
+    withExpectation expectation: P4QualifiedType?, withExtern extern: Bool,
     withExterns externs: TypeTypeScopes, withFFIs foreigns: [P4FFI]
   ) {
     instances = _instances
@@ -118,7 +118,7 @@ public struct CompilerContext {
   ///
   /// - Parameter expectation: a ``P4Type?`` to (re)set the type the compiler is expecting.
   /// - Returns: A new compiler context based on the current but new expected type.
-  public func update(newExpectation expectation: P4Type?) -> CompilerContext {
+  public func update(newExpectation expectation: P4QualifiedType?) -> CompilerContext {
     return CompilerContext(
       withInstances: self.instances, withTypes: self.types, withExpectation: expectation,
       withExtern: self.extern_context, withExterns: self.externs, withFFIs: self.ffis)

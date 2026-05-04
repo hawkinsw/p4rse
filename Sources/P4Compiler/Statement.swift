@@ -312,7 +312,7 @@ extension ReturnStatement: CompilableStatement {
 
     return switch Expression.Compile(node: expression_node, withContext: context) {
     case .Ok(let result):
-      if result.type().dataType().eq(rhs: context.expected_type!.dataType()) {
+      if result.type().baseType().eq(rhs: context.expected_type!.baseType()) {
         .Ok((ReturnStatement(result), context))
       } else {
         .Error(

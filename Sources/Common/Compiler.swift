@@ -16,10 +16,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// A scope that resolves variable identifiers to their types.
-public typealias VarTypeScope = Scope<P4Type>
+public typealias VarTypeScope = Scope<P4QualifiedType>
 
 /// Scopes that resolve variable identifiers to their types.
-public typealias VarTypeScopes = Scopes<P4Type>
+public typealias VarTypeScopes = Scopes<P4QualifiedType>
 
 /// A scope that resolves type identifiers to their types.
 public typealias TypeTypeScope = Scope<P4DataType>

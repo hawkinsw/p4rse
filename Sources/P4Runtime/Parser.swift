@@ -62,7 +62,7 @@ extension ParserStateDirectTransition: EvaluatableParserState {
     let res = program.scopes.lookup(identifier: get_next_state())
 
     if case .Ok(let value) = res {
-      if value.type().dataType().eq(rhs: self) {
+      if value.type().baseType().eq(rhs: self) {
         return (value.dataValue() as! EvaluatableParserState, program.exit_scope())
       }
     }
@@ -119,7 +119,7 @@ extension ParserStateSelectTransition: EvaluatableParserState {
     //switch self.selectExpression.evaluate(execution: program) {
     switch program.evaluator.EvaluateExpression(self.selectExpression, inExecution: program) {
     case (.Ok(let value), let program):
-      if value.type().dataType().eq(rhs: self) {
+      if value.type().baseType().eq(rhs: self) {
         return (value.dataValue() as! EvaluatableParserState, program.exit_scope())
       } else {
         return (
@@ -150,10 +150,10 @@ extension Parser: LibraryCallable {
 
     execution = execution.declare(
       identifier: AsInstantiatedParserState(accept.state()).state,
-      withValue: P4Value(accept, P4Type.ReadOnly(accept.type())))
+      withValue: P4Value(accept, P4QualifiedType.ReadOnly(accept.type())))
     execution = execution.declare(
       identifier: AsInstantiatedParserState(reject.state()).state,
-      withValue: P4Value(reject, P4Type.ReadOnly(reject.type())))
+      withValue: P4Value(reject, P4QualifiedType.ReadOnly(reject.type())))
 
     // Add initial values to the global scope
     for (name, value) in execution.getGlobalValues() {

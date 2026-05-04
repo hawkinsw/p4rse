@@ -50,14 +50,14 @@ public class Identifier: CustomStringConvertible, Comparable, Hashable {
 
 /// A P4 identifier
 public class TypedIdentifier: Identifier {
-  public var type: P4Type
+  public var type: P4QualifiedType
 
-  public init(name: String, withType type: P4Type) {
+  public init(name: String, withType type: P4QualifiedType) {
     self.type = type
     super.init(name: name)
   }
 
-  public init(id: Identifier, withType type: P4Type) {
+  public init(id: Identifier, withType type: P4QualifiedType) {
     self.type = type
     super.init(id: id)
   }
@@ -107,7 +107,7 @@ public struct P4StructFields: Sequence, CustomStringConvertible, Equatable {
     }.joined(separator: ",")
   }
 
-  public func get_field_type(_ field: Identifier) -> P4Type? {
+  public func get_field_type(_ field: Identifier) -> P4QualifiedType? {
     if let found_field = self.fields.makeIterator().first(where: { current in
       return current.name == field.name
     }) {
@@ -566,13 +566,13 @@ public class Packet {
 
 /// A P4 array type
 public struct P4Array: P4DataType {
-  public init(withValueType vtype: P4Type) {
+  public init(withValueType vtype: P4QualifiedType) {
     self.vtype = vtype
   }
 
-  let vtype: P4Type
+  let vtype: P4QualifiedType
 
-  public func value_type() -> P4Type {
+  public func value_type() -> P4QualifiedType {
     return self.vtype
   }
 
@@ -599,9 +599,9 @@ public class P4ArrayValue: P4DataValue {
   }
 
   let value: [P4Value]
-  let vtype: P4Type
+  let vtype: P4QualifiedType
 
-  public init(withType type: P4Type, withValue value: [P4Value]) {
+  public init(withType type: P4QualifiedType, withValue value: [P4Value]) {
     self.vtype = type
     self.value = value
   }
@@ -664,13 +664,13 @@ public class P4ArrayValue: P4DataValue {
 
 /// A P4 set type
 public struct P4Set: P4DataType {
-  public init(withSetType stype: P4Type) {
+  public init(withSetType stype: P4QualifiedType) {
     self.stype = stype
   }
 
-  let stype: P4Type
+  let stype: P4QualifiedType
 
-  public func set_type() -> P4Type {
+  public func set_type() -> P4QualifiedType {
     return self.stype
   }
 
@@ -681,13 +681,13 @@ public struct P4Set: P4DataType {
   public func eq(rhs: any P4DataType) -> Bool {
     return switch rhs {
     // If rhs is a set type, then they are the same if the types in the set are the same.
-    case let srhs as P4Set: srhs.eq(rhs: self.stype.dataType())
+    case let srhs as P4Set: srhs.eq(rhs: self.stype.baseType())
     default: false
     }
   }
 
   public func def() -> P4DataValue {
-    return P4SetValue(withValue: P4Value(self.stype.dataType().def(), self.stype))
+    return P4SetValue(withValue: P4Value(self.stype.baseType().def(), self.stype))
   }
 }
 
@@ -748,9 +748,9 @@ public class P4SetDefaultValue: P4DataValue {
     return P4Set(withSetType: self.stype)
   }
 
-  let stype: P4Type
+  let stype: P4QualifiedType
 
-  public init(withType type: P4Type) {
+  public init(withType type: P4QualifiedType) {
     self.stype = type
   }
 
