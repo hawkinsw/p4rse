@@ -16,12 +16,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import ArgumentParser
-import Darwin
 import Common
+import Darwin
+
 @main
 struct Cli: ParsableCommand {
-    public func run() throws {
-      let e = ErrorWithLocation(sourceLocation: SourceLocation(1, 5), withError: "Testing")
-      print(e.format())
-    }
+  public func run() throws {
+    let e = ErrorWithLocation(sourceLocation: SourceLocation(1, 5), withError: "Testing")
+    print(e.format())
+  }
 }
