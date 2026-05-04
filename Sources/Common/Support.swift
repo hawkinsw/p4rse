@@ -89,7 +89,9 @@ public func Map<T, U>(input: T, block: (T) -> U) -> U {
 
 @freestanding(expression) public macro RequireOkResult<T>(_: Result<T>) -> Bool =
   #externalMacro(module: "Macros", type: "RequireResult")
-@freestanding(expression) public macro RequireErrorResult<T>(_: any Errorable, _: Result<T>) -> Bool =
+@freestanding(expression) public macro RequireErrorResult<T>(
+  _: any Errorable, _: Result<T>
+) -> Bool =
   #externalMacro(module: "Macros", type: "RequireErrorResult")
 @freestanding(expression) public macro UseOkResult<T>(_: Result<T>) -> T =
   #externalMacro(module: "Macros", type: "UseOkResult")

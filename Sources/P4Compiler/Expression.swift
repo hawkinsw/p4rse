@@ -46,7 +46,9 @@ extension TypedIdentifier: CompilableExpression {
       case Result.Ok(let type) = context.instances.lookup(
         identifier: Common.Identifier(name: node.text!))
     else {
-      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Cannot find \(node.text!) in scope"))
+      return .Error(
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Cannot find \(node.text!) in scope"))
     }
 
     return .Ok(TypedIdentifier(name: node.text!, withType: type))
@@ -88,7 +90,9 @@ extension P4BooleanValue: CompilableExpression {
     }
 
     return .Error(
-      ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Failed to parse boolean literal: \(node.text!)"))
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(),
+        withError: "Failed to parse boolean literal: \(node.text!)"))
   }
 }
 
@@ -101,7 +105,10 @@ extension P4IntValue: CompilableExpression {
     if let parsed_int = Int(node.text!) {
       return .Ok(P4Value(P4IntValue(withValue: parsed_int)))
     } else {
-      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Failed to parse integer: \(node.text!)"))
+      return .Error(
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "Failed to parse integer: \(node.text!)"))
     }
   }
 }
@@ -237,13 +244,18 @@ extension SelectExpression: CompilableExpression {
     guard let selector_node = node.child(at: 2),
       selector_node.nodeType == "expression"
     else {
-      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Could not find selector expression"))
+      return .Error(
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Could not find selector expression"))
     }
 
     guard let select_body_node = node.child(at: 5),
       select_body_node.nodeType == "selectBody"
     else {
-      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Could not find select expression body"))
+      return .Error(
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "Could not find select expression body"))
     }
 
     let maybe_selector = Expression.Compile(node: selector_node, withContext: context)
@@ -263,12 +275,14 @@ extension SelectExpression: CompilableExpression {
       let maybe_parsed_cse = SelectCaseExpression.compile(
         node: current_node, withContext: context.update(newExpectation: selector.type()))
       switch maybe_parsed_cse {
-        case .Ok(let parsed_cse): sces.append(parsed_cse as! SelectCaseExpression)
-        case .Error(let e): sces_errors = if let sces_errors = sces_errors {
-          sces_errors.append(error: Error(withMessage: "\(maybe_parsed_cse.error()!)"))
-        } else {
-          e
-        }
+      case .Ok(let parsed_cse): sces.append(parsed_cse as! SelectCaseExpression)
+      case .Error(let e):
+        sces_errors =
+          if let sces_errors = sces_errors {
+            sces_errors.append(error: Error(withMessage: "\(maybe_parsed_cse.error()!)"))
+          } else {
+            e
+          }
       }
     }
 
@@ -310,13 +324,17 @@ extension SelectCaseExpression: CompilableExpression {
 
     guard let maybe_keysetexpression = maybe_keysetexpression else {
       return Result.Error(
-        ErrorWithLocation(sourceLocation: keysetexpression_node.toSourceLocation(), withError: "Missing expected keyset expression"))
+        ErrorWithLocation(
+          sourceLocation: keysetexpression_node.toSourceLocation(),
+          withError: "Missing expected keyset expression"))
     }
 
     let keysetexpression = maybe_keysetexpression as! KeysetExpression
 
     if case .Error(let e) = keysetexpression.compatible(type: context.expected_type!) {
-      return .Error(ErrorWithLocation(sourceLocation: keysetexpression_node.toSourceLocation(), withError: e.msg()))
+      return .Error(
+        ErrorWithLocation(
+          sourceLocation: keysetexpression_node.toSourceLocation(), withError: e.msg()))
     }
 
     let maybe_parsed_targetstate = Identifier.Compile(
@@ -349,7 +367,8 @@ extension BinaryOperatorExpression: CompilableExpression {
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Malformed binary operator expression")))
+          sourceLocation: node.toSourceLocation(), withError: "Malformed binary operator expression"
+        )))
 
     /// TODO: This macro cannot handle new lines in the arrays
     // swift-format-ignore
@@ -361,7 +380,8 @@ extension BinaryOperatorExpression: CompilableExpression {
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing LHS for binary operator expression")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing LHS for binary operator expression")))
 
     let left_hand_side_raw = current_node!
 
@@ -370,14 +390,16 @@ extension BinaryOperatorExpression: CompilableExpression {
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing binary operator for binary operator expression")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing binary operator for binary operator expression")))
 
     walker.next()
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing RHS for binary operator expression")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing RHS for binary operator expression")))
 
     let right_hand_side_raw = current_node!
 
@@ -391,52 +413,55 @@ extension BinaryOperatorExpression: CompilableExpression {
       return Result.Error(maybe_right_hand_side.error()!)
     }
 
-    let evaluators: [String: (String, P4QualifiedType, BinaryOperatorChecker?, BinaryOperatorEvaluator)] = [
-      "binaryEqualOperatorExpression": (
-        "Binary Equal", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
-        binary_equal_operator_evaluator
-      ),
-      "binaryLessThanOperatorExpression": (
-        "Binary Less Than", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
-        binary_lt_operator_evaluator
-      ),
-      "binaryLessThanEqualOperatorExpression": (
-        "Binary Less Than Or Equal", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
-        binary_lte_operator_evaluator
-      ),
-      "binaryGreaterThanOperatorExpression": (
-        "Binary Greater Than", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
-        binary_gt_operator_evaluator
-      ),
-      "binaryGreaterThanEqualOperatorExpression": (
-        "Binary Greater Than Or Equal", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
-        binary_gte_operator_evaluator
-      ),
-      "binaryAndOperatorExpression": (
-        "Binary Or", P4QualifiedType(P4Boolean()), binary_and_or_operator_checker,
-        binary_and_operator_evaluator
-      ),
-      "binaryOrOperatorExpression": (
-        "Binary And", P4QualifiedType(P4Boolean()), binary_and_or_operator_checker,
-        binary_or_operator_evaluator
-      ),
-      "binaryAddOperatorExpression": (
-        "Binary Add", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
-        binary_add_operator_evaluator
-      ),
-      "binarySubtractOperatorExpression": (
-        "Binary Subtract", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
-        binary_subtract_operator_evaluator
-      ),
-      "binaryMultiplyOperatorExpression": (
-        "Binary Multiply", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
-        binary_multiply_operator_evaluator
-      ),
-      "binaryDivideOperatorExpression": (
-        "Binary Divide", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
-        binary_divide_operator_evaluator
-      ),
-    ]
+    let evaluators:
+      [String: (String, P4QualifiedType, BinaryOperatorChecker?, BinaryOperatorEvaluator)] = [
+        "binaryEqualOperatorExpression": (
+          "Binary Equal", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+          binary_equal_operator_evaluator
+        ),
+        "binaryLessThanOperatorExpression": (
+          "Binary Less Than", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+          binary_lt_operator_evaluator
+        ),
+        "binaryLessThanEqualOperatorExpression": (
+          "Binary Less Than Or Equal", P4QualifiedType(P4Boolean()),
+          Optional<BinaryOperatorChecker>.none,
+          binary_lte_operator_evaluator
+        ),
+        "binaryGreaterThanOperatorExpression": (
+          "Binary Greater Than", P4QualifiedType(P4Boolean()), Optional<BinaryOperatorChecker>.none,
+          binary_gt_operator_evaluator
+        ),
+        "binaryGreaterThanEqualOperatorExpression": (
+          "Binary Greater Than Or Equal", P4QualifiedType(P4Boolean()),
+          Optional<BinaryOperatorChecker>.none,
+          binary_gte_operator_evaluator
+        ),
+        "binaryAndOperatorExpression": (
+          "Binary Or", P4QualifiedType(P4Boolean()), binary_and_or_operator_checker,
+          binary_and_operator_evaluator
+        ),
+        "binaryOrOperatorExpression": (
+          "Binary And", P4QualifiedType(P4Boolean()), binary_and_or_operator_checker,
+          binary_or_operator_evaluator
+        ),
+        "binaryAddOperatorExpression": (
+          "Binary Add", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
+          binary_add_operator_evaluator
+        ),
+        "binarySubtractOperatorExpression": (
+          "Binary Subtract", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
+          binary_subtract_operator_evaluator
+        ),
+        "binaryMultiplyOperatorExpression": (
+          "Binary Multiply", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
+          binary_multiply_operator_evaluator
+        ),
+        "binaryDivideOperatorExpression": (
+          "Binary Divide", P4QualifiedType(P4Int()), binary_int_math_operator_checker,
+          binary_divide_operator_evaluator
+        ),
+      ]
 
     guard let selected_evaluator = evaluators[binary_operator_expression_node.nodeType!] else {
       return Result.Error(
@@ -486,7 +511,8 @@ extension ArrayAccessExpression: CompilableExpression {
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing [ for array access expression")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing [ for array access expression")))
 
     walker.next()
 
@@ -494,7 +520,8 @@ extension ArrayAccessExpression: CompilableExpression {
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing indexor expression for array access expression")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing indexor expression for array access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
       node: current_node!, type: "expression",
@@ -559,14 +586,16 @@ extension FieldAccessExpression: CompilableExpression {
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing . for field access expression")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing . for field access expression")))
 
     walker.next()
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing field name for field access expression")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing field name for field access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
       node: current_node!, type: "identifier",
@@ -679,7 +708,9 @@ extension FunctionCall: CompilableExpression {
           Result<(FunctionDeclaration?, Declaration?)>.Ok((callee, .none))  // What we found is actually a function declaration
         default:
           Result<(FunctionDeclaration?, Declaration?)>.Error(
-            ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "\(callee_name) is not a function"))
+            ErrorWithLocation(
+              sourceLocation: current_node!.toSourceLocation(),
+              withError: "\(callee_name) is not a function"))
         }
       case .Error(let e): Result<(FunctionDeclaration?, Declaration?)>.Error(e)
       }
@@ -692,7 +723,10 @@ extension FunctionCall: CompilableExpression {
           switch callee.identifier.type.baseType() {
           case is FunctionDeclaration: Result.Ok((.none, callee))
           default:
-            .Error(ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "\(callee_name) is not a function"))
+            .Error(
+              ErrorWithLocation(
+                sourceLocation: current_node!.toSourceLocation(),
+                withError: "\(callee_name) is not a function"))
           }
         default: .Error(e)
         }
@@ -747,7 +781,8 @@ extension FunctionCall: CompilableExpression {
     default:
       Result.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Unexpected error occurred calling function named (\(callee_name))"
+          sourceLocation: node.toSourceLocation(),
+          withError: "Unexpected error occurred calling function named (\(callee_name))"
         ))
     }
   }

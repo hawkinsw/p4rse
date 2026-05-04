@@ -99,7 +99,8 @@ public struct Program {
       if !found_parser {
         errors.append(
           ErrorWithLocation(
-            sourceLocation: specific_declaration_node.toSourceLocation(), withError: "Could not find parser for declaration node"
+            sourceLocation: specific_declaration_node.toSourceLocation(),
+            withError: "Could not find parser for declaration node"
           ))
       }
     }

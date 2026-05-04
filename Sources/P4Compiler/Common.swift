@@ -102,7 +102,8 @@ extension ParameterList: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(ParameterList, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing '(' in parameter list component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing '(' in parameter list component")))
 
     walker.next()
     #MustOr(
@@ -132,7 +133,8 @@ extension Direction: Compilable {
     guard let parsed_direction = directions[direction_node.text!] else {
       return .Error(
         ErrorWithLocation(
-          sourceLocation: direction_node.toSourceLocation(), withError: "\(direction_node.text!) is not a valid direction"))
+          sourceLocation: direction_node.toSourceLocation(),
+          withError: "\(direction_node.text!) is not a valid direction"))
     }
 
     return .Ok((parsed_direction, context))
@@ -155,7 +157,8 @@ extension Parameter: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing parameter declaration component")))
 
     // Annotation?
     if current_node!.nodeType == "annotations" {
@@ -170,7 +173,8 @@ extension Parameter: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing parameter declaration component")))
 
     var direction: Direction? = .none
     // Direction?
@@ -189,12 +193,14 @@ extension Parameter: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing parameter declaration component")))
 
     if current_node!.nodeType != "typeRef" {
       return Result.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Did not find type name for parameter declaration"))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Did not find type name for parameter declaration"))
     }
 
     guard
@@ -209,12 +215,14 @@ extension Parameter: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing parameter declaration component")))
 
     if current_node!.nodeType != "identifier" {
       return Result.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Did not find identifier for parameter statement"))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Did not find identifier for parameter statement"))
     }
 
     guard
@@ -318,7 +326,8 @@ extension ArgumentList: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(ArgumentList, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing '(' in argument list component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing '(' in argument list component")))
 
     walker.next()
 

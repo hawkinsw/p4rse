@@ -84,7 +84,9 @@ public struct SelectExpression {
   }
 }
 
-public typealias NamedBinaryOperatorEvaluator = (String, P4QualifiedType, (P4Value, P4Value) -> P4DataValue)
+public typealias NamedBinaryOperatorEvaluator = (
+  String, P4QualifiedType, (P4Value, P4Value) -> P4DataValue
+)
 public typealias BinaryOperatorEvaluator = (P4Value, P4Value) -> P4DataValue
 
 public struct BinaryOperatorExpression {

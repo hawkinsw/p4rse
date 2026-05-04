@@ -61,7 +61,8 @@ extension FunctionDeclaration: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: function_declaration_node.toSourceLocation(), withError: "Missing function declaration component")))
+          sourceLocation: function_declaration_node.toSourceLocation(),
+          withError: "Missing function declaration component")))
 
     let maybe_function_type = Types.CompileType(type: current_node!, withContext: context)
     guard case .Ok(let function_type) = maybe_function_type else {
@@ -73,7 +74,8 @@ extension FunctionDeclaration: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: function_declaration_node.toSourceLocation(), withError: "Missing function declaration component")))
+          sourceLocation: function_declaration_node.toSourceLocation(),
+          withError: "Missing function declaration component")))
 
     let maybe_function_name = Identifier.Compile(node: current_node!, withContext: context)
     guard case .Ok(let function_name) = maybe_function_name else {
@@ -85,7 +87,8 @@ extension FunctionDeclaration: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: function_declaration_node.toSourceLocation(), withError: "Missing function declaration component")))
+          sourceLocation: function_declaration_node.toSourceLocation(),
+          withError: "Missing function declaration component")))
 
     let maybe_function_parameters = ParameterList.Compile(node: current_node!, withContext: context)
     guard case .Ok((let function_parameters, let updated_context)) = maybe_function_parameters
@@ -121,7 +124,8 @@ extension FunctionDeclaration: CompilableDeclaration {
       if !context.extern_context {
         return Result.Error(
           ErrorWithLocation(
-            sourceLocation: function_declaration_node.toSourceLocation(), withError: "Missing function declaration component"))
+            sourceLocation: function_declaration_node.toSourceLocation(),
+            withError: "Missing function declaration component"))
       }
     }
 
@@ -166,7 +170,8 @@ extension P4Struct: CompilableDeclaration {
       result: currentNode, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: struct_declaration_node.toSourceLocation(), withError: "Missing function declaration component")))
+          sourceLocation: struct_declaration_node.toSourceLocation(),
+          withError: "Missing function declaration component")))
 
     // The name of the struct type.
     let maybe_struct_identifier = Identifier.Compile(
@@ -182,14 +187,16 @@ extension P4Struct: CompilableDeclaration {
       result: currentNode, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: struct_declaration_node.toSourceLocation(), withError: "Missing function declaration component")))
+          sourceLocation: struct_declaration_node.toSourceLocation(),
+          withError: "Missing function declaration component")))
 
     // If there are no fields, it will be a "}"
     if currentNode!.nodeType == "}" {
       let struc = Declaration(
         TypedIdentifier(
           id: struct_identifier,
-          withType: P4QualifiedType(P4Struct(withName: struct_identifier, andFields: P4StructFields([])))))
+          withType: P4QualifiedType(
+            P4Struct(withName: struct_identifier, andFields: P4StructFields([])))))
       return Result.Ok(
         (
           struc,
@@ -265,11 +272,14 @@ extension P4Lang.Parser: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: parser_node.toSourceLocation(), withError: "Missing elements of parser declaration")))
+          sourceLocation: parser_node.toSourceLocation(),
+          withError: "Missing elements of parser declaration")))
 
     if current_node!.nodeType != "parserType" {
       return .Error(
-        ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "Missing type for parser declaration"))
+        ErrorWithLocation(
+          sourceLocation: current_node!.toSourceLocation(),
+          withError: "Missing type for parser declaration"))
     }
 
     let type_node = current_node
@@ -286,12 +296,14 @@ extension P4Lang.Parser: CompilableDeclaration {
         result: type_node_child, thing: type_node_walker.getNext(),
         or: Result<(Declaration, CompilerContext)?>.Error(
           ErrorWithLocation(
-            sourceLocation: parser_node.toSourceLocation(), withError: "Missing elements of parser type in parser declaration")))
+            sourceLocation: parser_node.toSourceLocation(),
+            withError: "Missing elements of parser type in parser declaration")))
 
       if type_node_child!.nodeType == "annotations" {
         return .Error(
           ErrorWithLocation(
-            sourceLocation: type_node_child!.toSourceLocation(), withError: "Annotations in parser type are not yet handled."))
+            sourceLocation: type_node_child!.toSourceLocation(),
+            withError: "Annotations in parser type are not yet handled."))
         // Will increment indexes here.
       }
 
@@ -300,7 +312,8 @@ extension P4Lang.Parser: CompilableDeclaration {
         result: type_node_child, thing: type_node_walker.getNext(),
         or: Result<(Declaration, CompilerContext)?>.Error(
           ErrorWithLocation(
-            sourceLocation: type_node_child!.toSourceLocation(), withError: "Missing name in parser type declaration")))
+            sourceLocation: type_node_child!.toSourceLocation(),
+            withError: "Missing name in parser type declaration")))
 
       switch Identifier.Compile(node: type_node_child!, withContext: current_context) {
       case .Ok(let id): parser_name = id
@@ -313,7 +326,8 @@ extension P4Lang.Parser: CompilableDeclaration {
         result: type_node_child, thing: type_node_walker.getNext(),
         or: Result<(Declaration, CompilerContext)?>.Error(
           ErrorWithLocation(
-            sourceLocation: type_node_child!.toSourceLocation(), withError: "Missing parser parameters")))
+            sourceLocation: type_node_child!.toSourceLocation(),
+            withError: "Missing parser parameters")))
 
       switch ParameterList.Compile(node: type_node_child!, withContext: current_context) {
       case .Ok(let (parsed_parameter_list, updated_context)):
@@ -336,18 +350,22 @@ extension P4Lang.Parser: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: parser_node.toSourceLocation(), withError: "Missing parser declaration component")))
+          sourceLocation: parser_node.toSourceLocation(),
+          withError: "Missing parser declaration component")))
 
     walker.next()
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: parser_node.toSourceLocation(), withError: "Missing elements of parser declaration")))
+          sourceLocation: parser_node.toSourceLocation(),
+          withError: "Missing elements of parser declaration")))
 
     if current_node!.nodeType == "parserLocalElements" {
       return .Error(
-        ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "Parser Local Elements are not yet handled."))
+        ErrorWithLocation(
+          sourceLocation: current_node!.toSourceLocation(),
+          withError: "Parser Local Elements are not yet handled."))
       // Will increment indexes here.
     }
 
@@ -355,7 +373,8 @@ extension P4Lang.Parser: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: parser_node.toSourceLocation(), withError: "Missing body of parser declaration")))
+          sourceLocation: parser_node.toSourceLocation(),
+          withError: "Missing body of parser declaration")))
 
     if current_node!.nodeType != "parserStates" {
       return .Error(Error(withMessage: "Missing parser states in parser declaration"))
@@ -400,7 +419,8 @@ extension Control: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing control declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing control declaration component")))
 
     guard
       case .Ok(let control_name) = Identifier.Compile(
@@ -415,7 +435,8 @@ extension Control: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing control declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing control declaration component")))
 
     let maybe_control_parameters = ParameterList.Compile(
       node: current_node!, withContext: local_context)
@@ -440,7 +461,8 @@ extension Control: CompilableDeclaration {
       result: current_node, thing: walker.getNext(),
       or: Result<(Declaration, CompilerContext)?>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing control declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing control declaration component")))
 
     var actions: [Action] = Array()
     var tables: [Table] = Array()
@@ -490,7 +512,9 @@ extension Control: CompilableDeclaration {
         // But, that is handled by the compiler.
       } else {
         return .Error(
-          ErrorWithLocation(sourceLocation: current_node.toSourceLocation(), withError: "Uknown node type in control declaration"))
+          ErrorWithLocation(
+            sourceLocation: current_node.toSourceLocation(),
+            withError: "Uknown node type in control declaration"))
       }
       return .Ok(())
     }
@@ -506,13 +530,17 @@ extension Control: CompilableDeclaration {
       /// IDEA: Add a "compilation context" for the error message into the `CompilationContext`
       // that can be retrieved to make the error messages nicer.
       return .Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "More than one table in control declaration"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "More than one table in control declaration"))
     }
 
     // Check to make sure that there is an apply.
     guard let apply = apply else {
       return .Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing apply in control declaration"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing apply in control declaration"
+        ))
     }
 
     let declared_control =
@@ -556,7 +584,9 @@ extension Action: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.Action, CompilerContext)>.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing action declaration component"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing action declaration component"
+        ))
     )
 
     guard
@@ -571,7 +601,9 @@ extension Action: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.Action, CompilerContext)>.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing action declaration component"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing action declaration component"
+        ))
     )
 
     let maybe_action_parameters = ParameterList.Compile(
@@ -586,7 +618,9 @@ extension Action: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.Action, CompilerContext)>.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing action declaration component"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing action declaration component"
+        ))
     )
 
     // Add the parameters into scope.
@@ -633,7 +667,8 @@ extension TableKeyEntry: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.TableKeyEntry, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing table key entry declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing table key entry declaration component")))
 
     let maybe_keyset_expression = KeysetExpression.compile(
       node: current_node!, withContext: current_context)
@@ -648,7 +683,8 @@ extension TableKeyEntry: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.TableKeyEntry, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing table key entry declaration component")))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing table key entry declaration component")))
 
     let maybe_match_type = TableKeyMatchType.Compile(
       node: current_node!, withContext: current_context)
@@ -671,7 +707,10 @@ extension TableKeyMatchType: Compilable {
     if node.text! == "exact" {
       return .Ok((TableKeyMatchType.Exact, context))
     }
-    return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "\(node.text!) is not a valid match type)"))
+    return .Error(
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(),
+        withError: "\(node.text!) is not a valid match type)"))
   }
 }
 
@@ -697,7 +736,8 @@ extension TableKeys: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.TableKeys, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing table keys declaration component in control declaration"))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing table keys declaration component in control declaration"))
     )
 
     let (keys, errors) = walker.try_map(n: node.childCount - 1, onlyNamed: true) { current_node in
@@ -757,7 +797,9 @@ extension TableActionsProperty: Compilable {
             return .Ok(TypedIdentifier(id: listed_action, withType: P4QualifiedType(maybe_action)))
           }
           return .Error(
-            ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "\(listed_action) does not name an action"))
+            ErrorWithLocation(
+              sourceLocation: node.toSourceLocation(),
+              withError: "\(listed_action) does not name an action"))
         case .Error(let e): return .Error(e)
         }
       case .Error(let e): return .Error(e)
@@ -809,7 +851,9 @@ extension TablePropertyList: Compilable {
         }
       } else {
         errors.append(
-          ErrorWithLocation(sourceLocation: child.toSourceLocation(), withError: "Uknown node type in control declaration"))
+          ErrorWithLocation(
+            sourceLocation: child.toSourceLocation(),
+            withError: "Uknown node type in control declaration"))
       }
     }
 
@@ -827,14 +871,18 @@ extension TablePropertyList: Compilable {
     if keys.count > 1 {
       // Todo: Make this error message better.
       return .Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "More than one key set in table property list"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "More than one key set in table property list"))
     }
 
     // There should be only one table actions!
     if actions.count > 1 {
       // Todo: Make this error message better.
       return .Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "More than one actions in table property list"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "More than one actions in table property list"))
     }
     if actions.isEmpty {
       actions.append(TableActionsProperty())
@@ -866,7 +914,8 @@ extension Table: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.Table, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing table declaration component")))
+          sourceLocation: node.toSourceLocation(), withError: "Missing table declaration component")
+      ))
 
     guard
       case .Ok(let table_name) = Identifier.Compile(
@@ -883,7 +932,8 @@ extension Table: Compilable {
       result: current_node, thing: walker.getNext(),
       or: Result<(P4Lang.Table, CompilerContext)>.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Missing table declaration component")))
+          sourceLocation: node.toSourceLocation(), withError: "Missing table declaration component")
+      ))
 
     let maybe_table_property_list = TablePropertyList.Compile(
       node: current_node!, withContext: current_context)

@@ -35,11 +35,14 @@ extension BlockStatement: CompilableStatement {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(EvaluatableStatement, CompilerContext)>.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
 
     if current_node!.nodeType != "{" {
       return Result.Error(
-        ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "Missing { on block statement"))
+        ErrorWithLocation(
+          sourceLocation: current_node!.toSourceLocation(),
+          withError: "Missing { on block statement"))
     }
 
     var statements: [EvaluatableStatement] = Array()
@@ -50,7 +53,8 @@ extension BlockStatement: CompilableStatement {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(EvaluatableStatement, CompilerContext)>.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
 
     if current_node!.nodeType == "statements" {
       switch Parser.Statements.Compile(
@@ -73,11 +77,14 @@ extension BlockStatement: CompilableStatement {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(EvaluatableStatement, CompilerContext)>.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
 
     if current_node!.nodeType != "}" {
       return Result.Error(
-        ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "Missing } on block statement"))
+        ErrorWithLocation(
+          sourceLocation: current_node!.toSourceLocation(),
+          withError: "Missing } on block statement"))
     }
 
     return .Ok((BlockStatement(statements), current_context))
@@ -97,7 +104,9 @@ extension ConditionalStatement: CompilableStatement {
       condition_expression.nodeType == "expression"
     else {
       return Result.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Did not find condition for conditional statement"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "Did not find condition for conditional statement"))
     }
 
     let maybe_thens = node.child(at: 4)
@@ -106,7 +115,8 @@ extension ConditionalStatement: CompilableStatement {
     else {
       return Result.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Did not find then statement block for conditional statement"))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Did not find then statement block for conditional statement"))
     }
 
     guard
@@ -166,7 +176,8 @@ extension VariableDeclarationStatement: CompilableStatement {
     else {
       return Result.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Did not find type name for variable declaration statement"))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Did not find type name for variable declaration statement"))
     }
 
     let maybe_variablename = node.child(at: 1)
@@ -175,7 +186,8 @@ extension VariableDeclarationStatement: CompilableStatement {
     else {
       return Result.Error(
         ErrorWithLocation(
-          sourceLocation: node.toSourceLocation(), withError: "Did not find identifier name for variable declaration statement"))
+          sourceLocation: node.toSourceLocation(),
+          withError: "Did not find identifier name for variable declaration statement"))
     }
 
     let maybe_rvalue = node.childCount > 3 ? node.child(at: 3) : .none
@@ -205,7 +217,8 @@ extension VariableDeclarationStatement: CompilableStatement {
             withError: "initial value for declaration statement is not an expression"))
       }
 
-      let maybe_parsed_rvalue = Expression.Compile(node: initializer_expression, withContext: context)
+      let maybe_parsed_rvalue = Expression.Compile(
+        node: initializer_expression, withContext: context)
       guard
         case .Ok(let parsed_rvalue) = maybe_parsed_rvalue
       else {
@@ -230,8 +243,9 @@ extension VariableDeclarationStatement: CompilableStatement {
     }
 
     guard let initializer = initializer else {
-        return Result.Error(
-          ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "No initializer for declaration"))
+      return Result.Error(
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "No initializer for declaration"))
     }
 
     return Result.Ok(
@@ -275,14 +289,18 @@ extension ParserAssignmentStatement: CompilableStatement {
       lvalue_node.nodeType == "expression"
     else {
       return Result.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing lvalue in assignment statement"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing lvalue in assignment statement"))
     }
 
     guard let rvalue_node = node.child(at: 2),
       rvalue_node.nodeType == "expression"
     else {
       return Result.Error(
-        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing rvalue in assignment statement"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
+          withError: "Missing rvalue in assignment statement"))
     }
 
     let maybe_parsed_rvalue = Expression.Compile(

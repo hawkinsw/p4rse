@@ -304,7 +304,8 @@ public class P4StructValue: P4DataValue {
   }
 
   public init(withType type: P4Struct, andInitializers initializers: [P4Value?]) {
-    let values: [P4Value?] = zip(0..<type.fields.count(), type.fields.fields).map { (index, field) in
+    let values: [P4Value?] = zip(0..<type.fields.count(), type.fields.fields).map {
+      (index, field) in
       // If there is an initializer for the field, then use it.
       if index < initializers.count, let initializer = initializers[index] {
         initializer

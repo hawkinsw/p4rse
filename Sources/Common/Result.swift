@@ -81,7 +81,7 @@ public struct Errors: Errorable, CustomStringConvertible {
   }
 
   public var description: String {
-    return self.errors.map() { error in
+    return self.errors.map { error in
       return error.msg()
     }.joined(separator: ";")
   }
