@@ -75,8 +75,8 @@ import P4Lang
 
   let compilation_error = try #UseErrorResult(Program.Compile(simple_parser_declaration))
 
-  #expect(compilation_error.msg.contains("asde"))
-  #expect(compilation_error.msg.contains("asdf"))
+  #expect(compilation_error.msg().contains("asde"))
+  #expect(compilation_error.msg().contains("asdf"))
 }
 
 @Test func test_simple_compiler_macro_nodetype_test() async throws {
@@ -96,7 +96,7 @@ import P4Lang
 
   #expect(
     #RequireErrorResult<(EvaluatableStatement, CompilerContext)>(
-      Error(withMessage: "{2, 154}: Did not find assignment statement"),
+      ErrorWithLocation(sourceLocation: SourceLocation(2, 154), withError: "Did not find assignment statement"),
       ParserAssignmentStatement.Compile( // Note: Calling ParserAssignmentStatement compilation directly.
         node: result.rootNode!, withContext: CompilerContext())))
 }

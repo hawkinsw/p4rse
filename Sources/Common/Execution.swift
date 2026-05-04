@@ -152,7 +152,7 @@ public typealias ExpressionInterloper = (EvaluatableExpression, Result<P4Value>,
 open class ProgramExecution: CustomStringConvertible {
   public var scopes: VarValueScopes = VarValueScopes()
   var globalValues: VarValueScopes?
-  var error: Error?
+  var error: (any Errorable)?
   var debug: DebugLevel = DebugLevel.Error
   public let evaluator: ProgramExecutionEvaluator
 
@@ -182,11 +182,11 @@ open class ProgramExecution: CustomStringConvertible {
     return self.error != nil
   }
 
-  public func getError() -> Error? {
+  public func getError() -> (any Errorable)? {
     return self.error
   }
 
-  public func setError(error: Error) -> ProgramExecution {
+  public func setError(error: any Errorable) -> ProgramExecution {
     let npe = ProgramExecution(copy: self)
     npe.error = error
     return npe

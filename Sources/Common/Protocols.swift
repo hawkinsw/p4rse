@@ -70,6 +70,19 @@ public protocol ProgramExecutionEvaluator {
   ) -> (Result<P4Value>, ProgramExecution)
 }
 
+public protocol Errorable: CustomStringConvertible {
+  func format() -> String
+  func msg() -> String
+  func append(error: any Errorable) -> any Errorable
+  func eq(_ rhs: any Errorable) -> Bool
+}
+
+extension Errorable {
+  public func eq(_ rhs: any Errorable) -> Bool {
+    return self.msg() == rhs.msg()
+  }
+}
+
 extension ProgramExecutionEvaluator {
   public func ExecuteStatements(
     _ statements: [EvaluatableStatement], inExecution execution: ProgramExecution

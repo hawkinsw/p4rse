@@ -36,10 +36,6 @@ public func ConfigureP4Parser() -> Result<SwiftTreeSitter.Parser> {
   return .Ok(p)
 }
 
-public func ErrorOnNode(node: Node, withError error: String) -> Error {
-  return Error(withMessage: "\(node.range): \(error)")
-}
-
 /// Context for compilation
 ///
 /// It contains (at least) three important pieces of information:

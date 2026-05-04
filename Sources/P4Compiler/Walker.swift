@@ -54,8 +54,8 @@ public struct Walker {
 
   public func try_map<T>(
     n: Int, onlyNamed: Bool = false, todo: (Node) -> Result<T>
-  ) -> ([T], [Error]) {
-    var errors: [Error] = Array()
+  ) -> ([T], [any Errorable]) {
+    var errors: [any Errorable] = Array()
     var results: [T] = Array()
 
     for currentChildIdx in currentChildIdx..<n {

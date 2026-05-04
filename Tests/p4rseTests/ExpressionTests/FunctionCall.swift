@@ -182,5 +182,5 @@ import TreeSitterP4
 
   let error = try #UseErrorResult(Program.Compile(simple_parser_declaration))
 
-  #expect(error.msg.contains("{29, 12}: Type of expression in return statement (Boolean) is not compatible with function return type (Int)"))
+  #expect(error.msg().contains("{29, 12}: Type of expression in return statement (Boolean) is not compatible with function return type (Int)"))
 }

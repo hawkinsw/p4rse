@@ -15,6 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+public struct SourceLocation: Equatable, CustomStringConvertible {
+  public let start: Int
+  public let extent: Int
+
+  public init(_ start: Int, _ extent: Int) {
+    self.start = start
+    self.extent = extent
+  }
+
+  public var description: String {
+    return "{\(self.start), \(self.extent)}"
+  }
+}
+
 public enum DebugLevel {
   case Trace
   case Verbose
@@ -61,18 +75,6 @@ public enum DebugLevel {
   }
 }
 
-public struct Error: Equatable, CustomStringConvertible {
-  public private(set) var msg: String
-
-  public init(withMessage msg: String) {
-    self.msg = msg
-  }
-
-  public var description: String {
-    return self.msg
-  }
-}
-
 public struct Nothing: CustomStringConvertible {
   public var description: String {
     return "Nothing"
@@ -81,64 +83,17 @@ public struct Nothing: CustomStringConvertible {
   public init() {}
 }
 
-public enum Result<OKT>: Equatable {
-  case Ok(OKT)
-  case Error(Error)
-
-  public static func == (lhs: Result, rhs: Result) -> Bool {
-    switch (lhs, rhs) {
-    case (Ok, Ok):
-      return true
-    case (Error(let le), Error(let re)):
-      return le.msg == re.msg
-    default:
-      return false
-    }
-  }
-
-  public func ok() -> Bool {
-    switch self {
-    case .Ok(_): true
-    case .Error(_): false
-    }
-  }
-  public func error() -> Error? {
-    if case Result.Error(let e) = self {
-      return e
-    }
-    return nil
-  }
-
-  public func map<T>(block: (OKT) -> Result<T>) -> Result<T> {
-    switch self {
-    case .Ok(let ok): return block(ok)
-    case .Error(let e): return .Error(e)
-    }
-  }
-}
-
-extension Result: CustomStringConvertible where OKT: CustomStringConvertible {
-  public var description: String {
-    switch self {
-    case Result.Error(let e):
-      return e.msg
-    case Result.Ok(let o):
-      return "Ok: \(o)"
-    }
-  }
-}
-
 public func Map<T, U>(input: T, block: (T) -> U) -> U {
   return block(input)
 }
 
 @freestanding(expression) public macro RequireOkResult<T>(_: Result<T>) -> Bool =
   #externalMacro(module: "Macros", type: "RequireResult")
-@freestanding(expression) public macro RequireErrorResult<T>(_: Error, _: Result<T>) -> Bool =
+@freestanding(expression) public macro RequireErrorResult<T>(_: any Errorable, _: Result<T>) -> Bool =
   #externalMacro(module: "Macros", type: "RequireErrorResult")
 @freestanding(expression) public macro UseOkResult<T>(_: Result<T>) -> T =
   #externalMacro(module: "Macros", type: "UseOkResult")
-@freestanding(expression) public macro UseErrorResult<T>(_: Result<T>) -> Error =
+@freestanding(expression) public macro UseErrorResult<T>(_: Result<T>) -> any Errorable =
   #externalMacro(module: "Macros", type: "UseErrorResult")
 @freestanding(codeItem) public macro RequireNodeType<N, T>(
   node: N, type: String, nice_type_name: String

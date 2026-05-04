@@ -35,22 +35,22 @@ extension BlockStatement: CompilableStatement {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(EvaluatableStatement, CompilerContext)>.Error(
-        ErrorOnNode(node: node, withError: "Malformed block statement")))
+        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
 
     if current_node!.nodeType != "{" {
       return Result.Error(
-        ErrorOnNode(node: current_node!, withError: "Missing { on block statement"))
+        ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "Missing { on block statement"))
     }
 
     var statements: [EvaluatableStatement] = Array()
-    var parse_err: Error? = .none
+    var parse_err: (any Errorable)? = .none
     var current_context = context
 
     walker.next()
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(EvaluatableStatement, CompilerContext)>.Error(
-        ErrorOnNode(node: node, withError: "Malformed block statement")))
+        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
 
     if current_node!.nodeType == "statements" {
       switch Parser.Statements.Compile(
@@ -73,11 +73,11 @@ extension BlockStatement: CompilableStatement {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(EvaluatableStatement, CompilerContext)>.Error(
-        ErrorOnNode(node: node, withError: "Malformed block statement")))
+        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Malformed block statement")))
 
     if current_node!.nodeType != "}" {
       return Result.Error(
-        ErrorOnNode(node: current_node!, withError: "Missing } on block statement"))
+        ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "Missing } on block statement"))
     }
 
     return .Ok((BlockStatement(statements), current_context))
@@ -97,7 +97,7 @@ extension ConditionalStatement: CompilableStatement {
       condition_expression.nodeType == "expression"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Did not find condition for conditional statement"))
+        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Did not find condition for conditional statement"))
     }
 
     let maybe_thens = node.child(at: 4)
@@ -105,8 +105,8 @@ extension ConditionalStatement: CompilableStatement {
       thens.nodeType == "statement"
     else {
       return Result.Error(
-        ErrorOnNode(
-          node: node, withError: "Did not find then statement block for conditional statement"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Did not find then statement block for conditional statement"))
     }
 
     guard
@@ -165,8 +165,8 @@ extension VariableDeclarationStatement: CompilableStatement {
       typeref.nodeType == "typeRef"
     else {
       return Result.Error(
-        ErrorOnNode(
-          node: node, withError: "Did not find type name for variable declaration statement"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Did not find type name for variable declaration statement"))
     }
 
     let maybe_variablename = node.child(at: 1)
@@ -174,8 +174,8 @@ extension VariableDeclarationStatement: CompilableStatement {
       variablename.nodeType == "identifier"
     else {
       return Result.Error(
-        ErrorOnNode(
-          node: node, withError: "Did not find identifier name for variable declaration statement"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Did not find identifier name for variable declaration statement"))
     }
 
     let maybe_rvalue = node.childCount > 3 ? node.child(at: 3) : .none
@@ -200,8 +200,8 @@ extension VariableDeclarationStatement: CompilableStatement {
     if let initializer_expression = maybe_rvalue {
       guard initializer_expression.nodeType == "expression" else {
         return Result.Error(
-          ErrorOnNode(
-            node: node,
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(),
             withError: "initial value for declaration statement is not an expression"))
       }
 
@@ -231,7 +231,7 @@ extension VariableDeclarationStatement: CompilableStatement {
 
     guard let initializer = initializer else {
         return Result.Error(
-          ErrorOnNode(node: node, withError: "No initializer for declaration"))
+          ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "No initializer for declaration"))
     }
 
     return Result.Ok(
@@ -275,14 +275,14 @@ extension ParserAssignmentStatement: CompilableStatement {
       lvalue_node.nodeType == "expression"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing lvalue in assignment statement"))
+        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing lvalue in assignment statement"))
     }
 
     guard let rvalue_node = node.child(at: 2),
       rvalue_node.nodeType == "expression"
     else {
       return Result.Error(
-        ErrorOnNode(node: node, withError: "Missing rvalue in assignment statement"))
+        ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing rvalue in assignment statement"))
     }
 
     let maybe_parsed_rvalue = Expression.Compile(
@@ -299,8 +299,8 @@ extension ParserAssignmentStatement: CompilableStatement {
     let check_result = lvalue_identifier.check(to: rvalue, inScopes: context.instances)
     guard case .Ok(_) = check_result else {
       return Result.Error(
-        ErrorOnNode(
-          node: lvalue_node,
+        ErrorWithLocation(
+          sourceLocation: lvalue_node.toSourceLocation(),
           withError: "\(check_result.error()!)"))
     }
 
@@ -329,8 +329,8 @@ extension ReturnStatement: CompilableStatement {
         .Ok((ReturnStatement(result), context))
       } else {
         .Error(
-          ErrorOnNode(
-            node: node,
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(),
             withError:
               "Type of expression in return statement (\(result.type())) is not compatible with function return type (\(context.expected_type!))"
           ))

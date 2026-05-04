@@ -60,7 +60,7 @@ public struct Program {
     // Add our FFIs
     compilation_context = compilation_context.update(newFFIs: ffis)
 
-    var errors: [Error] = Array()
+    var errors: [any Errorable] = Array()
 
     // If the caller gave any global instances, add them here.
     if let globalInstances = globalInstances {
@@ -98,8 +98,8 @@ public struct Program {
       // If none of the declaration parsers chose to parse, that's an error, too!
       if !found_parser {
         errors.append(
-          ErrorOnNode(
-            node: specific_declaration_node, withError: "Could not find parser for declaration node"
+          ErrorWithLocation(
+            sourceLocation: specific_declaration_node.toSourceLocation(), withError: "Could not find parser for declaration node"
           ))
       }
     }
@@ -108,7 +108,7 @@ public struct Program {
       return Result.Error(
         Error(
           withMessage: errors.map { error in
-            return error.msg
+            return error.format()
           }.joined(separator: ";")))
     }
 

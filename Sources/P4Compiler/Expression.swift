@@ -46,7 +46,7 @@ extension TypedIdentifier: CompilableExpression {
       case Result.Ok(let type) = context.instances.lookup(
         identifier: Common.Identifier(name: node.text!))
     else {
-      return .Error(ErrorOnNode(node: node, withError: "Cannot find \(node.text!) in scope"))
+      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Cannot find \(node.text!) in scope"))
     }
 
     return .Ok(TypedIdentifier(name: node.text!, withType: type))
@@ -88,7 +88,7 @@ extension P4BooleanValue: CompilableExpression {
     }
 
     return .Error(
-      ErrorOnNode(node: node, withError: "Failed to parse boolean literal: \(node.text!)"))
+      ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Failed to parse boolean literal: \(node.text!)"))
   }
 }
 
@@ -101,7 +101,7 @@ extension P4IntValue: CompilableExpression {
     if let parsed_int = Int(node.text!) {
       return .Ok(P4Value(P4IntValue(withValue: parsed_int)))
     } else {
-      return .Error(ErrorOnNode(node: node, withError: "Failed to parse integer: \(node.text!)"))
+      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Failed to parse integer: \(node.text!)"))
     }
   }
 }
@@ -237,46 +237,45 @@ extension SelectExpression: CompilableExpression {
     guard let selector_node = node.child(at: 2),
       selector_node.nodeType == "expression"
     else {
-      return .Error(ErrorOnNode(node: node, withError: "Could not find selector expression"))
+      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Could not find selector expression"))
     }
 
     guard let select_body_node = node.child(at: 5),
       select_body_node.nodeType == "selectBody"
     else {
-      return .Error(ErrorOnNode(node: node, withError: "Could not find select expression body"))
+      return .Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Could not find select expression body"))
     }
 
     let maybe_selector = Expression.Compile(node: selector_node, withContext: context)
     guard case .Ok(let selector) = maybe_selector else {
       return .Error(
-        ErrorOnNode(
-          node: selector_node,
+        ErrorWithLocation(
+          sourceLocation: selector_node.toSourceLocation(),
           withError:
             "Could not parse transition select expression selector expression: \(maybe_selector.error()!)"
         ))
     }
 
     var sces: [SelectCaseExpression] = Array()
-    var sces_errors: [Error] = Array()
+    var sces_errors: (any Errorable)? = .none
 
     select_body_node.enumerateNamedChildren { current_node in
       let maybe_parsed_cse = SelectCaseExpression.compile(
         node: current_node, withContext: context.update(newExpectation: selector.type()))
-      if case .Ok(let parsed_cse) = maybe_parsed_cse {
-        sces.append(parsed_cse as! SelectCaseExpression)
-      } else {
-        sces_errors.append(Error(withMessage: "\(maybe_parsed_cse.error()!)"))
+      switch maybe_parsed_cse {
+        case .Ok(let parsed_cse): sces.append(parsed_cse as! SelectCaseExpression)
+        case .Error(let e): sces_errors = if let sces_errors = sces_errors {
+          sces_errors.append(error: Error(withMessage: "\(maybe_parsed_cse.error()!)"))
+        } else {
+          e
+        }
       }
     }
 
-    if !sces_errors.isEmpty {
-      return .Error(
-        Error(
-          withMessage: "Error(s) parsing select cases: "
-            + (sces_errors.map { error in
-              return "\(error.msg)"
-            }.joined(separator: ";"))))
+    if let sces_errors = sces_errors {
+      return .Error(ErrorWithLabel("Error(s) parsing select cases", sces_errors))
     }
+
     return .Ok(
       SelectExpression(withSelector: selector, withSelectCaseExpressions: sces),
     )
@@ -311,13 +310,13 @@ extension SelectCaseExpression: CompilableExpression {
 
     guard let maybe_keysetexpression = maybe_keysetexpression else {
       return Result.Error(
-        ErrorOnNode(node: keysetexpression_node, withError: "Missing expected keyset expression"))
+        ErrorWithLocation(sourceLocation: keysetexpression_node.toSourceLocation(), withError: "Missing expected keyset expression"))
     }
 
     let keysetexpression = maybe_keysetexpression as! KeysetExpression
 
     if case .Error(let e) = keysetexpression.compatible(type: context.expected_type!) {
-      return .Error(ErrorOnNode(node: keysetexpression_node, withError: e.msg))
+      return .Error(ErrorWithLocation(sourceLocation: keysetexpression_node.toSourceLocation(), withError: e.msg()))
     }
 
     let maybe_parsed_targetstate = Identifier.Compile(
@@ -349,8 +348,8 @@ extension BinaryOperatorExpression: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Malformed binary operator expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Malformed binary operator expression")))
 
     /// TODO: This macro cannot handle new lines in the arrays
     // swift-format-ignore
@@ -361,8 +360,8 @@ extension BinaryOperatorExpression: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing LHS for binary operator expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing LHS for binary operator expression")))
 
     let left_hand_side_raw = current_node!
 
@@ -370,15 +369,15 @@ extension BinaryOperatorExpression: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing binary operator for binary operator expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing binary operator for binary operator expression")))
 
     walker.next()
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing RHS for binary operator expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing RHS for binary operator expression")))
 
     let right_hand_side_raw = current_node!
 
@@ -474,8 +473,8 @@ extension ArrayAccessExpression: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Malformed array access expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Malformed array access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
       node: current_node!, type: "expression",
@@ -486,16 +485,16 @@ extension ArrayAccessExpression: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing [ for array access expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing [ for array access expression")))
 
     walker.next()
 
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing indexor expression for array access expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing indexor expression for array access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
       node: current_node!, type: "expression",
@@ -512,8 +511,8 @@ extension ArrayAccessExpression: CompilableExpression {
     let maybe_array_type = array_identifier.type()
     guard let array_type = maybe_array_type.baseType() as? P4Array else {
       return Result.Error(
-        ErrorOnNode(
-          node: array_access_identifier_node,
+        ErrorWithLocation(
+          sourceLocation: array_access_identifier_node.toSourceLocation(),
           withError: "\(array_identifier) does not name an array type")
       )
     }
@@ -547,8 +546,8 @@ extension FieldAccessExpression: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Malformed field access expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Malformed field access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
       node: current_node!, type: "expression",
@@ -559,15 +558,15 @@ extension FieldAccessExpression: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing . for field access expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing . for field access expression")))
 
     walker.next()
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing field name for field access expression")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing field name for field access expression")))
 
     #RequireNodeType<Node, EvaluatableExpression?>(
       node: current_node!, type: "identifier",
@@ -583,8 +582,8 @@ extension FieldAccessExpression: CompilableExpression {
     }
     guard let struct_type = struct_identifier.type().baseType() as? P4Struct else {
       return .Error(
-        ErrorOnNode(
-          node: struct_identifier_node,
+        ErrorWithLocation(
+          sourceLocation: struct_identifier_node.toSourceLocation(),
           withError: "\(struct_identifier_node.text!) does not have struct type"))
     }
 
@@ -598,8 +597,8 @@ extension FieldAccessExpression: CompilableExpression {
     let maybe_field_type = struct_type.fields.get_field_type(field_name)
     guard let field_type = maybe_field_type else {
       return .Error(
-        ErrorOnNode(
-          node: field_name_node,
+        ErrorWithLocation(
+          sourceLocation: field_name_node.toSourceLocation(),
           withError: "\(field_name) is not a valid field for struct with type \(struct_type)"))
     }
 
@@ -663,8 +662,8 @@ extension FunctionCall: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing function call component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing function call component")))
 
     let maybe_callee_name = Identifier.Compile(
       node: current_node!, withContext: context)
@@ -680,7 +679,7 @@ extension FunctionCall: CompilableExpression {
           Result<(FunctionDeclaration?, Declaration?)>.Ok((callee, .none))  // What we found is actually a function declaration
         default:
           Result<(FunctionDeclaration?, Declaration?)>.Error(
-            ErrorOnNode(node: current_node!, withError: "\(callee_name) is not a function"))
+            ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "\(callee_name) is not a function"))
         }
       case .Error(let e): Result<(FunctionDeclaration?, Declaration?)>.Error(e)
       }
@@ -693,7 +692,7 @@ extension FunctionCall: CompilableExpression {
           switch callee.identifier.type.baseType() {
           case is FunctionDeclaration: Result.Ok((.none, callee))
           default:
-            .Error(ErrorOnNode(node: current_node!, withError: "\(callee_name) is not a function"))
+            .Error(ErrorWithLocation(sourceLocation: current_node!.toSourceLocation(), withError: "\(callee_name) is not a function"))
           }
         default: .Error(e)
         }
@@ -710,8 +709,8 @@ extension FunctionCall: CompilableExpression {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<EvaluatableExpression?>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing function call component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing function call component")))
 
     let maybe_argument_list = ArgumentList.Compile(node: current_node!, withContext: context)
 
@@ -731,8 +730,8 @@ extension FunctionCall: CompilableExpression {
 
     guard case .some(let params) = params else {
       return Result.Error(
-        ErrorOnNode(
-          node: node,
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(),
           withError: "Could not lookup the parameters for the called function (\(callee_name))"))
     }
 
@@ -747,8 +746,8 @@ extension FunctionCall: CompilableExpression {
     case (.none, .some(let callee)): .Ok(FunctionCall(callee.ffi!, withArguments: arguments))
     default:
       Result.Error(
-        ErrorOnNode(
-          node: node, withError: "Unexpected error occurred calling function named (\(callee_name))"
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Unexpected error occurred calling function named (\(callee_name))"
         ))
     }
   }

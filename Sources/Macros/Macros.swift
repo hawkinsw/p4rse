@@ -125,10 +125,14 @@ public struct RequireErrorResult: ExpressionMacro {
       {
           let __expected_error = \(expected_error)
           let __actual_error = \(error_producer)
-          if case Result.Error(__expected_error) = __actual_error {
+          if case Result.Error(let __found_error) = __actual_error {
+              if !__expected_error.eq(__found_error) {
+                print("Expected Error: \\(__expected_error) but got Error: \\(__found_error)")
+                return false
+              }
               return true
           } else {
-              print("Expected Error: \\(__expected_error) but got Error: \\(__actual_error)")
+              print("Expected error, but got Ok")
               return false
           }
       }()
@@ -156,7 +160,7 @@ public struct RequireNodeType: CodeItemMacro {
         """
         if \(node_to_check).nodeType != \(expected_type) {
           return Result.Error(
-            ErrorOnNode(node: \(node_to_check), withError: "\(raw: error_message)"))
+            ErrorWithLocation(sourceLocation: \(node_to_check).toSourceLocation(), withError: "\(raw: error_message)"))
         }
         """)
     ]
@@ -198,7 +202,7 @@ public struct RequireNodesType: CodeItemMacro {
         """
         if \(raw: ifs) {
           return Result.Error(
-            ErrorOnNode(node: \(node_to_check), withError: "\(raw: error_message)"))
+            ErrorWithLocation(sourceLocation: \(node_to_check).toSourceLocation(), withError: "\(raw: error_message)"))
         }
         """)
     ]

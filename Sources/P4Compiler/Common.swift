@@ -42,8 +42,8 @@ func parameter_list_compiler(
   #MustOr(
     result: current_node, thing: walker.getNext(),
     or: Result<(ParameterList, CompilerContext)>.Error(
-      ErrorOnNode(
-        node: node, withError: "Missing parameter list component")))
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(), withError: "Missing parameter list component")))
 
   if current_node?.nodeType == "parameter_list" {
     switch parameter_list_compiler(node: current_node!, withContext: context) {
@@ -57,8 +57,8 @@ func parameter_list_compiler(
   #MustOr(
     result: current_node, thing: walker.getNext(),
     or: Result<(ParameterList, CompilerContext)>.Error(
-      ErrorOnNode(
-        node: node, withError: "Missing parameter list component")))
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(), withError: "Missing parameter list component")))
 
   // If this is a ')', we are done.
   if current_node?.text == ")" {
@@ -73,8 +73,8 @@ func parameter_list_compiler(
   #MustOr(
     result: current_node, thing: walker.getNext(),
     or: Result<(ParameterList, CompilerContext)>.Error(
-      ErrorOnNode(
-        node: node, withError: "Missing parameter list component")))
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(), withError: "Missing parameter list component")))
 
   // Otherwise, there should be one parameter left!
   switch Parameter.Compile(node: current_node!, withContext: context) {
@@ -101,15 +101,15 @@ extension ParameterList: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(ParameterList, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing '(' in parameter list component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing '(' in parameter list component")))
 
     walker.next()
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(ParameterList, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing parameter list component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing parameter list component")))
 
     return parameter_list_compiler(node: current_node!, withContext: context)
   }
@@ -131,8 +131,8 @@ extension Direction: Compilable {
 
     guard let parsed_direction = directions[direction_node.text!] else {
       return .Error(
-        ErrorOnNode(
-          node: direction_node, withError: "\(direction_node.text!) is not a valid direction"))
+        ErrorWithLocation(
+          sourceLocation: direction_node.toSourceLocation(), withError: "\(direction_node.text!) is not a valid direction"))
     }
 
     return .Ok((parsed_direction, context))
@@ -154,14 +154,14 @@ extension Parameter: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing parameter declaration component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
 
     // Annotation?
     if current_node!.nodeType == "annotations" {
       return .Error(
-        ErrorOnNode(
-          node: current_node!,
+        ErrorWithLocation(
+          sourceLocation: current_node!.toSourceLocation(),
           withError: "Annotations in parameter declarations are not yet handled"))
       // Will increment indexes here.
     }
@@ -169,8 +169,8 @@ extension Parameter: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing parameter declaration component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
 
     var direction: Direction? = .none
     // Direction?
@@ -188,13 +188,13 @@ extension Parameter: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing parameter declaration component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
 
     if current_node!.nodeType != "typeRef" {
       return Result.Error(
-        ErrorOnNode(
-          node: node, withError: "Did not find type name for parameter declaration"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Did not find type name for parameter declaration"))
     }
 
     guard
@@ -208,13 +208,13 @@ extension Parameter: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(Parameter, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing parameter declaration component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing parameter declaration component")))
 
     if current_node!.nodeType != "identifier" {
       return Result.Error(
-        ErrorOnNode(
-          node: node, withError: "Did not find identifier for parameter statement"))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Did not find identifier for parameter statement"))
     }
 
     guard
@@ -256,8 +256,8 @@ func argument_list_compiler(
   #MustOr(
     result: current_node, thing: walker.getNext(),
     or: Result<(ArgumentList, CompilerContext)>.Error(
-      ErrorOnNode(
-        node: node, withError: "Missing argument list component")))
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(), withError: "Missing argument list component")))
 
   if current_node?.nodeType == "argument_list" {
     switch argument_list_compiler(node: current_node!, withContext: context) {
@@ -273,8 +273,8 @@ func argument_list_compiler(
   #MustOr(
     result: current_node, thing: walker.getNext(),
     or: Result<(ArgumentList, CompilerContext)>.Error(
-      ErrorOnNode(
-        node: node, withError: "Missing argument list component")))
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(), withError: "Missing argument list component")))
 
   // If this is a ')', we are done.
   if current_node?.text == ")" {
@@ -289,8 +289,8 @@ func argument_list_compiler(
   #MustOr(
     result: current_node, thing: walker.getNext(),
     or: Result<(ArgumentList, CompilerContext)>.Error(
-      ErrorOnNode(
-        node: node, withError: "Missing argument list component")))
+      ErrorWithLocation(
+        sourceLocation: node.toSourceLocation(), withError: "Missing argument list component")))
 
   // Otherwise, there should be one argument left!
   switch Argument.Compile(node: current_node!, withContext: context) {
@@ -317,16 +317,16 @@ extension ArgumentList: Compilable {
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(ArgumentList, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing '(' in argument list component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing '(' in argument list component")))
 
     walker.next()
 
     #MustOr(
       result: current_node, thing: walker.getNext(),
       or: Result<(ArgumentList, CompilerContext)>.Error(
-        ErrorOnNode(
-          node: node, withError: "Missing argument list component")))
+        ErrorWithLocation(
+          sourceLocation: node.toSourceLocation(), withError: "Missing argument list component")))
 
     return argument_list_compiler(node: current_node!, withContext: context)
   }
@@ -370,5 +370,11 @@ func ContainsInvalidStatements(block: BlockStatement, invalids: [EvaluatableStat
       }
     }
     return false
+  }
+}
+
+extension Node {
+  public func toSourceLocation() -> SourceLocation {
+    return SourceLocation(self.range.location, self.range.length)
   }
 }

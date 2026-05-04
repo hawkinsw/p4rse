@@ -42,7 +42,7 @@ import TreeSitterP4
     guard case Result.Error(let e) = err else {
       assert(false, "Expected an error, but had success")
     }
-    #expect(e.msg.contains("Failed to parse a statement element: Could not parse a P4 type from \(invalid_type_name)"))
+    #expect(e.format().contains("Failed to parse a statement element: Could not parse a P4 type from \(invalid_type_name)"))
   }
 }
 

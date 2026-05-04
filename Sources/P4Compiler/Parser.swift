@@ -33,8 +33,8 @@ public struct Parser {
 
       guard let parser = localElementsParsers[node.nodeType ?? ""] else {
         return Result.Error(
-          ErrorOnNode(
-            node: node,
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(),
             withError: "Unparseable statement type (\(node.nodeType ?? "Unknown Statement Type"))"))
       }
 
@@ -52,7 +52,7 @@ public struct Parser {
       node: Node, withContext context: CompilerContext
     ) -> Result<(EvaluatableStatement, CompilerContext)> {
       if node.nodeType != "parserStatement" && node.nodeType != "statement" {
-        return Result.Error(ErrorOnNode(node: node, withError: "Missing expected parser statement"))
+        return Result.Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Missing expected parser statement"))
       }
 
       let statement = node.child(at: 0)!
@@ -66,8 +66,8 @@ public struct Parser {
       ]
       guard let parser = statementParsers[statement.nodeType ?? ""] else {
         return Result.Error(
-          ErrorOnNode(
-            node: statement,
+          ErrorWithLocation(
+            sourceLocation: statement.toSourceLocation(),
             withError:
               "Unparseable statement type (\(statement.nodeType ?? "Unknown Statement Type"))"))
       }
@@ -76,7 +76,7 @@ public struct Parser {
         return .Ok((parsed, updated_context))
       case Result.Error(let e):
         return .Error(
-          ErrorOnNode(node: node, withError: "Failed to parse a statement element: \(e)"))
+          ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Failed to parse a statement element: \(e)"))
       }
     }
   }
@@ -95,13 +95,13 @@ public struct Parser {
         tse_node.nodeType! == "transitionSelectionExpression"
       else {
         return .Error(
-          ErrorOnNode(node: node, withError: "Could not find transition select expression"))
+          ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Could not find transition select expression"))
       }
 
       guard let next_node = tse_node.child(at: 0) else {
         return .Error(
-          ErrorOnNode(
-            node: node,
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(),
             withError: "Could not find the next token in a transition selection expression"))
       }
 
@@ -145,10 +145,10 @@ public struct Parser {
       node: Node, withContext context: CompilerContext
     ) -> Result<([EvaluatableStatement], CompilerContext)> {
       if node.nodeType != "statements" && node.nodeType != "parserStatements" {
-        return Result.Error(ErrorOnNode(node: node, withError: "Did not find expected statements"))
+        return Result.Error(ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Did not find expected statements"))
       }
 
-      var parse_errs: [Error] = Array()
+      var parse_errs: [any Errorable] = Array()
       var current_context = context
       var parsed_s: [EvaluatableStatement] = Array()
 
@@ -168,7 +168,7 @@ public struct Parser {
         return Result.Error(
           Error(
             withMessage: parse_errs.map { err in
-              return String(err.msg)
+              return String(err.format())
             }.joined(separator: ";")))
       }
       return Result.Ok((parsed_s, current_context))
@@ -187,19 +187,19 @@ public struct Parser {
         node_type == "parserState"
       else {
         return Result.Error(
-          ErrorOnNode(node: node, withError: "Did not find a parser state declaration"))
+          ErrorWithLocation(sourceLocation: node.toSourceLocation(), withError: "Did not find a parser state declaration"))
       }
 
       #MustOr(
         result: current_node, thing: walker.getNext(),
         or: Result<(InstantiatedParserState, CompilerContext)>.Error(
-          ErrorOnNode(
-            node: node, withError: "Missing elements in parser state declaration")))
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(), withError: "Missing elements in parser state declaration")))
 
       if current_node!.nodeType == "annotations" {
         return Result.Error(
-          ErrorOnNode(
-            node: current_node!, withError: "Annotations in parser state are not yet handled."))
+          ErrorWithLocation(
+            sourceLocation: current_node!.toSourceLocation(), withError: "Annotations in parser state are not yet handled."))
 
         // Would increment here.
       }
@@ -209,8 +209,8 @@ public struct Parser {
       #MustOr(
         result: current_node, thing: walker.getNext(),
         or: Result<(InstantiatedParserState, CompilerContext)>.Error(
-          ErrorOnNode(
-            node: node, withError: "Missing elements in parser state declaration")))
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(), withError: "Missing elements in parser state declaration")))
 
       let maybe_state_identifier = Identifier.Compile(
         node: current_node!, withContext: context)
@@ -224,10 +224,10 @@ public struct Parser {
       #MustOr(
         result: current_node, thing: walker.getNext(),
         or: Result<(InstantiatedParserState, CompilerContext)>.Error(
-          ErrorOnNode(
-            node: node, withError: "Missing body of state declaration")))
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(), withError: "Missing body of state declaration")))
 
-      var parse_errs: [Error] = Array()
+      var parse_errs: [any Errorable] = Array()
       var current_context = context
       var parsed_s: [EvaluatableStatement] = Array()
 
@@ -248,15 +248,15 @@ public struct Parser {
         return Result.Error(
           Error(
             withMessage: parse_errs.map { err in
-              return String(err.msg)
+              return String(err.format())
             }.joined(separator: ";")))
       }
 
       #MustOr(
         result: current_node, thing: walker.getNext(),
         or: Result<(InstantiatedParserState, CompilerContext)>.Error(
-          ErrorOnNode(
-            node: node, withError: "Missing transition statement of state declaration")))
+          ErrorWithLocation(
+            sourceLocation: node.toSourceLocation(), withError: "Missing transition statement of state declaration")))
 
       return TransitionStatement.Compile(
         node: current_node!, forState: state_identifier, withStatements: parsed_s,
@@ -272,7 +272,7 @@ public struct Parser {
     var parser = P4Lang.Parser(withName: name, withParameters: parameters)
 
     // Build a state from each one listed.
-    var error: Error? = .none
+    var error: (any Errorable)? = .none
 
     var current_context = context
     /// TODO: Assert that there is only one.
