@@ -25,7 +25,7 @@ import TreeSitterP4
 extension P4Boolean: CompilableType {
   public static func CompileType(
     type: SwiftTreeSitter.Node, withContext: CompilerContext
-  ) -> Common.Result<(any Common.P4DataType)?> {
+  ) -> Common.Result<(any Common.P4Type)?> {
     return type.text == "bool" ? .Ok(P4Boolean()) : .Ok(.none)
   }
 }
@@ -33,7 +33,7 @@ extension P4Boolean: CompilableType {
 extension P4Int: CompilableType {
   public static func CompileType(
     type: SwiftTreeSitter.Node, withContext: CompilerContext
-  ) -> Common.Result<(any Common.P4DataType)?> {
+  ) -> Common.Result<(any Common.P4Type)?> {
     return type.text == "int" ? .Ok(P4Int()) : .Ok(.none)
   }
 }
@@ -41,7 +41,7 @@ extension P4Int: CompilableType {
 extension P4String: CompilableType {
   public static func CompileType(
     type: SwiftTreeSitter.Node, withContext: CompilerContext
-  ) -> Common.Result<(any Common.P4DataType)?> {
+  ) -> Common.Result<(any Common.P4Type)?> {
     return type.text == "string" ? .Ok(P4String()) : .Ok(.none)
   }
 }
@@ -49,7 +49,7 @@ extension P4String: CompilableType {
 extension P4Struct: CompilableType {
   public static func CompileType(
     type: SwiftTreeSitter.Node, withContext context: CompilerContext
-  ) -> Common.Result<(any Common.P4DataType)?> {
+  ) -> Common.Result<(any Common.P4Type)?> {
 
     let maybe_parsed_type_id = Identifier.Compile(node: type, withContext: context)
     guard case .Ok(let parsed_type_id) = maybe_parsed_type_id else {

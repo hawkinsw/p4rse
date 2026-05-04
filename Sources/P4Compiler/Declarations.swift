@@ -542,7 +542,7 @@ extension Action: Compilable {
   public static func Compile(
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.Action, CompilerContext)> {
-    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
       node: node, type: "action_declaration", nice_type_name: "Action Declaration")
 
     var walker = Walker(node: node)
@@ -619,7 +619,7 @@ extension TableKeyEntry: Compilable {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.TableKeyEntry, CompilerContext)> {
 
-    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
       node: node, type: "table_key_entry", nice_type_name: "Table Key Entry")
 
     var walker = Walker(node: node)
@@ -782,7 +782,7 @@ extension TablePropertyList: Compilable {
     node: SwiftTreeSitter.Node, withContext context: CompilerContext
   ) -> Common.Result<(P4Lang.TablePropertyList, CompilerContext)> {
 
-    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
       node: node, type: "table_property_list", nice_type_name: "Table Property List")
 
     var current_context = context
@@ -851,7 +851,7 @@ extension Table: Compilable {
   ) -> Common.Result<(P4Lang.Table, CompilerContext)> {
 
     let table_declaration_node = node
-    #RequireNodeType<Node, (P4DataType, CompilerContext)>(
+    #RequireNodeType<Node, (P4Type, CompilerContext)>(
       node: table_declaration_node, type: "table_declaration", nice_type_name: "Table Declaration")
 
     var walker = Walker(node: table_declaration_node)

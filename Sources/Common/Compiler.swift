@@ -22,7 +22,7 @@ public typealias VarTypeScope = Scope<P4QualifiedType>
 public typealias VarTypeScopes = Scopes<P4QualifiedType>
 
 /// A scope that resolves type identifiers to their types.
-public typealias TypeTypeScope = Scope<P4DataType>
+public typealias TypeTypeScope = Scope<P4Type>
 
 /// Scopes that resolve type identifiers to their types.
-public typealias TypeTypeScopes = Scopes<P4DataType>
+public typealias TypeTypeScopes = Scopes<P4Type>

@@ -34,13 +34,13 @@ public protocol EvaluatableStatement {
   func evaluate(execution: ProgramExecution) -> (ControlFlow, ProgramExecution)
 }
 
-public protocol P4DataType: CustomStringConvertible {
-  func eq(rhs: any P4DataType) -> Bool
+public protocol P4Type: CustomStringConvertible {
+  func eq(rhs: any P4Type) -> Bool
   func def() -> P4DataValue
 }
 
 public protocol P4DataValue: CustomStringConvertible {
-  func type() -> any P4DataType
+  func type() -> any P4Type
   func eq(rhs: P4DataValue) -> Bool
   func lt(rhs: P4DataValue) -> Bool
   func lte(rhs: P4DataValue) -> Bool

@@ -135,7 +135,7 @@ public struct P4StructFields: Sequence, CustomStringConvertible, Equatable {
 }
 
 /// The type for a P4 struct
-public struct P4Struct: P4DataType {
+public struct P4Struct: P4Type {
 
   public let name: Identifier
   public let fields: P4StructFields
@@ -154,7 +154,7 @@ public struct P4Struct: P4DataType {
     return "Struct \(self.name) with fields: \(self.fields)"
   }
 
-  public func eq(rhs: P4DataType) -> Bool {
+  public func eq(rhs: P4Type) -> Bool {
     return if let struct_rhs = rhs as? P4Struct {
       struct_rhs.name == self.name
     } else {
@@ -169,7 +169,7 @@ public struct P4Struct: P4DataType {
 
 /// An instance of a P4 struct
 public class P4StructValue: P4DataValue {
-  public func type() -> P4DataType {
+  public func type() -> P4Type {
     return self.stype
   }
 
@@ -350,12 +350,12 @@ public class P4StructValue: P4DataValue {
 }
 
 /// A P4 boolean type
-public struct P4Boolean: P4DataType {
+public struct P4Boolean: P4Type {
   public init() {}
   public var description: String {
     return "Boolean"
   }
-  public func eq(rhs: P4DataType) -> Bool {
+  public func eq(rhs: P4Type) -> Bool {
     return switch rhs {
     case is P4Boolean: true
     default: false
@@ -368,7 +368,7 @@ public struct P4Boolean: P4DataType {
 
 /// An instance of a P4 boolean
 public class P4BooleanValue: P4DataValue {
-  public func type() -> any P4DataType {
+  public func type() -> any P4Type {
     return P4Boolean()
   }
 
@@ -422,13 +422,13 @@ public class P4BooleanValue: P4DataValue {
 }
 
 /// A P4 int type
-public struct P4Int: P4DataType {
+public struct P4Int: P4Type {
   public init() {}
 
   public var description: String {
     return "Int"
   }
-  public func eq(rhs: P4DataType) -> Bool {
+  public func eq(rhs: P4Type) -> Bool {
     return switch rhs {
     case is P4Int: true
     default: false
@@ -441,7 +441,7 @@ public struct P4Int: P4DataType {
 
 /// An instance of a P4 integer
 public class P4IntValue: P4DataValue {
-  public func type() -> P4DataType {
+  public func type() -> P4Type {
     return P4Int()
   }
 
@@ -495,12 +495,12 @@ public class P4IntValue: P4DataValue {
 }
 
 /// A P4 string type
-public struct P4String: P4DataType {
+public struct P4String: P4Type {
   public init() {}
   public var description: String {
     return "String"
   }
-  public func eq(rhs: any P4DataType) -> Bool {
+  public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
     case is P4String: true
     default: false
@@ -512,7 +512,7 @@ public struct P4String: P4DataType {
 }
 /// An instance of a P4 string
 public class P4StringValue: P4DataValue {
-  public func type() -> any P4DataType {
+  public func type() -> any P4Type {
     return P4String()
   }
 
@@ -565,7 +565,7 @@ public class Packet {
 }
 
 /// A P4 array type
-public struct P4Array: P4DataType {
+public struct P4Array: P4Type {
   public init(withValueType vtype: P4QualifiedType) {
     self.vtype = vtype
   }
@@ -580,7 +580,7 @@ public struct P4Array: P4DataType {
     return "Array"
   }
 
-  public func eq(rhs: any P4DataType) -> Bool {
+  public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
     case is P4Array: true
     default: false
@@ -594,7 +594,7 @@ public struct P4Array: P4DataType {
 
 /// An instance of a P4 array
 public class P4ArrayValue: P4DataValue {
-  public func type() -> any P4DataType {
+  public func type() -> any P4Type {
     return P4Array(withValueType: self.vtype)
   }
 
@@ -663,7 +663,7 @@ public class P4ArrayValue: P4DataValue {
 }
 
 /// A P4 set type
-public struct P4Set: P4DataType {
+public struct P4Set: P4Type {
   public init(withSetType stype: P4QualifiedType) {
     self.stype = stype
   }
@@ -678,7 +678,7 @@ public struct P4Set: P4DataType {
     return "P4Set"
   }
 
-  public func eq(rhs: any P4DataType) -> Bool {
+  public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
     // If rhs is a set type, then they are the same if the types in the set are the same.
     case let srhs as P4Set: srhs.eq(rhs: self.stype.baseType())
@@ -693,7 +693,7 @@ public struct P4Set: P4DataType {
 
 /// An instance of a P4 set
 public class P4SetValue: P4DataValue {
-  public func type() -> any P4DataType {
+  public func type() -> any P4Type {
     return P4Set(withSetType: self.value.type())
   }
 
@@ -744,7 +744,7 @@ public class P4SetValue: P4DataValue {
 }
 
 public class P4SetDefaultValue: P4DataValue {
-  public func type() -> P4DataType {
+  public func type() -> P4Type {
     return P4Set(withSetType: self.stype)
   }
 
@@ -776,8 +776,8 @@ public class P4SetDefaultValue: P4DataValue {
   }
 }
 
-public struct P4HitMiss: P4DataType {
-  public func eq(rhs: any P4DataType) -> Bool {
+public struct P4HitMiss: P4Type {
+  public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
     case is P4HitMiss: true
     default: false
@@ -794,7 +794,7 @@ public struct P4HitMiss: P4DataType {
 }
 
 public enum P4TableHitMissValue: P4DataValue, Equatable, Comparable, CustomStringConvertible {
-  public func type() -> any P4DataType {
+  public func type() -> any P4Type {
     return P4HitMiss()
   }
 

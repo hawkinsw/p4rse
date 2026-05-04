@@ -17,7 +17,7 @@
 
 import Common
 
-public struct Declaration: P4DataType {
+public struct Declaration: P4Type {
   public let identifier: TypedIdentifier
   public let extern: Bool
   public let ffi: P4FFI?
@@ -34,7 +34,7 @@ public struct Declaration: P4DataType {
     self.extern = true
   }
 
-  public func eq(rhs: any Common.P4DataType) -> Bool {
+  public func eq(rhs: any Common.P4Type) -> Bool {
     return switch rhs {
     case let rrhs as Declaration:
       self.identifier.type.baseType().eq(rhs: rrhs.identifier.type.baseType())
@@ -48,7 +48,7 @@ public struct Declaration: P4DataType {
     return self.identifier.type.baseType().def()
   }
 
-  public func type() -> any Common.P4DataType {
+  public func type() -> any Common.P4Type {
     return self
   }
   public var description: String {
@@ -58,12 +58,12 @@ public struct Declaration: P4DataType {
 
 public struct ExternDeclaration {}
 
-public struct FunctionDeclaration: P4DataType, P4DataValue {
-  public func type() -> any Common.P4DataType {
+public struct FunctionDeclaration: P4Type, P4DataValue {
+  public func type() -> any Common.P4Type {
     return self
   }
 
-  public func eq(rhs: any Common.P4DataType) -> Bool {
+  public func eq(rhs: any Common.P4Type) -> Bool {
     switch rhs {
     case let frhs as FunctionDeclaration:
       return frhs.tipe.eq(self.tipe) && frhs.params == self.params
@@ -73,7 +73,7 @@ public struct FunctionDeclaration: P4DataType, P4DataValue {
 
   public func eq(rhs: any Common.P4DataValue) -> Bool {
     switch rhs {
-    case let frhs as FunctionDeclaration: return self.eq(rhs: frhs as P4DataType)
+    case let frhs as FunctionDeclaration: return self.eq(rhs: frhs as P4Type)
     default: return false
     }
   }

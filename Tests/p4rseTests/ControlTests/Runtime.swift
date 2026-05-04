@@ -59,7 +59,7 @@ import TreeSitterP4
     default: false
     }
   }
-  var control = ((controls[0].baseType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4Type) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
@@ -130,7 +130,7 @@ import TreeSitterP4
     default: false
     }
   }
-  var control = ((controls[0].baseType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4Type) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
@@ -201,7 +201,7 @@ import TreeSitterP4
     default: false
     }
   }
-  var control = ((controls[0].baseType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4Type) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
@@ -271,7 +271,7 @@ import TreeSitterP4
     default: false
     }
   }
-  var control = ((controls[0].baseType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4Type) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(
@@ -342,7 +342,7 @@ import TreeSitterP4
     default: false
     }
   }
-  var control = ((controls[0].baseType() as P4DataType) as! Control)
+  var control = ((controls[0].baseType() as P4Type) as! Control)
 
   // Add entries to the table.
   control = control.updateTable(

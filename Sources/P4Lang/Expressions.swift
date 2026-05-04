@@ -130,7 +130,7 @@ public struct FieldAccessExpression {
 public struct FunctionCall {
   public let callee: (FunctionDeclaration?, P4FFI?)
   public let arguments: ArgumentList
-  public let return_type: P4DataType
+  public let return_type: P4Type
 
   public init(_ callee: FunctionDeclaration, withArguments arguments: ArgumentList) {
     self.callee = (callee, .none)

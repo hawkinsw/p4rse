@@ -17,8 +17,8 @@
 
 import Common
 
-public struct Action: CustomStringConvertible, P4DataType, P4DataValue {
-  public func type() -> any Common.P4DataType {
+public struct Action: CustomStringConvertible, P4Type, P4DataValue {
+  public func type() -> any P4Type {
     return self
   }
 
@@ -29,7 +29,7 @@ public struct Action: CustomStringConvertible, P4DataType, P4DataValue {
     }
   }
 
-  public func eq(rhs: any Common.P4DataType) -> Bool {
+  public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
     case is Action: true
     default: false
@@ -194,20 +194,20 @@ public struct Table: CustomStringConvertible {
   }
 }
 
-public struct Control: P4DataType, P4DataValue, Equatable, CustomStringConvertible {
+public struct Control: P4Type, P4DataValue, Equatable, CustomStringConvertible {
   public static func == (lhs: Control, rhs: Control) -> Bool {
     // Two "bare" controls are always equal.
     return true
   }
 
-  public func eq(rhs: any Common.P4DataType) -> Bool {
+  public func eq(rhs: any P4Type) -> Bool {
     return switch rhs {
     case is Control: true
     default: false
     }
   }
 
-  public func type() -> any Common.P4DataType {
+  public func type() -> any P4Type {
     return self
   }
 

@@ -114,9 +114,9 @@ public struct P4TypeQualifiers: CustomStringConvertible {
 
 public struct P4QualifiedType: CustomStringConvertible {
   let _attributes: P4TypeQualifiers
-  let base_type: P4DataType
+  let base_type: P4Type
 
-  public init(_ base_type: P4DataType, _ attributes: P4TypeQualifiers = P4TypeQualifiers([])) {
+  public init(_ base_type: P4Type, _ attributes: P4TypeQualifiers = P4TypeQualifiers([])) {
     self._attributes = attributes
     self.base_type = base_type
   }
@@ -137,7 +137,7 @@ public struct P4QualifiedType: CustomStringConvertible {
     return self._attributes.readOnly()
   }
 
-  public func baseType() -> P4DataType {
+  public func baseType() -> P4Type {
     return self.base_type
   }
 
@@ -181,7 +181,7 @@ public struct P4QualifiedType: CustomStringConvertible {
     return TypeCheckResults.Ok
   }
 
-  public static func ReadOnly(_ type: P4DataType) -> P4QualifiedType {
+  public static func ReadOnly(_ type: P4Type) -> P4QualifiedType {
     return P4QualifiedType(type, P4TypeQualifiers.ReadOnly())
   }
 

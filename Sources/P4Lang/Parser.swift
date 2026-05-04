@@ -41,20 +41,20 @@ public struct ParserAssignmentStatement {
 ///
 /// Note: A P4 Parser State is both a type and a value.
 /// This "bare" parser state represents the state more as a type than a value.
-public class ParserState: P4DataType, P4DataValue, Equatable, CustomStringConvertible {
+public class ParserState: P4Type, P4DataValue, Equatable, CustomStringConvertible {
   public static func == (lhs: ParserState, rhs: ParserState) -> Bool {
     // Two "bare" parser states are always equal.
     return true
   }
 
-  public func eq(rhs: any Common.P4DataType) -> Bool {
+  public func eq(rhs: any Common.P4Type) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public func type() -> any Common.P4DataType {
+  public func type() -> any Common.P4Type {
     return self
   }
 
@@ -116,14 +116,14 @@ public class InstantiatedParserState: ParserState {
     return lhs.state == rhs.state
   }
 
-  public override func eq(rhs: any Common.P4DataType) -> Bool {
+  public override func eq(rhs: any Common.P4Type) -> Bool {
     return switch rhs {
     case is ParserState: true
     default: false
     }
   }
 
-  public override func type() -> any Common.P4DataType {
+  public override func type() -> any Common.P4Type {
     return self
   }
 
@@ -276,12 +276,12 @@ public struct ParserStates {
 /// A P4 Parser
 ///
 /// Note: A Parser is both a type _and_ a value.
-public struct Parser: P4DataType, P4DataValue {
-  public func type() -> any Common.P4DataType {
+public struct Parser: P4Type, P4DataValue {
+  public func type() -> any Common.P4Type {
     return self
   }
 
-  public func eq(rhs: any Common.P4DataType) -> Bool {
+  public func eq(rhs: any Common.P4Type) -> Bool {
     return switch rhs {
     case let parser_rhs as Parser: self.name == parser_rhs.name
     default: false

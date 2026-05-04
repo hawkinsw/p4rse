@@ -32,7 +32,7 @@ let p4_program_with_struct_decl = """
   """
 
 // snippet.include
-let flter = { (tipe: P4DataType) -> Bool in
+let flter = { (tipe: P4Type) -> Bool in
   switch tipe {
   case let c as P4Struct: c.name == "agg"
   default: false

@@ -35,7 +35,7 @@ public protocol CompilableValue {
 public protocol CompilableType {
   static func CompileType(
     type: SwiftTreeSitter.Node, withContext: CompilerContext
-  ) -> Result<P4DataType?>
+  ) -> Result<P4Type?>
 }
 
 public protocol CompilableDeclaration {

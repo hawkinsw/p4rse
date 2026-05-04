@@ -26,14 +26,14 @@ public struct ExpressionStatement {
 }
 
 public struct Program {
-  public var types: [P4DataType] = Array()
-  public var externs: [P4DataType] = Array()
+  public var types: [P4Type] = Array()
+  public var externs: [P4Type] = Array()
   public var instances: [P4QualifiedType] = Array()
 
   /// Type of closure for filtering results from ``Program/InstancesWithTypes(_:)``
   public typealias TypeFilter = (P4QualifiedType) -> Bool
   /// Type of closure for filtering results from ``Program/TypesWithTypes(_:)``
-  public typealias DataTypeFilter = (P4DataType) -> Bool
+  public typealias DataTypeFilter = (P4Type) -> Bool
 
   /// Retrieve global instances in the compiled P4 program.
   public func InstancesWithTypes() -> [P4QualifiedType] {
@@ -59,7 +59,7 @@ public struct Program {
   }
 
   /// Retrieve global types in the compiled P4 program.
-  public func TypesWithTypes() -> [P4DataType] {
+  public func TypesWithTypes() -> [P4Type] {
     return self.types
   }
 
@@ -75,14 +75,14 @@ public struct Program {
   ///
   /// @Snippet(path: "use-program-typeswithtypes", slice: "include")
   ///
-  public func TypesWithTypes(_ filter: DataTypeFilter) -> [P4DataType] {
+  public func TypesWithTypes(_ filter: DataTypeFilter) -> [P4Type] {
     return self.types.filter { instance in
       filter(instance)
     }
   }
 
   /// Retrieve extern types in the compiled P4 program.
-  public func Externs() -> [P4DataType] {
+  public func Externs() -> [P4Type] {
     return self.externs
   }
 
@@ -98,7 +98,7 @@ public struct Program {
   ///
   /// @Snippet(path: "use-program-typeswithtypes", slice: "include")
   ///
-  public func Externs(_ filter: DataTypeFilter) -> [P4DataType] {
+  public func Externs(_ filter: DataTypeFilter) -> [P4Type] {
     return self.externs.filter { instance in
       filter(instance)
     }
