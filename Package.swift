@@ -5,78 +5,93 @@ import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
-    name: "p4rse",
-    platforms: [ .iOS(.v17), .macOS(.v13)],
-    products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "P4Compiler",
-            targets: ["P4Compiler"]
-        ),
-        .library(
-            name: "Common",
-            targets: ["Common"]
-        ),
-        .library(
-            name: "P4Lang",
-            targets: ["P4Lang"]
-        ),
-        .library(
-            name: "P4Runtime",
-            targets: ["P4Runtime"]
-        ),
-    ],
-    dependencies: [
-        .package(path: "./tree-sitter-p4"),
-        .package(url: "https://github.com/tree-sitter/swift-tree-sitter", revision: "main"),
-        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
-        .package(url: "https://github.com/swiftlang/swift-syntax", from: "602.0.0"),
-    ],
-    targets: [
-        .macro(
-            name: "Macros",
-            dependencies: [
-                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
-            ],
-            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")]),
-        .target(
-            name: "P4Compiler",
-            dependencies: [
-                .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
-                .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
-                .product(name: "TreeSitterP4", package: "tree-sitter-p4"),
-                .target(name: "TreeSitterExtensions"),
-                .target(name: "Common"),
-                .target(name: "P4Lang"),
-                .target(name: "P4Runtime"),
-            ],
-            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
-        ),
-        .target(
-            name: "TreeSitterExtensions",
-            dependencies: [
-                .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
-                .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
-            ],
-        ),
-        .target(
-            name: "Common",
-            dependencies: ["Macros"],
-            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
-        ),
-        .target(
-            name: "P4Lang",
-            dependencies: ["Common"]
-        ),
-        .target(
-            name: "P4Runtime",
-            dependencies: ["P4Lang", "Common"]
-        ),
-        .testTarget(
-            name: "Tests",
-            dependencies: ["P4Compiler", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common"],
-            swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
-        ),
-    ],
+  name: "p4ce",
+  platforms: [.iOS(.v17), .macOS(.v13)],
+  products: [
+    // Products define the executables and libraries a package produces, making them visible to other packages.
+    .library(
+      name: "P4Compiler",
+      targets: ["P4Compiler"]
+    ),
+    .library(
+      name: "Common",
+      targets: ["Common"]
+    ),
+    .library(
+      name: "P4Lang",
+      targets: ["P4Lang"]
+    ),
+    .library(
+      name: "P4Runtime",
+      targets: ["P4Runtime"]
+    ),
+    .executable(
+      name: "p4ce",
+      targets: ["Cli"]
+    ),
+  ],
+  dependencies: [
+    .package(path: "./tree-sitter-p4"),
+    .package(url: "https://github.com/tree-sitter/swift-tree-sitter", revision: "main"),
+    .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
+    .package(url: "https://github.com/swiftlang/swift-syntax", from: "602.0.0"),
+    .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.0"),
+  ],
+  targets: [
+    .macro(
+      name: "Macros",
+      dependencies: [
+        .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+        .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+      ],
+      swiftSettings: [.enableExperimentalFeature("CodeItemMacros")]),
+    .target(
+      name: "P4Compiler",
+      dependencies: [
+        .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
+        .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
+        .product(name: "TreeSitterP4", package: "tree-sitter-p4"),
+        .target(name: "TreeSitterExtensions"),
+        .target(name: "Common"),
+        .target(name: "P4Lang"),
+        .target(name: "P4Runtime"),
+      ],
+      swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
+    ),
+    .target(
+      name: "TreeSitterExtensions",
+      dependencies: [
+        .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
+        .product(name: "SwiftTreeSitterLayer", package: "swift-tree-sitter"),
+      ],
+    ),
+    .target(
+      name: "Common",
+      dependencies: ["Macros"],
+      swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
+    ),
+    .target(
+      name: "P4Lang",
+      dependencies: ["Common"]
+    ),
+    .target(
+      name: "P4Runtime",
+      dependencies: ["P4Lang", "Common"]
+    ),
+    .executableTarget(
+      name: "Cli",
+      dependencies: [
+        "Common", "P4Lang", "P4Compiler", "P4Runtime", "Macros",
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+      ],
+      swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
+    ),
+    .testTarget(
+      name: "Tests",
+      dependencies: [
+        "P4Compiler", "P4Runtime", "P4Lang", "Macros", "TreeSitterExtensions", "Common",
+      ],
+      swiftSettings: [.enableExperimentalFeature("CodeItemMacros")],
+    ),
+  ],
 )

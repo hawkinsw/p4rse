@@ -90,6 +90,7 @@ where `<component>` is one of:
 4. `common`: For any Swift-based components common to the entire project (and macros).
 5. `documentation`: For any documentation updates.
 6. `testing`: For Swift-based tests.
+7. `cli`: For Cli components.
 
 where `<subcomponent>` can be more free-form and `<change>` is a pithy description of the changes in the commit.
 
