@@ -194,17 +194,18 @@ extension VariableDeclarationStatement: CompilableStatement {
         Error(withMessage: "Could not parse a P4 type from \(typeref.text!)"))
     }
 
-    var initializer: EvaluatableExpression = declaration_p4_type.def()
+    var initializer: EvaluatableExpression? = .none
+
     // If there is an initializer, it must be an expression.
-    if let rvalue = maybe_rvalue {
-      guard rvalue.nodeType == "expression" else {
+    if let initializer_expression = maybe_rvalue {
+      guard initializer_expression.nodeType == "expression" else {
         return Result.Error(
           ErrorOnNode(
             node: node,
             withError: "initial value for declaration statement is not an expression"))
       }
 
-      let maybe_parsed_rvalue = Expression.Compile(node: rvalue, withContext: context)
+      let maybe_parsed_rvalue = Expression.Compile(node: initializer_expression, withContext: context)
       guard
         case .Ok(let parsed_rvalue) = maybe_parsed_rvalue
       else {
@@ -217,10 +218,22 @@ extension VariableDeclarationStatement: CompilableStatement {
         return Result.Error(
           Error(
             withMessage:
-              "Cannot initialize \(parsed_variablename) (with type \(declaration_p4_type)) from rvalue with type \(parsed_rvalue.type())"
+              "Cannot initialize \(parsed_variablename) (with type \(declaration_p4_type)) from expression with type \(parsed_rvalue.type())"
           ))
       }
     }
+
+    // If there is no initializer, then it must be defaultable.
+
+    if initializer == nil {
+      initializer = declaration_p4_type.def()
+    }
+
+    guard let initializer = initializer else {
+        return Result.Error(
+          ErrorOnNode(node: node, withError: "No initializer for declaration"))
+    }
+
     return Result.Ok(
       (
         VariableDeclarationStatement(

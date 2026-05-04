@@ -64,8 +64,8 @@ public struct Action: CustomStringConvertible, P4Type, P4DataValue {
     }
   }
 
-  public func def() -> any Common.P4DataValue {
-    return Action()
+  public func def() -> P4DataValue? {
+    return .none
   }
 
   public var description: String {
@@ -284,15 +284,8 @@ public struct Control: P4Type, P4DataValue, Equatable, CustomStringConvertible {
       withActions: self.actions, withApply: self.apply)
   }
 
-  public func def() -> any P4DataValue {
-    return Control(
-      named: Identifier(name: ""),
-      withParameters: ParameterList(),
-      withTable: Table(
-        withName: Identifier(name: "empty"),
-        withPropertyList: TablePropertyList(
-          withActions: TableActionsProperty(), withKeys: TableKeys())),
-      withActions: Actions(withActions: []), withApply: ApplyStatement())
+  public func def() -> P4DataValue? {
+    return .none
   }
 
 }

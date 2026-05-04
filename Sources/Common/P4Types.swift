@@ -141,8 +141,11 @@ public struct P4QualifiedType: CustomStringConvertible {
     return self.base_type
   }
 
-  public func def() -> P4Value {
-    return P4Value(self.base_type.def(), self)
+  public func def() -> P4Value? {
+    if let default_value = self.base_type.def() {
+      return P4Value(default_value, self)
+    }
+    return .none
   }
 
   public func eq(_ rhs: P4QualifiedType) -> Bool {

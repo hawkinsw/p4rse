@@ -101,8 +101,8 @@ public class ParserState: P4Type, P4DataValue, Equatable, CustomStringConvertibl
   /// Construct a ParserState
   public init() {}
 
-  public func def() -> any P4DataValue {
-    return ParserState()
+  public func def() -> P4DataValue? {
+    return .none
   }
 }
 
@@ -353,8 +353,8 @@ public struct Parser: P4Type, P4DataValue {
     return "Parser \(self.name) with parameters: \(parameters) and states: \(self.states)"
   }
 
-  public func def() -> any P4DataValue {
-    return Parser(withName: Identifier(name: ""))
+  public func def() -> P4DataValue? {
+    return .none
   }
 }
 

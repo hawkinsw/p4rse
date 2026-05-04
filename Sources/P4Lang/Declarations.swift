@@ -43,7 +43,7 @@ public struct Declaration: P4Type {
     }
   }
 
-  public func def() -> any Common.P4DataValue {
+  public func def() -> P4DataValue? {
     /// TODO: Is a default of the extern'd type the right way to go?
     return self.identifier.type.baseType().def()
   }
@@ -107,11 +107,8 @@ public struct FunctionDeclaration: P4Type, P4DataValue {
     }
   }
 
-  public func def() -> any Common.P4DataValue {
-    return FunctionDeclaration(
-      named: Identifier(name: ""), ofType: P4QualifiedType(P4Boolean()),
-      withParameters: ParameterList([]),
-      withBody: .none)
+  public func def() -> P4DataValue? {
+    return .none
   }
 
   public var description: String {

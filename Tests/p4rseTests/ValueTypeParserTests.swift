@@ -103,7 +103,7 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-          "{86, 27}: Failed to parse a statement element: Cannot initialize where_to (with type Boolean) from rvalue with type String"
+          "{86, 27}: Failed to parse a statement element: Cannot initialize where_to (with type Boolean) from expression with type String"
       ),
       Program.Compile(simple_parser_declaration)))
 }
@@ -123,7 +123,7 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-          "{77, 29}: Failed to parse a statement element: Cannot initialize where_from (with type String) from rvalue with type Boolean"
+          "{77, 29}: Failed to parse a statement element: Cannot initialize where_from (with type String) from expression with type Boolean"
       ),
       Program.Compile(simple_parser_declaration)))
 }
@@ -258,7 +258,7 @@ import TreeSitterP4
     #RequireErrorResult(
       Error(
         withMessage:
-          "{49, 22}: Failed to parse a statement element: Cannot initialize where_to (with type Boolean) from rvalue with type Int"
+          "{49, 22}: Failed to parse a statement element: Cannot initialize where_to (with type Boolean) from expression with type Int"
       ),
       Program.Compile(simple_parser_declaration, withGlobalInstances: test_types)))
 }

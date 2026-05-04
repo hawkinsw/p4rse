@@ -162,7 +162,7 @@ public struct P4Struct: P4Type {
     }
   }
 
-  public func def() -> any P4DataValue {
+  public func def() -> P4DataValue? {
     return P4StructValue(withType: self)
   }
 }
@@ -203,7 +203,7 @@ public class P4StructValue: P4DataValue {
       }
 
       // Now that we know that the field names match, do the values match?
-      if !op(left_field_value.dataValue(), right_field_value.dataValue()) {
+      if !op(left_field_value?.dataValue(), right_field_value?.dataValue()) {
         return false
       }
     }
@@ -297,19 +297,21 @@ public class P4StructValue: P4DataValue {
   }
 
   public let stype: P4Struct
-  public let values: [P4Value]
+  public let values: [P4Value?]
 
   public convenience init(withType type: P4Struct) {
     self.init(withType: type, andInitializers: [])
   }
 
   public init(withType type: P4Struct, andInitializers initializers: [P4Value?]) {
-    let values = zip(0..<type.fields.count(), type.fields.fields).map { (index, field) in
+    let values: [P4Value?] = zip(0..<type.fields.count(), type.fields.fields).map { (index, field) in
       // If there is an initializer for the field, then use it.
       if index < initializers.count, let initializer = initializers[index] {
         initializer
       } else {
-        // Otherwise, set a default!
+        // Otherwise, try to set a default!
+        // Note: If the field type does not have a default, then the value
+        // will be a none. Pretty cool!
         field.type.def()
       }
     }
@@ -361,7 +363,7 @@ public struct P4Boolean: P4Type {
     default: false
     }
   }
-  public func def() -> any P4DataValue {
+  public func def() -> P4DataValue? {
     return P4BooleanValue(withValue: false)
   }
 }
@@ -434,7 +436,7 @@ public struct P4Int: P4Type {
     default: false
     }
   }
-  public func def() -> any P4DataValue {
+  public func def() -> P4DataValue? {
     return P4IntValue(withValue: 0)
   }
 }
@@ -506,7 +508,7 @@ public struct P4String: P4Type {
     default: false
     }
   }
-  public func def() -> any P4DataValue {
+  public func def() -> P4DataValue? {
     return P4StringValue(withValue: "")
   }
 }
@@ -587,7 +589,7 @@ public struct P4Array: P4Type {
     }
   }
 
-  public func def() -> P4DataValue {
+  public func def() -> P4DataValue? {
     return P4ArrayValue(withType: self.vtype, withValue: [])
   }
 }
@@ -686,8 +688,11 @@ public struct P4Set: P4Type {
     }
   }
 
-  public func def() -> P4DataValue {
-    return P4SetValue(withValue: P4Value(self.stype.baseType().def(), self.stype))
+  public func def() -> P4DataValue? {
+    if let base_type_default = self.stype.baseType().def() {
+      return P4SetValue(withValue: P4Value(base_type_default, self.stype))
+    }
+    return .none
   }
 }
 
@@ -784,7 +789,7 @@ public struct P4HitMiss: P4Type {
     }
   }
 
-  public func def() -> any P4DataValue {
+  public func def() -> P4DataValue? {
     return P4TableHitMissValue.Miss
   }
 
