@@ -22,7 +22,9 @@ import Darwin
 @main
 struct Cli: ParsableCommand {
   public func run() throws {
+    let formatter = FormatterPlain()
     let e = ErrorWithLocation(sourceLocation: SourceLocation(1, 5), withError: "Testing")
-    print(e.format())
+    let e1 = ErrorWithLocation(sourceLocation: SourceLocation(10, 5), withError: "Oh no")
+    print(e.append(error: e1).format(formatter))
   }
 }

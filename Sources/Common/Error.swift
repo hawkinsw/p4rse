@@ -16,8 +16,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 public struct Error: Errorable, Equatable, CustomStringConvertible {
-  public func format() -> String {
-    return self.description
+  public func format(_ formatter: any Formattable) -> String {
+    return self._msg
   }
 
   public func msg() -> String {
@@ -40,11 +40,10 @@ public struct Error: Errorable, Equatable, CustomStringConvertible {
 }
 
 public struct ErrorWithLocation: Errorable, Equatable, CustomStringConvertible {
-  let startFormat: String = "\u{1B}[31;1;4m"
-  let endFormat: String = "\u{1B}[0m"
-
-  public func format() -> String {
-    return startFormat + "\(self.location)" + endFormat + ": \(self._msg)"
+  public func format(_ formatter: any Formattable) -> String {
+    let bold_red = Style(StyleColor.Red, [StyleFormat.Bold])
+    let formatted_location = formatter.formatWithStyle(self.location.description, bold_red)
+    return formatted_location + ": " + self._msg
   }
 
   public func msg() -> String {
@@ -70,8 +69,10 @@ public struct ErrorWithLocation: Errorable, Equatable, CustomStringConvertible {
 }
 
 public struct Errors: Errorable, CustomStringConvertible {
-  public func format() -> String {
-    return self.description
+  public func format(_ formatter: any Formattable) -> String {
+    self.errors.map() { error in
+      error.format(formatter)
+    }.joined(separator: "\n")
   }
 
   public func msg() -> String {
@@ -102,6 +103,12 @@ public struct Errors: Errorable, CustomStringConvertible {
 public struct ErrorWithLabel: Errorable {
   let label: String
   let error: any Errorable
+
+  public func format(_ formatter: any Formattable) -> String {
+    let green = Style(StyleColor.Green)
+    let formatted_label = formatter.formatWithStyle(self.label, green)
+    return formatted_label + self.error.format(formatter)
+  }
 
   public init(_ label: String, _ error: any Errorable) {
     self.label = label

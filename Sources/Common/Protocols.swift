@@ -71,7 +71,7 @@ public protocol ProgramExecutionEvaluator {
 }
 
 public protocol Errorable: CustomStringConvertible {
-  func format() -> String
+  func format(_ formatter: Formattable) -> String
   func msg() -> String
   func append(error: any Errorable) -> any Errorable
   func eq(_ rhs: any Errorable) -> Bool
@@ -81,6 +81,10 @@ extension Errorable {
   public func eq(_ rhs: any Errorable) -> Bool {
     return self.msg() == rhs.msg()
   }
+}
+
+public protocol Formattable {
+  func formatWithStyle(_ value: String, _ style: Style) -> String
 }
 
 extension ProgramExecutionEvaluator {

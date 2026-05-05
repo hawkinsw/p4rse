@@ -18,8 +18,8 @@
 import Common
 import Foundation
 import Macros
-import P4Runtime
 import P4Lang
+import P4Runtime
 import SwiftTreeSitter
 import Testing
 import TreeSitter
@@ -28,7 +28,31 @@ import TreeSitterP4
 @testable import P4Compiler
 
 @Test func test_error_with_location_formatting() async throws {
-    let e = ErrorWithLocation(sourceLocation: SourceLocation(1, 5), withError: "There was an error")
+  let formatter = FormatterAnsi()
+  let e = ErrorWithLocation(sourceLocation: SourceLocation(1, 5), withError: "There was an error")
+  let formatted = e.format(formatter)
+  #expect(formatted == "\u{1B}[31;1m{1, 5}\u{1B}[0m: There was an error")
+}
 
-    print(e.format())
+@Test func test_errors_with_location_no_formatting() async throws {
+  let e = ErrorWithLocation(sourceLocation: SourceLocation(1, 5), withError: "There was an error")
+  let e1 = ErrorWithLocation(
+    sourceLocation: SourceLocation(10, 5), withError: "There was another error")
+
+  let formatted = e.append(error: e1).format(FormatterPlain())
+
+  #expect(formatted == "{1, 5}: There was an error\n{10, 5}: There was another error")
+}
+
+@Test func test_errors_with_location_ansi_formatting() async throws {
+  let e = ErrorWithLocation(sourceLocation: SourceLocation(1, 5), withError: "There was an error")
+  let e1 = ErrorWithLocation(
+    sourceLocation: SourceLocation(10, 5), withError: "There was another error")
+
+  let formatted = e.append(error: e1).format(FormatterAnsi())
+
+  #expect(
+    formatted
+      == "\u{1B}[31;1m{1, 5}\u{1B}[0m: There was an error\n\u{1B}[31;1m{10, 5}\u{1B}[0m: There was another error"
+  )
 }

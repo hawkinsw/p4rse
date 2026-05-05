@@ -62,7 +62,7 @@ extension Result: CustomStringConvertible where OKT: CustomStringConvertible {
   public var description: String {
     switch self {
     case Result.Error(let e):
-      return e.format()
+      return e.msg()
     case Result.Ok(let o):
       return "Ok: \(o)"
     }
