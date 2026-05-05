@@ -169,11 +169,12 @@ public struct Parser {
           current_context = updated_context
           parsed_s.append(parsed_statement)
         case .Error(let e):
-          errors = if let errors = errors {
-            errors.append(error: e)
-          } else {
-            e
-          }
+          errors =
+            if let errors = errors {
+              errors.append(error: e)
+            } else {
+              e
+            }
         }
       }
 
@@ -255,11 +256,12 @@ public struct Parser {
           parsed_s = state_statements
           current_context = updated_context
         case .Error(let error):
-          errors = if let errors = errors {
-            errors.append(error: error)
-          } else {
-            error
-          }
+          errors =
+            if let errors = errors {
+              errors.append(error: error)
+            } else {
+              error
+            }
         }
         walker.next()
       }

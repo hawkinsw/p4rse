@@ -90,11 +90,12 @@ public struct Program {
           break
         case .Error(let e):
           found_parser = true
-          errors = if let errors = errors {
-            errors.append(error: e)
-          } else {
-            e
-          }
+          errors =
+            if let errors = errors {
+              errors.append(error: e)
+            } else {
+              e
+            }
           break
         }
       }

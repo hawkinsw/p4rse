@@ -70,7 +70,7 @@ public struct ErrorWithLocation: Errorable, Equatable, CustomStringConvertible {
 
 public struct Errors: Errorable, CustomStringConvertible {
   public func format(_ formatter: any Formattable) -> String {
-    self.errors.map() { error in
+    self.errors.map { error in
       error.format(formatter)
     }.joined(separator: "\n")
   }
