@@ -157,7 +157,7 @@ public struct Parser {
             sourceLocation: node.toSourceLocation(), withError: "Did not find expected statements"))
       }
 
-      var parse_errs: [any Errorable] = Array()
+      var errors: (any Errorable)? = .none
       var current_context = context
       var parsed_s: [EvaluatableStatement] = Array()
 
@@ -169,17 +169,18 @@ public struct Parser {
           current_context = updated_context
           parsed_s.append(parsed_statement)
         case .Error(let e):
-          parse_errs.append(e)
+          errors = if let errors = errors {
+            errors.append(error: e)
+          } else {
+            e
+          }
         }
       }
 
-      if !parse_errs.isEmpty {
-        return Result.Error(
-          Error(
-            withMessage: parse_errs.map { err in
-              return String(err.format())
-            }.joined(separator: ";")))
+      if let errors = errors {
+        return .Error(errors)
       }
+
       return Result.Ok((parsed_s, current_context))
     }
   }
@@ -242,7 +243,7 @@ public struct Parser {
             sourceLocation: node.toSourceLocation(), withError: "Missing body of state declaration")
         ))
 
-      var parse_errs: [any Errorable] = Array()
+      var errors: (any Errorable)? = .none
       var current_context = context
       var parsed_s: [EvaluatableStatement] = Array()
 
@@ -254,17 +255,17 @@ public struct Parser {
           parsed_s = state_statements
           current_context = updated_context
         case .Error(let error):
-          parse_errs.append(error)
+          errors = if let errors = errors {
+            errors.append(error: error)
+          } else {
+            error
+          }
         }
         walker.next()
       }
 
-      if !parse_errs.isEmpty {
-        return Result.Error(
-          Error(
-            withMessage: parse_errs.map { err in
-              return String(err.format())
-            }.joined(separator: ";")))
+      if let errors = errors {
+        return .Error(errors)
       }
 
       #MustOr(

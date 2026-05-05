@@ -60,7 +60,7 @@ public struct Program {
     // Add our FFIs
     compilation_context = compilation_context.update(newFFIs: ffis)
 
-    var errors: [any Errorable] = Array()
+    var errors: (any Errorable)? = .none
 
     // If the caller gave any global instances, add them here.
     if let globalInstances = globalInstances {
@@ -90,27 +90,33 @@ public struct Program {
           break
         case .Error(let e):
           found_parser = true
-          errors.append(e)
+          errors = if let errors = errors {
+            errors.append(error: e)
+          } else {
+            e
+          }
           break
         }
       }
 
       // If none of the declaration parsers chose to parse, that's an error, too!
       if !found_parser {
-        errors.append(
-          ErrorWithLocation(
-            sourceLocation: specific_declaration_node.toSourceLocation(),
-            withError: "Could not find parser for declaration node"
-          ))
+
+        let no_parser_error = ErrorWithLocation(
+          sourceLocation: specific_declaration_node.toSourceLocation(),
+          withError: "Could not find parser for declaration node"
+        )
+        errors =
+          if let errors = errors {
+            errors.append(error: no_parser_error)
+          } else {
+            no_parser_error
+          }
       }
     }
 
-    if !errors.isEmpty {
-      return Result.Error(
-        Error(
-          withMessage: errors.map { error in
-            return error.format()
-          }.joined(separator: ";")))
+    if let errors = errors {
+      return .Error(errors)
     }
 
     // Any of the instances that are in the top-level scope should go into the program!
