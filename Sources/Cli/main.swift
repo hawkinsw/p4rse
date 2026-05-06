@@ -17,6 +17,7 @@
 
 import ArgumentParser
 import Common
+
 @main
 struct Cli: ParsableCommand {
   public func run() throws {
