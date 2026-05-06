@@ -27,7 +27,7 @@ jobs:
       - uses: tree-sitter/setup-action@v2
       - uses: swift-actions/setup-swift@v3
         with:
-          swift-version: "6.2.4-dev"
+          swift-version: "snapshot"
           skip-verify-signature: true
       # Because our tree-sitter code is in a subdirectory,
       # and working-directory does not apply to uses, we
@@ -46,7 +46,7 @@ jobs:
       - uses: tree-sitter/setup-action@v2
       - uses: swift-actions/setup-swift@v3
         with:
-          swift-version: "6.2.4-dev"
+          swift-version: "snapshot"
           skip-verify-signature: true
       - run: tree-sitter generate
         working-directory: ./tree-sitter-p4
