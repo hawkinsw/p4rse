@@ -17,8 +17,6 @@
 
 import ArgumentParser
 import Common
-import Darwin
-
 @main
 struct Cli: ParsableCommand {
   public func run() throws {
